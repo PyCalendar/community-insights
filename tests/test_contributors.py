@@ -1,6 +1,16 @@
 from datetime import UTC, datetime
 
-from gh_community.contributors import days_ago, last_page, sort_rows, to_markdown
+import pytest
+from rows import blank
+
+from gh_community.contributors import (
+    DEFAULT_COLUMNS,
+    days_ago,
+    last_page,
+    parse_columns,
+    to_markdown,
+)
+from gh_community.results import sort_rows
 
 
 def row(
@@ -14,11 +24,11 @@ def row(
     reviewed=0,
     activity=None,
 ):
-    return {
-        "handle": handle, "commits": commits, "prs": prs, "merged": merged,
-        "opened": opened, "commented": commented, "pr_commented": pr_commented,
-        "reviewed": reviewed, "activity": activity,
-    }  # fmt: skip
+    return blank(
+        user_handle=handle, commits_total=commits, prs_total=prs, prs_merged=merged,
+        issues_opened=opened, issues_commented=commented,
+        prs_commented=pr_commented, prs_reviewed=reviewed, date_last=activity,
+    )  # fmt: skip
 
 
 ROWS = [
@@ -29,48 +39,48 @@ ROWS = [
 
 
 def order(column):
-    return [r["handle"] for r in sort_rows(ROWS, column)]
+    return [r["user_handle"] for r in sort_rows(ROWS, column)]
 
 
 def test_sort_default_is_merged_prs():
-    assert [r["handle"] for r in sort_rows(ROWS)] == ["carol", "bob", "alexander"]
+    assert [r["user_handle"] for r in sort_rows(ROWS)] == ["carol", "bob", "alexander"]
 
 
-def test_sort_prs_sorts_by_merged_only():
-    assert order("prs") == ["carol", "bob", "alexander"]
+def test_sort_prs_merged_not_total():
+    assert order("prs_merged") == ["carol", "bob", "alexander"]
     rows = [row("b", prs=1, merged=2), row("a", prs=99, merged=2)]
-    assert [r["handle"] for r in sort_rows(rows, "prs")] == ["a", "b"]
+    assert [r["user_handle"] for r in sort_rows(rows, "prs_merged")] == ["a", "b"]
 
 
 def test_sort_commits_and_handle():
-    assert order("commits") == ["alexander", "bob", "carol"]
-    assert order("handle") == ["alexander", "bob", "carol"]
+    assert order("commits_total") == ["alexander", "bob", "carol"]
+    assert order("user_handle") == ["alexander", "bob", "carol"]
 
 
 def test_sort_issue_and_review_columns():
-    assert order("opened") == ["carol", "bob", "alexander"]
-    assert order("commented") == ["alexander", "carol", "bob"]
-    assert order("pr_commented") == ["carol", "bob", "alexander"]
-    assert order("reviewed") == ["carol", "bob", "alexander"]
+    assert order("issues_opened") == ["carol", "bob", "alexander"]
+    assert order("issues_commented") == ["alexander", "carol", "bob"]
+    assert order("prs_commented") == ["carol", "bob", "alexander"]
+    assert order("prs_reviewed") == ["carol", "bob", "alexander"]
 
 
-def test_sort_activity_newest_first_unknown_last():
-    assert order("activity") == ["alexander", "bob", "carol"]
+def test_sort_days_last_newest_first_unknown_last():
+    assert order("days_last") == ["alexander", "bob", "carol"]
 
 
 def test_markdown_alignment():
     now = datetime(2026, 3, 11, 8, tzinfo=UTC)
     assert to_markdown(sort_rows(ROWS), now) == "\n".join(
         [
-            "| handle    | commits |   prs | issues opened | issues commented on "
+            "| handle    | commits | merged PRs | issues opened | issues commented on "
             "| PRs commented on | PRs reviewed | last activity |",
-            "| --------- | ------: | ----: | ------------: | ------------------: "
+            "| --------- | ------: | ---------: | ------------: | ------------------: "
             "| ---------------: | -----------: | ------------: |",
-            "| carol     |       5 |   7/7 |            10 |                   1 "
+            "| carol     |       5 |        7/7 |            10 |                   1 "
             "|               25 |          100 |             - |",
-            "| bob       |       5 | 4/120 |             2 |                   0 "
+            "| bob       |       5 |      4/120 |             2 |                   0 "
             "|                3 |            9 |   37 days ago |",
-            "| alexander |    1200 |   1/3 |             0 |                  14 "
+            "| alexander |    1200 |        1/3 |             0 |                  14 "
             "|                0 |            0 |   10 days ago |",
         ]
     )
@@ -90,6 +100,71 @@ def test_days_ago():
     assert days_ago(None, now) == "-"
     assert days_ago(datetime(2026, 3, 11, 1, tzinfo=UTC), now) == "today"
     assert days_ago(datetime(2026, 3, 10, 9, tzinfo=UTC), now) == "today"
-    assert days_ago(datetime(2026, 3, 10, 8, tzinfo=UTC), now) == "1 day ago"
+    assert days_ago(datetime(2026, 3, 10, 8, tzinfo=UTC), now) == "1 day  ago"
     assert days_ago(datetime(2026, 1, 1, tzinfo=UTC), now) == "69 days ago"
     assert days_ago(datetime(2026, 3, 12, tzinfo=UTC), now) == "today"  # clock skew
+
+
+def test_columns_specification():
+    assert parse_columns("user_handle+prs_merged") == ["user_handle", "prs_merged"]
+    assert parse_columns("commits_total") == ["commits_total"]
+    assert parse_columns("+prs_open") == [*DEFAULT_COLUMNS, "prs_open"]
+    assert parse_columns("-days_last-commits_total+prs_open") == [
+        "user_handle",
+        "prs_merged",
+        "issues_opened",
+        "issues_commented",
+        "prs_commented",
+        "prs_reviewed",
+        "prs_open",
+    ]
+    # adding what is shown or removing what is not shown changes nothing
+    assert parse_columns("+commits_total-prs_open") == list(DEFAULT_COLUMNS)
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["", "+", "a,b", "+commits_total,days_last", "+nope", "x y", "+-x", "a++b", "A"],
+)
+def test_invalid_columns_specification(text):
+    with pytest.raises(ValueError):
+        parse_columns(text)
+
+
+def test_all_columns_removed():
+    with pytest.raises(ValueError):
+        parse_columns("user_handle-user_handle")
+
+
+def test_unknown_column_suggests_the_closest():
+    with pytest.raises(ValueError, match="Did you mean 'prs_open'"):
+        parse_columns("+prs_opn")
+
+
+def test_sort_direction_with_sign():
+    # ascending days_last: the newest activity first, unknown (infinite) last
+    assert order("+days_last") == ["alexander", "bob", "carol"]
+    assert order("days_last") == order("+days_last")
+    assert order("-days_last") == ["carol", "bob", "alexander"]
+    assert order("+commits_total") == ["bob", "carol", "alexander"]  # ties: handle
+    assert order("-commits_total") == ["alexander", "bob", "carol"]
+    assert order("-user_handle") == ["carol", "bob", "alexander"]
+    assert order("+issues_closed") == ["alexander", "bob", "carol"]
+
+
+def test_sort_association_by_privilege_and_errors():
+    rows = [
+        row("a"), row("b"), row("c"),
+    ]  # fmt: skip
+    rows[0]["user_association"] = "member"
+    rows[1]["user_association"] = "owner"
+    rows[2]["user_association"] = "none"
+    assert [r["user_handle"] for r in sort_rows(rows, "user_association")] == [
+        "b",
+        "a",
+        "c",
+    ]
+    with pytest.raises(ValueError, match="Did you mean 'prs_merged'"):
+        sort_rows(rows, "-prs_mrged")
+    with pytest.raises(ValueError):
+        sort_rows(rows, "+-days_last")

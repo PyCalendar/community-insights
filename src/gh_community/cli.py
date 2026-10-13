@@ -1,6 +1,7 @@
 """Command line interface: gh-community."""
 
-from enum import StrEnum
+import re
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -18,7 +19,30 @@ from .config import (
     user_config_path,
     write_data,
 )
-from .contributors import JOBS, collect, sort_rows, to_markdown
+from .contributors import (
+    COLUMN_DEFS,
+    DEFAULT_COLUMNS,
+    JOBS,
+    collect,
+    parse_columns,
+    to_markdown,
+)
+from .results import (
+    EXPRESSION_HELP,
+    VARIABLES,
+    keep,
+    list_results,
+    parse_expression,
+    parse_sort,
+    read_result,
+    remove,
+    result_name,
+    result_path,
+    sort_rows,
+    to_csv,
+    variable_doc,
+    write_result,
+)
 
 app = typer.Typer(help="GitHub community analysis.", no_args_is_help=True)
 contributors_app = typer.Typer(help="Contributor statistics.", no_args_is_help=True)
@@ -35,15 +59,44 @@ config_app.add_typer(token_app, name="token")
 config_app.add_typer(repo_app, name="repo")
 
 
-class SortColumn(StrEnum):
-    handle = "handle"
-    commits = "commits"
-    prs = "prs"
-    opened = "opened"
-    commented = "commented"
-    pr_commented = "pr_commented"
-    reviewed = "reviewed"
-    activity = "activity"
+def _complete_sort(incomplete: str) -> list[str]:
+    sign = incomplete[:1] if incomplete[:1] in "+-" else ""
+    return [
+        sign + name
+        for name in sorted(VARIABLES)
+        if name.startswith(incomplete[len(sign) :])
+    ]
+
+
+def _checked_sort(sort: str) -> str:
+    """The sort, or a usage error; checked before anything is downloaded."""
+    try:
+        parse_sort(sort)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--sort") from error
+    return sort
+
+
+CsvOption = Annotated[
+    bool,
+    typer.Option(
+        "--csv",
+        help="Print CSV instead of a Markdown table: the headers of the columns as "
+        "in the table, then only numbers (not X/total, days instead of days ago) "
+        "and strings.",
+    ),
+]
+SortOption = Annotated[
+    str,
+    typer.Option(
+        "--sort",
+        metavar="[+-]VARIABLE",
+        autocompletion=_complete_sort,
+        help="What to sort by: +variable ascending, -variable descending (use "
+        "--sort=-variable). Without a sign the handle and the days_ are "
+        "ascending, the rest descending. Any variable, see below.",
+    ),
+]
 
 
 # Options for every command that talks to the GitHub API. They override the config.
@@ -88,14 +141,21 @@ def contributors_all(
     repositories: RepoArgument = None,
     config: ConfigOption = None,
     token: TokenOption = None,
-    sort: Annotated[
-        SortColumn, typer.Option("--sort", help="Column to sort by.")
-    ] = SortColumn.prs,
+    sort: SortOption = "prs_merged",
+    csv_output: CsvOption = False,
     cache_dir: CacheDirOption = None,
     no_cache: NoCacheOption = False,
     jobs: JobsOption = JOBS,
+    save: Annotated[
+        bool, typer.Option(help="Store the result as CSV next to the config.")
+    ] = True,
 ) -> None:
-    """List all contributors as a Markdown table."""
+    """List all contributors as a Markdown table.
+
+    The result is also stored as org-repo-yyyy-mm-dd-hh-mm-ss.csv next to the
+    config, for 'gh-community result'.
+    """
+    _checked_sort(sort)
     cfg = load_config(config, token, repositories)
     rows = collect(
         cfg.token,
@@ -105,7 +165,163 @@ def contributors_all(
         cache=None if no_cache else ResponseCache(cache_dir or default_cache_dir()),
         jobs=jobs,
     )
-    typer.echo(to_markdown(sort_rows(rows, sort.value)))
+    if save:
+        path = result_path(
+            resolve_path(config).parent,
+            result_name(cfg.repositories, datetime.now()),
+        )
+        write_result(path, rows)
+        typer.echo(f"Stored {path}", err=True)
+    rows = sort_rows(rows, sort)
+    if csv_output:
+        typer.echo(to_csv(rows, DEFAULT_COLUMNS), nl=False)
+    else:
+        typer.echo(to_markdown(rows))
+
+
+def _complete_result(ctx: typer.Context, incomplete: str) -> list[str]:
+    config = ctx.params.get("config")  # a str here; only if given before the name
+    directory = resolve_path(Path(config) if config else None).parent
+    return [n for n in list_results(directory) if n.startswith(incomplete)]
+
+
+def _complete_expression(incomplete: str) -> list[str]:
+    """Complete the last word of an expression: a field, and, or, not."""
+    head = incomplete.rstrip("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_")
+    prefix = incomplete[len(head) :]
+    words = [*VARIABLES, "and", "or", "not"]
+    return [head + w for w in words if w.startswith(prefix.lower())]
+
+
+# columns that show their variable differently
+COLUMN_NOTES = {
+    name: f"{variable_doc(name)}, shown as X/{total} (variable {name}: the number)"
+    for name, total in (
+        ("prs_open", "prs_total"),
+        ("prs_merged", "prs_total"),
+        ("prs_unmerged", "prs_total"),
+        ("prs_closed", "prs_total"),
+        ("issues_open", "issues_opened"),
+        ("issues_closed", "issues_opened"),
+    )
+} | {
+    "days_first": "days ago of the first activity (variable days_first: the days)",
+    "days_last": "days ago of the last activity (variable days_last: the days)",
+}
+
+
+def _column_help() -> str:
+    def lines(names) -> str:
+        out = []
+        for name in names:
+            note = COLUMN_NOTES.get(name)
+            if note is None:
+                note = f"{variable_doc(name)} (also a variable)"
+            out.append(f"  {name:<22}{note}")
+        return "\n".join(out)
+
+    others = sorted(set(COLUMN_DEFS) - set(DEFAULT_COLUMNS))
+    return (
+        f"Default columns:\n{lines(DEFAULT_COLUMNS)}\n\n"
+        f"Additional columns:\n{lines(others)}"
+    )
+
+
+def _complete_columns(incomplete: str) -> list[str]:
+    """Complete the last column name of a specification like +x-y."""
+    prefix = re.split(r"(?<=[+-])", incomplete)[-1]
+    head = incomplete[: len(incomplete) - len(prefix)]
+    return [head + c for c in COLUMN_DEFS if c.startswith(prefix)]
+
+
+@app.command(
+    "result",
+    epilog=f"{_column_help()}\n\n{EXPRESSION_HELP}".replace("[bot]", r"\[bot]"),
+)
+def result(
+    name: Annotated[
+        str | None,
+        typer.Argument(
+            help="A stored result, org-repo-yyyy-mm-dd-hh-mm-ss (see --list).",
+            autocompletion=_complete_result,
+        ),
+    ] = None,
+    expression: Annotated[
+        str | None,
+        typer.Argument(
+            metavar="[EXPRESSION]",
+            autocompletion=_complete_expression,
+            help="Show only the contributors for which this is true, for example "
+            "'days<30' (see below).",
+        ),
+    ] = None,
+    config: ConfigOption = None,
+    list_names: Annotated[
+        bool, typer.Option("--list", help="List the names of the stored results.")
+    ] = False,
+    remove_matching: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--remove",
+            metavar="EXPRESSION",
+            autocompletion=_complete_expression,
+            help="Like EXPRESSION, but removes the contributors for which this is "
+            "true instead of keeping them. Can be repeated.",
+        ),
+    ] = None,
+    sort: SortOption = "prs_merged",
+    csv_output: CsvOption = False,
+    columns: Annotated[
+        str | None,
+        typer.Option(
+            "--columns",
+            metavar="[+-]COLUMN...",
+            autocompletion=_complete_columns,
+            help="The columns to show, as column+column..., in this order, or "
+            "+column-column... to add to and remove from the default columns "
+            "(use --columns=-column if it starts with -; explained below).",
+        ),
+    ] = None,
+) -> None:
+    """Show a stored result as a Markdown table, optionally filtered.
+
+    The filters only change what is printed, the stored file is never edited.
+    --list lists the names of the stored results instead.
+    """
+    _checked_sort(sort)
+    directory = resolve_path(config).parent
+    if list_names:
+        for stored in list_results(directory):
+            typer.echo(stored)
+        return
+    if name is None:
+        raise typer.BadParameter("Give the name of a result or use --list.")
+    path = result_path(directory, name)
+    if not path.is_file():
+        raise typer.BadParameter(f"No such result: {path}", param_hint="NAME")
+    try:
+        keeping = [parse_expression(expression)] if expression else []
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="EXPRESSION") from error
+    try:
+        removing = [parse_expression(e) for e in remove_matching or []]
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--remove") from error
+    try:
+        shown = list(DEFAULT_COLUMNS) if columns is None else parse_columns(columns)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--columns") from error
+    now = datetime.now(UTC)
+    everyone = read_result(path)
+    rows = remove(keep(everyone, keeping, now), removing, now)
+    rows = sort_rows(rows, sort, now)
+    summary = f"Showing {len(rows)} of {len(everyone)} contributors."
+    if csv_output:
+        typer.echo(to_csv(rows, shown, now), nl=False)
+        typer.echo(summary, err=True)  # stdout stays the CSV
+    else:
+        typer.echo(to_markdown(rows, now, shown))
+        typer.echo(f"\n{summary}")
 
 
 @config_app.command("create")

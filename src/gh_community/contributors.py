@@ -1,5 +1,6 @@
 """Collecting and formatting contributor statistics."""
 
+import difflib
 import re
 import threading
 from collections import defaultdict
@@ -7,23 +8,143 @@ from collections.abc import Callable, Iterable, Iterator
 from concurrent.futures import Executor, ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import UTC, datetime
+from statistics import median
 
 from github import Auth, Github
 
 from .cache import ResponseCache, installed
 
-# (key in the rows, header of the table)
-COLUMNS = (
-    ("handle", "handle"),
-    ("commits", "commits"),
-    ("prs", "prs"),
-    ("opened", "issues opened"),
-    ("commented", "issues commented on"),
-    ("pr_commented", "PRs commented on"),
-    ("reviewed", "PRs reviewed"),
-    ("activity", "last activity"),
+
+def _count(key: str, header: str):
+    """A column with the number in the row key."""
+    return (header, lambda r, now: str(r[key]), False)
+
+
+def _part(part: Callable[[dict], int], total: str, header: str):
+    """A column with a part of the total in the row key, as X/total."""
+    return (header, lambda r, now: f"{part(r)}/{r[total]}", False)
+
+
+# The columns of the table that can be chosen: name -> (header, text, left aligned)
+# where text(row, now) is the content of a cell. The names are the ones of the
+# variables of the expressions (and of the columns of the CSV), grouped by prefix:
+# user_, commits_, prs_, issues_, comments_, actions_, days_, months_. Parts of
+# the pull requests or issues opened are shown as X/total.
+COLUMN_DEFS: dict[str, tuple[str, Callable[[dict, datetime], str], bool]] = {
+    "user_handle": ("handle", lambda r, now: r["user_handle"], True),
+    "user_association": (
+        "association",
+        lambda r, now: r["user_association"] or "-",
+        True,
+    ),
+    "user_bot": (
+        "bot",
+        lambda r, now: "yes" if is_bot(r["user_handle"]) else "no",
+        True,
+    ),
+    "commits_total": _count("commits_total", "commits"),
+    "prs_total": _count("prs_total", "PRs"),
+    "prs_open": _part(lambda r: r["prs_open"], "prs_total", "open PRs"),
+    "prs_merged": _part(lambda r: r["prs_merged"], "prs_total", "merged PRs"),
+    "prs_unmerged": _part(lambda r: r["prs_unmerged"], "prs_total", "unmerged PRs"),
+    "prs_closed": _part(
+        lambda r: r["prs_merged"] + r["prs_unmerged"], "prs_total", "closed PRs"
+    ),
+    "prs_commented": _count("prs_commented", "PRs commented on"),
+    "prs_reviewed": _count("prs_reviewed", "PRs reviewed"),
+    "prs_approved": _count("prs_approved", "PRs approved"),
+    "prs_changes_requested": _count("prs_changes_requested", "changes requested"),
+    "issues_opened": _count("issues_opened", "issues opened"),
+    "issues_open": _part(lambda r: r["issues_open"], "issues_opened", "open issues"),
+    "issues_closed": _part(
+        lambda r: r["issues_opened"] - r["issues_open"],
+        "issues_opened",
+        "closed issues",
+    ),
+    "issues_commented": _count("issues_commented", "issues commented on"),
+    "comments_total": _count("comments_total", "comments"),
+    "actions_merges": _count("actions_merges", "merges"),
+    "actions_closes": _count("actions_closes", "closes"),
+    "actions_labels": _count("actions_labels", "labels"),
+    "days_first": (
+        "first activity",
+        lambda r, now: days_ago(r["date_first"], now),
+        False,
+    ),
+    "days_last": ("last activity", lambda r, now: days_ago(r["date_last"], now), False),
+    "days_to_merge": (
+        "days to merge",
+        lambda r, now: "-" if r["days_to_merge"] is None else f"{r['days_to_merge']:g}",
+        False,
+    ),
+    "months_active": _count("months_active", "active months"),
+}
+DEFAULT_COLUMNS = (
+    "user_handle",
+    "commits_total",
+    "prs_merged",
+    "issues_opened",
+    "issues_commented",
+    "prs_commented",
+    "prs_reviewed",
+    "days_last",
 )
-SORT_KEYS = tuple(key for key, _ in COLUMNS)
+
+
+def is_bot(handle: str) -> bool:
+    """Bots have [bot] in their handle; Copilot has none."""
+    handle = handle.lower()
+    return "[bot]" in handle or handle in BOT_HANDLES
+
+
+def unknown(kind: str, name: str, choices: Iterable[str]) -> str:
+    """An error text for an unknown name, with the closest names and all of them."""
+    choices = sorted(choices)
+    close = difflib.get_close_matches(name.lower(), choices, n=2, cutoff=0.6)
+    # also names that contain it or are part of it, for example "open" for prs_open
+    close += [
+        c for c in choices if name and (name in c or c in name) and c not in close
+    ][: 3 - len(close)]
+    hint = f" Did you mean {' or '.join(repr(c) for c in close)}?" if close else ""
+    return f"Unknown {kind} {name!r}.{hint} Use one of: {', '.join(choices)}."
+
+
+COLUMNS_SYNTAX = re.compile(r"[+-]?[a-z_]+([+-][a-z_]+)*")
+
+
+def parse_columns(text: str, default: Iterable[str] = DEFAULT_COLUMNS) -> list[str]:
+    """The columns of a specification, split by + and -; ValueError if invalid.
+
+    A specification that starts with + or - changes the default columns: +x-y
+    adds x and removes y. One that starts with a name is the list of columns:
+    x+y shows x and y. Adding a column that is shown or removing one that is not
+    changes nothing.
+    """
+    text = text.strip()
+    if "," in text:
+        raise ValueError("Separate the columns with + and -, not with a comma.")
+    if not COLUMNS_SYNTAX.fullmatch(text):
+        raise ValueError(
+            f"{text!r} is not a column specification like +x-y or x+y, with the "
+            "names of columns."
+        )
+    names = re.findall(r"[a-z_]+", text)
+    for name in names:
+        if name not in COLUMN_DEFS:
+            raise ValueError(unknown("column", name, COLUMN_DEFS))
+    columns = list(default) if text[0] in "+-" else []
+    for sign, name in re.findall(r"([+-]?)([a-z_]+)", text):
+        if sign == "-":
+            columns = [c for c in columns if c != name]
+        elif name not in columns:
+            columns.append(name)
+    if not columns:
+        raise ValueError("No columns are left.")
+    return columns
+
+
+# bots whose handle does not contain [bot]
+BOT_HANDLES = ("copilot",)
 
 REVIEW_PROGRESS_EVERY = 25
 # PyGithub waits 0.25s between requests by default: too slow for the many
@@ -44,6 +165,31 @@ def latest(*dates: datetime | None) -> datetime | None:
     """The most recent of the dates that are known."""
     known = [d for d in dates if d is not None]
     return max(known) if known else None
+
+
+def earliest(*dates: datetime | None) -> datetime | None:
+    """The oldest of the dates that are known."""
+    known = [d for d in dates if d is not None]
+    return min(known) if known else None
+
+
+# GitHub's author_association, from the most privileged, in lowercase as stored
+ASSOCIATIONS = (
+    "owner",
+    "member",
+    "collaborator",
+    "contributor",
+    "first_timer",
+    "first_time_contributor",
+    "mannequin",
+    "none",
+)
+
+
+def more_privileged(*names: str | None) -> str:
+    """The most privileged of the association names; "" if none is known."""
+    known = [n.lower() for n in names if n and n.lower() in ASSOCIATIONS]
+    return min(known, key=ASSOCIATIONS.index) if known else ""
 
 
 def parse_date(text: str | None) -> datetime | None:
@@ -88,15 +234,31 @@ class Collector:
         self.skipped = 0  # requests that were not needed since nothing changed
         self.rows: dict[str, dict] = defaultdict(
             lambda: {
-                "handle": "",
-                "commits": 0,
-                "prs": 0,
-                "merged": 0,
-                "opened": 0,
-                "commented": 0,
-                "pr_commented": 0,
-                "reviewed": 0,
-                "activity": None,
+                "user_handle": "",
+                "commits_total": 0,
+                "prs_total": 0,
+                "prs_open": 0,
+                "prs_merged": 0,
+                "prs_unmerged": 0,  # closed without being merged
+                "issues_opened": 0,
+                "issues_open": 0,
+                "issues_commented": 0,
+                "prs_commented": 0,
+                "prs_reviewed": 0,
+                "prs_approved": 0,
+                "prs_changes_requested": 0,
+                "comments_total": 0,  # all comments, not only the issues they are on
+                "actions_merges": 0,  # pull requests merged by the user
+                "actions_closes": 0,  # issues and pull requests closed, not by merging
+                "actions_labels": 0,  # labels set
+                "user_association": "",  # the most privileged one seen
+                "date_first": None,
+                "months_active": 0,
+                "days_to_merge": None,  # median days until their pull requests merged
+                "date_last": None,
+                # collected, then reduced to months_active and days_to_merge
+                "months": set(),
+                "merge_times": [],
             }
         )
 
@@ -113,10 +275,14 @@ class Collector:
     def say(self, text: str, *more: str) -> None:
         self.progress(" | ".join([f"{text:<{TEXT_WIDTH}}", self.status(), *more]))
 
-    def row(self, login: str, date: datetime | None = None) -> dict:
+    def row(self, login: str, dates: Iterable[datetime] = ()) -> dict:
         row = self.rows[login]
-        row["handle"] = login
-        row["activity"] = latest(row["activity"], date)
+        row["user_handle"] = login
+        dates = list(dates)
+        if dates:
+            row["date_last"] = latest(row["date_last"], max(dates))
+            row["date_first"] = earliest(row["date_first"], min(dates))
+            row["months"] |= {d.strftime("%Y-%m") for d in dates}
         return row
 
     def get(self, path: str, page: int | None = None, **params) -> tuple[dict, list]:
@@ -306,7 +472,7 @@ class Collector:
         # The newest commit of each contributor: one small request each, which
         # is answered from the cache if the contributor has nothing new.
         logins = list(commits)
-        activity: dict[str, datetime | None] = {}
+        dates: dict[str, list[datetime]] = defaultdict(list)
         self.say(f"{prefix}: latest commits 0/{len(logins)}, one request each")
         with self.step("latest commits"):
             newest = self.pool.map(
@@ -314,7 +480,7 @@ class Collector:
             )
             for position, (login, found) in enumerate(zip(logins, newest), 1):
                 if found[0]:
-                    activity[login] = parse_date(found[0])
+                    dates[login].append(parse_date(found[0]))
                 if position % PER_PAGE == 0 and position != len(logins):
                     self.say(f"{prefix}: latest commits {position}/{len(logins)}")
         self.say(f"{prefix}: latest commits {len(logins)}/{len(logins)}")
@@ -341,14 +507,30 @@ class Collector:
         commented: dict[str, set[int]] = defaultdict(set)
         pr_commented: dict[str, set[int]] = defaultdict(set)
         reviewed: dict[str, set[int]] = defaultdict(set)
+        approved: dict[str, set[int]] = defaultdict(set)
+        changes_requested: dict[str, set[int]] = defaultdict(set)
+        comment_counts: dict[str, int] = defaultdict(int)
+        actions: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
         def touch(login: str, date: datetime | None) -> None:
-            activity[login] = latest(activity.get(login), date)
+            if date:
+                dates[login].append(date)
+
+        associations: dict[str, str] = {}
+
+        def associate(item: dict) -> None:
+            """Remember the association of the author of an item."""
+            if author(item):
+                associations[author(item)] = more_privileged(
+                    associations.get(author(item)), item.get("author_association")
+                )
 
         for pull in pulls.values():
+            associate(pull)
             if author(pull):
                 touch(author(pull), parse_date(pull["created_at"]))
         for issue in issues.values():
+            associate(issue)
             if author(issue):
                 touch(author(issue), parse_date(issue["created_at"]))
 
@@ -362,12 +544,15 @@ class Collector:
                 continue
             number_ = int(comment["issue_url"].rsplit("/", 1)[1])
             if number_ in issues:
-                commented[login].add(number_)
+                if author(issues[number_]) != login:
+                    commented[login].add(number_)
             elif number_ in pulls:
                 if pull_authors[number_] != login:
                     pr_commented[login].add(number_)
             else:
                 continue
+            comment_counts[login] += 1
+            associate(comment)
             touch(login, parse_date(comment["created_at"]))
 
         # Comments on the changes of a pull request
@@ -380,6 +565,8 @@ class Collector:
             if not login:
                 continue
             number_ = int(comment["pull_request_url"].rsplit("/", 1)[1])
+            comment_counts[login] += 1
+            associate(comment)
             touch(login, parse_date(comment["created_at"]))
             if pull_authors.get(number_) != login:
                 pr_commented[login].add(number_)
@@ -393,12 +580,24 @@ class Collector:
             login = (event.get("actor") or {}).get("login")
             if login:
                 touch(login, parse_date(event["created_at"]))
+                number_ = (event.get("issue") or {}).get("number")
+                kind = event.get("event")
+                if kind == "closed":
+                    # merging a pull request closes it, too: that is a merge
+                    if not (pulls.get(number_) or {}).get("merged_at"):
+                        actions[login]["actions_closes"] += 1
+                elif kind == "merged":
+                    actions[login]["actions_merges"] += 1
+                elif kind == "labeled":
+                    actions[login]["actions_labels"] += 1
         with self.step("commit comments"):
             commit_comments = self.read_list(
                 prefix, "commit comments", f"{base}/comments"
             )
         for comment in commit_comments:
             if author(comment):
+                comment_counts[author(comment)] += 1
+                associate(comment)
                 touch(author(comment), parse_date(comment["created_at"]))
 
         # The reviews can only be read per pull request: one request each,
@@ -416,6 +615,10 @@ class Collector:
                     touch(login, parse_date(submitted))
                     if pull_authors[number_] != login:
                         reviewed[login].add(number_)
+                        if state == "APPROVED":
+                            approved[login].add(number_)
+                        elif state == "CHANGES_REQUESTED":
+                            changes_requested[login].add(number_)
                 if position % REVIEW_PROGRESS_EVERY == 0 and position != len(numbers):
                     self.say(
                         f"{prefix}: reviews of pull request {position}/{len(numbers)}"
@@ -424,26 +627,55 @@ class Collector:
 
         # Everything is read: add it to the rows.
         for login, contributions in commits.items():
-            self.row(login)["commits"] += contributions
+            self.row(login)["commits_total"] += contributions
         for pull in pulls.values():
             if author(pull):
                 row = self.row(author(pull))
-                row["prs"] += 1
-                row["merged"] += pull["merged_at"] is not None
+                row["prs_total"] += 1
+                if pull["merged_at"] is not None:
+                    row["prs_merged"] += 1
+                    created, merged = pull["created_at"], pull["merged_at"]
+                    row["merge_times"].append(
+                        (parse_date(merged) - parse_date(created)).total_seconds()
+                        / 86400
+                    )
+                elif pull["state"] == "open":
+                    row["prs_open"] += 1
+                else:
+                    row["prs_unmerged"] += 1
         for issue in issues.values():
             if author(issue):
-                self.row(author(issue))["opened"] += 1
+                row = self.row(author(issue))
+                row["issues_opened"] += 1
+                row["issues_open"] += issue.get("state") == "open"
         for key, found_in in (
-            ("commented", commented),
-            ("pr_commented", pr_commented),
-            ("reviewed", reviewed),
+            ("issues_commented", commented),
+            ("prs_commented", pr_commented),
+            ("prs_reviewed", reviewed),
+            ("prs_approved", approved),
+            ("prs_changes_requested", changes_requested),
         ):
             for login, numbers_ in found_in.items():
                 self.row(login)[key] += len(numbers_)
-        for login, date in activity.items():
-            self.row(login, date)
+        for login, counted in comment_counts.items():
+            self.row(login)["comments_total"] += counted
+        for login, done in actions.items():
+            for key, counted in done.items():
+                self.row(login)[key] += counted
+        for login, association in associations.items():
+            row = self.row(login)
+            row["user_association"] = more_privileged(
+                row["user_association"], association
+            )
+        for login, found_dates in dates.items():
+            self.row(login, found_dates)
 
     def result(self) -> list[dict]:
+        """The rows, with the collected months and times reduced to numbers."""
+        for row in self.rows.values():
+            row["months_active"] = len(row.pop("months"))
+            times = row.pop("merge_times")
+            row["days_to_merge"] = round(median(times), 1) if times else None
         return list(self.rows.values())
 
 
@@ -482,24 +714,6 @@ def collect(
         return rows
 
 
-def sort_rows(rows: list[dict], column: str = "prs") -> list[dict]:
-    """Sort by a column key: handles ascending, the rest highest/newest first.
-
-    The prs column is merged/total, but it sorts by merged only. Ties are
-    sorted by handle.
-    """
-    if column == "handle":
-        return sorted(rows, key=lambda r: r["handle"].lower())
-    if column == "activity":
-        epoch = datetime.min.replace(tzinfo=UTC)
-        return sorted(
-            rows,
-            key=lambda r: (-(r["activity"] or epoch).timestamp(), r["handle"].lower()),
-        )
-    key = "merged" if column == "prs" else column
-    return sorted(rows, key=lambda r: (-r[key], r["handle"].lower()))
-
-
 def days_ago(date: datetime | None, now: datetime) -> str:
     """How long ago the date is, in days; "-" if there is no activity."""
     if date is None:
@@ -507,10 +721,15 @@ def days_ago(date: datetime | None, now: datetime) -> str:
     days = max((now - date).days, 0)
     if days == 0:
         return "today"
-    return "1 day ago" if days == 1 else f"{days} days ago"
+    # two spaces, so that it lines up with "N days ago" in the plain text table
+    return "1 day  ago" if days == 1 else f"{days} days ago"
 
 
-def to_markdown(rows: list[dict], now: datetime | None = None) -> str:
+def to_markdown(
+    rows: list[dict],
+    now: datetime | None = None,
+    columns: Iterable[str] = DEFAULT_COLUMNS,
+) -> str:
     """Render rows as a padded Markdown table; numbers are right-aligned.
 
     The prs column shows merged/total. The last activity column shows how many
@@ -519,27 +738,17 @@ def to_markdown(rows: list[dict], now: datetime | None = None) -> str:
     event like closing or merging.
     """
     now = now or datetime.now(UTC)
-    headers = [header for _, header in COLUMNS]
-    cells = [
-        [
-            r["handle"],
-            str(r["commits"]),
-            f"{r['merged']}/{r['prs']}",
-            str(r["opened"]),
-            str(r["commented"]),
-            str(r["pr_commented"]),
-            str(r["reviewed"]),
-            days_ago(r["activity"], now),
-        ]
-        for r in rows
-    ]
+    defs = [COLUMN_DEFS[c] for c in columns]
+    headers = [header for header, _, _ in defs]
+    cells = [[text(r, now) for _, text, _ in defs] for r in rows]
+    left = [is_left for _, _, is_left in defs]
     widths = [
         max(len(h), *(len(row[i]) for row in cells)) for i, h in enumerate(headers)
     ]
 
     def line(values: list[str]) -> str:
         parts = [
-            v.ljust(w) if i == 0 else v.rjust(w)
+            v.ljust(w) if left[i] else v.rjust(w)
             for i, (v, w) in enumerate(zip(values, widths, strict=True))
         ]
         return "| " + " | ".join(parts) + " |"
@@ -547,7 +756,7 @@ def to_markdown(rows: list[dict], now: datetime | None = None) -> str:
     sep = (
         "| "
         + " | ".join(
-            "-" * w if i == 0 else "-" * (w - 1) + ":" for i, w in enumerate(widths)
+            "-" * w if left[i] else "-" * (w - 1) + ":" for i, w in enumerate(widths)
         )
         + " |"
     )

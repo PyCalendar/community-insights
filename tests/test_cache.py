@@ -21,8 +21,9 @@ def user(login):
     return {"login": login}
 
 
-def pull(number, login, created, merged):
+def pull(number, login, created, merged, state=None):
     return {
+        "state": state or ("closed" if merged else "open"),
         "number": number,
         "user": user(login),
         "created_at": f"{created}T10:00:00Z",
@@ -242,33 +243,33 @@ def analyse(api, cache, token="t", jobs=4):
     rows = contributors.collect(
         token, ["a/b"], messages.append, cache=cache, base_url=api.url, jobs=jobs
     )
-    return {r["handle"]: r for r in rows}, messages
+    return {r["user_handle"]: r for r in rows}, messages
+
+
+COUNTED = (
+    "commits_total", "prs_total", "prs_open", "prs_merged", "prs_unmerged",
+    "issues_opened", "issues_commented", "prs_commented", "prs_reviewed",
+)  # fmt: skip
 
 
 def counts(row):
-    return {
-        key: row[key]
-        for key in ("commits", "prs", "merged", "opened", "commented")
-        + ("pr_commented", "reviewed")
-    }
+    return {key: row[key] for key in COUNTED}
 
 
 def test_counts(api):
     rows, _ = analyse(api, None)
-    assert counts(rows["alice"]) == dict(
-        commits=10, prs=2, merged=2, opened=1, commented=1, pr_commented=2, reviewed=1
-    )
-    assert counts(rows["bob"]) == dict(
-        commits=5, prs=1, merged=0, opened=1, commented=1, pr_commented=1, reviewed=2
-    )
-    assert counts(rows["carol"]) == dict(
-        commits=1, prs=1, merged=1, opened=0, commented=1, pr_commented=0, reviewed=1
-    )
+    expected = {
+        "alice": (10, 2, 0, 2, 0, 1, 1, 2, 1),
+        "bob": (5, 1, 1, 0, 0, 1, 1, 1, 2),
+        "carol": (1, 1, 0, 1, 0, 0, 1, 0, 1),
+    }
+    for handle, numbers in expected.items():
+        assert counts(rows[handle]) == dict(zip(COUNTED, numbers, strict=True))
 
 
 def test_latest_activity(api):
     rows, _ = analyse(api, None)
-    date = {login: row["activity"].date().isoformat() for login, row in rows.items()}
+    date = {login: row["date_last"].date().isoformat() for login, row in rows.items()}
     # alice: a comment on a commit, after her newest commit (2026-03-01);
     # bob merged something; carol labeled something, after her review.
     # The pending review (2026-03-30) does not count.
@@ -330,9 +331,9 @@ def test_only_new_data_is_downloaded(api, tmp_path):
     api.log.clear()
 
     rows, _ = analyse(api, ResponseCache(tmp_path))
-    assert (rows["bob"]["prs"], rows["bob"]["merged"]) == (2, 1)
-    assert rows["carol"]["reviewed"] == 2
-    assert rows["alice"]["pr_commented"] == 3
+    assert (rows["bob"]["prs_total"], rows["bob"]["prs_merged"]) == (2, 1)
+    assert rows["carol"]["prs_reviewed"] == 2
+    assert rows["alice"]["prs_commented"] == 3
     downloaded = api.requests(status=200)
     # The pages of older pull requests and their reviews are not downloaded again.
     assert not any("/pulls?page=1" in p for p in downloaded)
@@ -401,7 +402,7 @@ def test_new_contributor_while_reading_updates_not_adds(api):
         lambda: contributors_.insert(0, contributor("dave", 50)),
     )
     rows, messages = analyse(api, None)
-    assert {h: r["commits"] for h, r in rows.items()} == {
+    assert {h: r["commits_total"] for h, r in rows.items()} == {
         "dave": 50,
         "alice": 10,
         "bob": 5,
@@ -418,7 +419,7 @@ def test_new_pull_request_while_reading_is_included(api):
         lambda: pulls.append(pull(7, "bob", "2026-04-01", True)),
     )
     rows, messages = analyse(api, None)
-    assert (rows["bob"]["prs"], rows["bob"]["merged"]) == (2, 1)
+    assert (rows["bob"]["prs_total"], rows["bob"]["prs_merged"]) == (2, 1)
     assert any("pull requests changed while reading" in m for m in messages)
 
 
@@ -431,15 +432,72 @@ def test_list_that_never_settles_is_still_counted_once(api):
         else None
     )
     rows, messages = analyse(api, None)
-    assert (rows["alice"]["commits"], rows["bob"]["commits"]) == (10, 5)
-    assert rows["carol"]["commits"] == 1
+    assert (rows["alice"]["commits_total"], rows["bob"]["commits_total"]) == (10, 5)
+    assert rows["carol"]["commits_total"] == 1
     assert sum("contributors changed while reading" in m for m in messages) == 3
 
 
 def test_item_on_two_pages_is_counted_once(api):
     api.data[f"{REPO}/pulls"].insert(1, pull(1, "alice", "2026-01-01", True))
     rows, _ = analyse(api, None)
-    assert (rows["alice"]["prs"], rows["alice"]["merged"]) == (2, 2)
+    assert (rows["alice"]["prs_total"], rows["alice"]["prs_merged"]) == (2, 2)
+
+
+def test_how_contributors_take_part(api):
+    pulls = api.data[f"{REPO}/pulls"]
+    pulls[0]["author_association"] = "MEMBER"
+    pulls[2]["author_association"] = "OWNER"
+    pulls[0]["merged_at"] = "2026-01-03T10:00:00Z"  # 2 days, the other one 1 hour
+    api.data[f"{REPO}/issues"][4]["state"] = "open"
+    api.data[f"{REPO}/pulls/3/reviews"].append(
+        review("bob", "CHANGES_REQUESTED", "2026-02-20")
+    )
+    api.data[f"{REPO}/issues/events"].insert(
+        0,
+        {
+            "actor": user("bob"),
+            "event": "closed",
+            "issue": {"number": 5},
+            "created_at": "2026-06-06T10:00:00Z",
+        },
+    )
+    api.data[f"{REPO}/issues/events"].insert(  # merging closes: no extra close
+        0,
+        {
+            "actor": user("bob"),
+            "event": "closed",
+            "issue": {"number": 1},
+            "created_at": "2026-06-06T10:00:00Z",
+        },
+    )
+    rows, _ = analyse(api, None)
+    alice, bob = rows["alice"], rows["bob"]
+    assert (alice["user_association"], bob["user_association"]) == ("owner", "")
+    assert alice["days_to_merge"] == 1.0
+    assert bob["days_to_merge"] is None
+    assert (bob["issues_open"], alice["issues_open"]) == (1, 0)
+    assert (bob["prs_approved"], bob["prs_changes_requested"]) == (2, 1)
+    assert (bob["comments_total"], alice["comments_total"]) == (3, 6)
+    assert (
+        bob["actions_merges"],
+        bob["actions_closes"],
+        rows["carol"]["actions_labels"],
+    ) == (1, 1, 1)
+    assert bob["date_first"].date().isoformat() == "2026-01-02"
+    assert bob["months_active"] == 3
+    assert "months" not in bob and "merge_times" not in bob
+
+
+def test_closed_without_merge_is_counted_as_unmerged(api):
+    api.data[f"{REPO}/pulls"][1] = pull(2, "bob", "2026-01-02", False, "closed")
+    rows, _ = analyse(api, None)
+    bob = rows["bob"]
+    assert (
+        bob["prs_total"],
+        bob["prs_open"],
+        bob["prs_merged"],
+        bob["prs_unmerged"],
+    ) == (1, 0, 0, 1)
 
 
 def test_repeated_analysis_updates_the_numbers(api, tmp_path):
@@ -447,9 +505,9 @@ def test_repeated_analysis_updates_the_numbers(api, tmp_path):
     api.data[f"{REPO}/contributors"][1]["contributions"] = 6
     api.data[f"{REPO}/pulls"][1] = pull(2, "bob", "2026-01-02", True)  # now merged
     second, _ = analyse(api, ResponseCache(tmp_path))
-    assert (first["bob"]["commits"], first["bob"]["merged"]) == (5, 0)
-    assert (second["bob"]["commits"], second["bob"]["merged"]) == (6, 1)
-    assert second["bob"]["prs"] == 1
+    assert (first["bob"]["commits_total"], first["bob"]["prs_merged"]) == (5, 0)
+    assert (second["bob"]["commits_total"], second["bob"]["prs_merged"]) == (6, 1)
+    assert second["bob"]["prs_total"] == 1
 
 
 def summaries(messages):
@@ -512,9 +570,9 @@ def test_changes_are_found_where_nothing_is_requested_otherwise(api, tmp_path):
     api.data[f"{REPO}/contributors"][0]["contributions"] = 11
     api.data[f"{REPO}/commits"]["alice"] = "2026-08-02"
     rows, _ = analyse(api, ResponseCache(tmp_path))
-    assert rows["carol"]["reviewed"] == 2
-    assert rows["alice"]["commits"] == 11
-    assert rows["alice"]["activity"].date().isoformat() == "2026-08-02"
+    assert rows["carol"]["prs_reviewed"] == 2
+    assert rows["alice"]["commits_total"] == 11
+    assert rows["alice"]["date_last"].date().isoformat() == "2026-08-02"
     requested = api.requests()
     assert any("/pulls/2/reviews" in p for p in requested)
     assert not any(re.search(r"/pulls/[134]/reviews", p) for p in requested)

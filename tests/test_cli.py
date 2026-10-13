@@ -1,4 +1,5 @@
 import pytest
+from rows import blank
 from typer.testing import CliRunner
 
 from gh_community import cli
@@ -8,11 +9,12 @@ runner = CliRunner()
 
 
 def row(handle, commits, prs, merged):
-    return {
-        "handle": handle, "commits": commits, "prs": prs, "merged": merged,
-        "opened": 0, "commented": 0, "pr_commented": 0, "reviewed": 0,
-        "activity": None,
-    }  # fmt: skip
+    return blank(
+        user_handle=handle,
+        commits_total=commits,
+        prs_total=prs,
+        prs_merged=merged,
+    )
 
 
 ROWS = [
@@ -39,7 +41,10 @@ def isolated(tmp_path, monkeypatch):
 
 
 def handles(output):
-    return [line.split("|")[1].strip() for line in output.splitlines()[2:]]
+    lines = output.splitlines()
+    if "" in lines:  # the summary after the table
+        lines = lines[: lines.index("")]
+    return [line.split("|")[1].strip() for line in lines[2:]]
 
 
 def test_all_default_sort_merged_prs(isolated):
@@ -51,15 +56,15 @@ def test_all_default_sort_merged_prs(isolated):
 
 def test_sort_prs_and_handle():
     base = ["contributors", "all", "--token", "t", "a/b", "--sort"]
-    assert handles(runner.invoke(cli.app, [*base, "prs"]).stdout) == [
+    assert handles(runner.invoke(cli.app, [*base, "prs_merged"]).stdout) == [
         "bob",
         "alexander",
     ]
-    assert handles(runner.invoke(cli.app, [*base, "commits"]).stdout) == [
+    assert handles(runner.invoke(cli.app, [*base, "commits_total"]).stdout) == [
         "alexander",
         "bob",
     ]
-    assert handles(runner.invoke(cli.app, [*base, "handle"]).stdout) == [
+    assert handles(runner.invoke(cli.app, [*base, "user_handle"]).stdout) == [
         "alexander",
         "bob",
     ]
@@ -292,7 +297,7 @@ def test_token_set_help_documents_access():
 
 def test_progress_goes_to_stderr_not_stdout():
     result = runner.invoke(cli.app, ["contributors", "all", "a/b", "--token", "t"])
-    assert result.stderr.strip() == "working"
+    assert result.stderr.splitlines()[0] == "working"
     assert "working" not in result.stdout
     assert result.stdout.startswith("| handle")
 
@@ -308,3 +313,120 @@ def test_jobs_option(monkeypatch):
     assert (
         run("contributors", "all", "a/b", "--token", "t", "--jobs", "0").exit_code == 2
     )
+
+
+def test_all_stores_csv_next_to_config_and_result_filters(tmp_path):
+    config = tmp_path / "conf" / "config.yaml"
+    save_config(config, Config("t", ["collective/icalendar"]))
+    result = runner.invoke(cli.app, ["contributors", "all", "--config", str(config)])
+    assert result.exit_code == 0, result.output
+    (stored,) = (tmp_path / "conf").glob("collective-icalendar-*.csv")
+    assert handles(result.stdout) == ["bob", "alexander"]
+
+    name = stored.stem
+    listed = runner.invoke(cli.app, ["result", "--list", "--config", str(config)])
+    assert runner.invoke(cli.app, ["result", "--config", str(config)]).exit_code != 0
+    assert listed.stdout.split() == [name]
+    shown = runner.invoke(cli.app, ["result", name, "--config", str(config)])
+    assert handles(shown.stdout) == ["bob", "alexander"]
+    base = ["result", name, "--config", str(config)]
+    # activity is unknown in ROWS, so days is infinite
+    shown = runner.invoke(cli.app, [*base, "days_last < 30"])
+    assert handles(shown.stdout) == []
+    shown = runner.invoke(cli.app, [*base, "commits_total > 100"])
+    assert handles(shown.stdout) == ["alexander"]
+    assert shown.stdout.splitlines()[-1] == "Showing 1 of 2 contributors."
+    old = runner.invoke(cli.app, [*base, "--remove", "days_last > 30"])
+    assert handles(old.stdout) == []
+    expression = "commits_total > 100 or (prs_merged < 10 and not prs_total >= 120)"
+    shown = runner.invoke(cli.app, [*base, "--remove", expression])
+    assert handles(shown.stdout) == ["bob"]
+    bad = runner.invoke(cli.app, [*base, "--remove", "prs_merged <"])
+    assert bad.exit_code != 0
+
+
+def test_result_name_completion(tmp_path):
+    config = tmp_path / "config.yaml"
+    for stem in ("a-b-2026-10-13-12-00-00", "x-y-2026-01-01-00-00-00"):
+        (tmp_path / f"{stem}.csv").touch()
+    ctx = cli.typer.Context(cli.typer.main.get_command(cli.app))
+    ctx.params = {"config": str(config)}
+    assert cli._complete_result(ctx, "a-") == ["a-b-2026-10-13-12-00-00"]
+
+
+def test_expression_completion():
+    assert cli._complete_expression("prs_merged<10 and prs_rev") == [
+        "prs_merged<10 and prs_reviewed"
+    ]
+    assert cli._complete_expression("(days < 5 or") == ["(days < 5 or"]
+    assert "commits_total" in cli._complete_expression("")
+
+
+def test_result_columns(tmp_path):
+    config = tmp_path / "config.yaml"
+    save_config(config, Config("t", ["a/b"]))
+    runner.invoke(cli.app, ["contributors", "all", "--config", str(config)])
+    (stored,) = tmp_path.glob("a-b-*.csv")
+    base = ["result", stored.stem, "--config", str(config)]
+    shown = runner.invoke(
+        cli.app, [*base, "--columns", "user_handle+prs_merged+days_last"]
+    )
+    assert shown.stdout.splitlines()[0] == "| handle    | merged PRs | last activity |"
+    changed = runner.invoke(cli.app, [*base, "--columns", "+prs_open-days_last"])
+    assert changed.stdout.splitlines()[0].endswith("| PRs reviewed | open PRs |")
+    for bad_spec in ("user_handle+nope", "user_handle,prs_open", "", "x y"):
+        bad = runner.invoke(cli.app, [*base, "--columns", bad_spec])
+        assert bad.exit_code != 0, bad_spec
+    assert cli._complete_columns("user_handle+prs_ap") == ["user_handle+prs_approved"]
+    assert cli._complete_columns("+commits_total-prs_o") == ["+commits_total-prs_open"]
+    assert cli._complete_columns("user_ass") == ["user_association"]
+
+
+def test_help_explains_columns_and_variables():
+    text = runner.invoke(cli.app, ["result", "--help"], terminal_width=200).stdout
+    flat = " ".join(text.split())
+    for column in cli.COLUMN_DEFS:
+        assert f" {column} " in flat
+    assert "pull requests opened and merged, shown as X/prs_total" in flat
+    assert "months with any activity (also a variable)" in flat
+    assert "days ago of the last activity (variable days_last: the days)" in flat
+
+
+def test_sort_with_sign_and_unknown_sort(tmp_path):
+    config = tmp_path / "config.yaml"
+    save_config(config, Config("t", ["a/b"]))
+    base = ["contributors", "all", "--config", str(config)]
+    for sort, expected in (
+        ("--sort=+commits_total", ["bob", "alexander"]),
+        ("--sort=-commits_total", ["alexander", "bob"]),
+    ):
+        assert handles(runner.invoke(cli.app, [*base, sort]).stdout) == expected
+    # a value that starts with - after a space
+    shown = runner.invoke(cli.app, [*base, "--sort", "-commits_total"])
+    assert handles(shown.stdout) == ["alexander", "bob"]
+    bad = runner.invoke(cli.app, [*base, "--sort", "+commit_total"], terminal_width=400)
+    assert bad.exit_code != 0
+    assert "Did you mean 'commits_total'" in " ".join(
+        bad.output.replace("│", "").split()
+    )
+    assert cli._complete_sort("-days_l") == ["-days_last"]
+
+
+def test_csv_output(tmp_path):
+    config = tmp_path / "config.yaml"
+    save_config(config, Config("t", ["a/b"]))
+    shown = runner.invoke(
+        cli.app, ["contributors", "all", "a/b", "--config", str(config)]
+    )
+    assert shown.exit_code == 0
+    name = next(tmp_path.glob("a-b-*.csv")).stem
+    base = ["result", name, "--config", str(config), "--csv"]
+    result = runner.invoke(cli.app, [*base, "--columns", "user_handle+prs_merged"])
+    assert result.stdout == "handle,merged PRs\nbob,100\nalexander,2\n"
+    assert result.stderr.strip() == "Showing 2 of 2 contributors."
+    again = runner.invoke(
+        cli.app,
+        ["contributors", "all", "a/b", "--csv", "--no-save", "--config", str(config)],
+    )
+    assert again.stdout.splitlines()[0].startswith("handle,commits,merged PRs")
+    assert "/" not in again.stdout
