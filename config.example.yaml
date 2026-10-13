@@ -1,0 +1,4 @@
+# Copy to config.yaml (or ~/.config/gh-community/config.yaml)
+token: ghp_your_token_here  # optional: --token or $GITHUB_TOKEN take precedence
+repositories:
+  - owner/repo
