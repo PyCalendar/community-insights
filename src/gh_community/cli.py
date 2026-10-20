@@ -27,6 +27,7 @@ from .contributors import (
     parse_columns,
     to_markdown,
 )
+from .responses import CLASSES, collect_responses, render
 from .results import (
     EXPRESSION_HELP,
     VARIABLES,
@@ -82,7 +83,7 @@ CsvOption = Annotated[
     typer.Option(
         "--csv",
         help="Print CSV instead of a Markdown table: the headers of the columns as "
-        "in the table, then only numbers (not X/total, days instead of days ago) "
+        "in the table, then only numbers (not X/total, days instead of the text) "
         "and strings.",
     ),
 ]
@@ -179,6 +180,46 @@ def contributors_all(
         typer.echo(to_markdown(rows))
 
 
+RESPONSE_COLORS = dict(zip(CLASSES, ("yellow", "magenta", "green"), strict=True))
+
+
+@app.command("response")
+def response(
+    repositories: RepoArgument = None,
+    config: ConfigOption = None,
+    token: TokenOption = None,
+    cache_dir: CacheDirOption = None,
+    no_cache: NoCacheOption = False,
+    jobs: JobsOption = JOBS,
+) -> None:
+    """Show how long pull requests and issues wait for their first response.
+
+    Two bar charts, one for the pull requests and one for the issues, with a
+    column for each time up to 1h 3h 6h 12h 24h 2d 3d 5d 1w 2w 3w. Each is counted
+    once, by who responded first: a bot, an external person (not owner, member
+    or collaborator) or a collaborator or higher. Comments, comments on the
+    changes and reviews of someone else than the author are responses.
+    """
+    cfg = load_config(config, token, repositories)
+    found = collect_responses(
+        cfg.token,
+        cfg.repositories,
+        progress=lambda message: typer.echo(message, err=True),
+        cache=None if no_cache else ResponseCache(cache_dir or default_cache_dir()),
+        jobs=jobs,
+    )
+
+    def paint(text: str, kind: str) -> str:
+        return typer.style(text, fg=RESPONSE_COLORS[kind])
+
+    for position, (kind, title) in enumerate(
+        (("prs", "Pull requests"), ("issues", "Issues"))
+    ):
+        if position:
+            typer.echo()
+        typer.echo("\n".join(render(title, found[kind], paint)))
+
+
 def _complete_result(ctx: typer.Context, incomplete: str) -> list[str]:
     config = ctx.params.get("config")  # a str here; only if given before the name
     directory = resolve_path(Path(config) if config else None).parent
@@ -205,8 +246,10 @@ COLUMN_NOTES = {
         ("issues_closed", "issues_opened"),
     )
 } | {
-    "days_first": "days ago of the first activity (variable days_first: the days)",
-    "days_last": "days ago of the last activity (variable days_last: the days)",
+    "days_first": "days since the first activity, shown "
+    "as N days (variable days_first: N)",
+    "days_last": "days since the last activity, shown "
+    "as N days (variable days_last: N)",
 }
 
 

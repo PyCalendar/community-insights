@@ -108,7 +108,7 @@ starts with a sign changes the default columns: `+x-y` adds x and removes y
 variables have the same names. The pull request and
 issue columns that are a part of the pull requests or issues opened show it as
 `X/total`, for example `prs_merged` as `245/269`; the variable is the number.
-`days_first` and `days_last` show the days ago, the variables the days.
+`days_first` and `days_last` show `N days` (`today` for 0), the variables the number.
 
 Default columns:
 
@@ -121,7 +121,7 @@ Default columns:
 | `issues_commented` | issues of others commented on |
 | `prs_commented` | pull requests of others commented on |
 | `prs_reviewed` | pull requests of others reviewed |
-| `days_last` | days ago of the last activity (variable days_last: the days) |
+| `days_last` | days since the last activity, shown as N days (variable days_last: N) |
 
 Additional columns:
 
@@ -131,7 +131,7 @@ Additional columns:
 | `actions_labels` | labels set by them |
 | `actions_merges` | pull requests merged by them |
 | `comments_total` | all comments written |
-| `days_first` | days ago of the first activity (variable days_first: the days) |
+| `days_first` | days since the first activity, shown as N days (variable days_first: N) |
 | `days_to_merge` | median days until their pull requests were merged |
 | `issues_closed` | issues opened and closed, shown as X/issues_opened (variable issues_closed: the number) |
 | `issues_open` | issues opened and still open, shown as X/issues_opened (variable issues_open: the number) |
@@ -193,6 +193,29 @@ the prefix `association_` (`association_owner`, `association_member`, ...,
 name is reported with the closest ones ("Did you mean ...?") and all the names,
 sorted. Combine with `and`, `or`, `not` and parentheses; `not` binds tightest,
 then `and`, then `or`. There are no functions.
+
+### Response times
+
+```sh
+gh-community response                     # the repositories of the config
+gh-community response owner/name --no-cache
+```
+
+Two bar charts, one for the pull requests and one for the issues, show how long
+they waited for their first response: one row for each time up to `1h 3h 6h 12h
+24h 2d 3d 5d 1w 2w 3w` (and `> 3w`). Each pull request or issue is counted once,
+in the colour of whoever responded first:
+
+- a **bot** (`[bot]` in the handle, Copilot, or GitHub's user type Bot),
+- an **external** person (association contributor, first timer, none, ...),
+- a **collaborator or higher** (owner, member or collaborator).
+
+A response is a comment, a comment on the changes or a submitted review by someone
+other than the author. Below the chart are the number, average and median per
+class; pull requests or issues nobody responded to are counted in the title.
+Bars longer than 40 characters are scaled down. The cache, `--jobs`, `--token`
+and `--config` work as for `contributors all`; a second run only asks which lists
+changed, and reviews are only requested again for pull requests that were updated.
 
 ### Configuration
 

@@ -389,7 +389,9 @@ def test_help_explains_columns_and_variables():
         assert f" {column} " in flat
     assert "pull requests opened and merged, shown as X/prs_total" in flat
     assert "months with any activity (also a variable)" in flat
-    assert "days ago of the last activity (variable days_last: the days)" in flat
+    assert (
+        "days since the last activity, shown as N days (variable days_last: N)" in flat
+    )
 
 
 def test_sort_with_sign_and_unknown_sort(tmp_path):

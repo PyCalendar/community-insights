@@ -79,9 +79,9 @@ def test_markdown_alignment():
             "| carol     |       5 |        7/7 |            10 |                   1 "
             "|               25 |          100 |             - |",
             "| bob       |       5 |      4/120 |             2 |                   0 "
-            "|                3 |            9 |   37 days ago |",
+            "|                3 |            9 |       37 days |",
             "| alexander |    1200 |        1/3 |             0 |                  14 "
-            "|                0 |            0 |   10 days ago |",
+            "|                0 |            0 |       10 days |",
         ]
     )
 
@@ -100,8 +100,8 @@ def test_days_ago():
     assert days_ago(None, now) == "-"
     assert days_ago(datetime(2026, 3, 11, 1, tzinfo=UTC), now) == "today"
     assert days_ago(datetime(2026, 3, 10, 9, tzinfo=UTC), now) == "today"
-    assert days_ago(datetime(2026, 3, 10, 8, tzinfo=UTC), now) == "1 day  ago"
-    assert days_ago(datetime(2026, 1, 1, tzinfo=UTC), now) == "69 days ago"
+    assert days_ago(datetime(2026, 3, 10, 8, tzinfo=UTC), now) == "1 day "
+    assert days_ago(datetime(2026, 1, 1, tzinfo=UTC), now) == "69 days"
     assert days_ago(datetime(2026, 3, 12, tzinfo=UTC), now) == "today"  # clock skew
 
 

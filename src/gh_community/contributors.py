@@ -715,14 +715,14 @@ def collect(
 
 
 def days_ago(date: datetime | None, now: datetime) -> str:
-    """How long ago the date is, in days; "-" if there is no activity."""
+    """How long ago the date is, in days (no "ago"); "-" if there is no activity."""
     if date is None:
         return "-"
     days = max((now - date).days, 0)
     if days == 0:
         return "today"
-    # two spaces, so that it lines up with "N days ago" in the plain text table
-    return "1 day  ago" if days == 1 else f"{days} days ago"
+    # a space at the end, so that it lines up with "N days" in the plain text table
+    return "1 day " if days == 1 else f"{days} days"
 
 
 def to_markdown(
