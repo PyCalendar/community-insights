@@ -1,11 +1,10 @@
 """How long pull requests and issues wait for their first response."""
 
 import math
-from collections import defaultdict
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
-from statistics import mean, median
+from datetime import UTC, date, datetime, timedelta
+from statistics import NormalDist, mean, median, stdev
 
 from github import Auth, Github
 
@@ -14,7 +13,6 @@ from .contributors import (
     JOBS,
     PER_PAGE,
     REQUEST_DELAY,
-    REVIEW_PROGRESS_EVERY,
     Collector,
     is_bot,
     parse_date,
@@ -44,6 +42,7 @@ BUCKETS: list[tuple[str, timedelta]] = [
     ("3w", timedelta(weeks=3)),
 ]
 SLOWER = "more"  # the label of what takes longer than the last column
+NORMAL_95 = NormalDist().inv_cdf(0.95)  # 1.645 standard deviations
 MAX_BAR = 40  # characters of the longest bar; longer ones are scaled down
 
 
@@ -54,130 +53,204 @@ def classify(login: str, association: str | None, bot: bool = False) -> str:
     return COLLABORATOR if (association or "").lower() in MEMBERS else EXTERNAL
 
 
+# How many items are read with their first comments and reviews in one request,
+# and how many comments or reviews of an item come with it. An item whose first
+# ones are all by its author gets the next ones in another request.
+PAGE = 50
+INNER = 20
+FOLLOW = 100  # per request, for what comes after
+UTC_MAX = datetime.max.replace(tzinfo=UTC)
+
+# The time until the first response of each class, for one pull request or issue.
+Times = dict[str, timedelta]
+FIELDS = {"prs": "pullRequests", "issues": "issues"}
+STATES = "states: [APPROVED, CHANGES_REQUESTED, COMMENTED, DISMISSED]"  # not PENDING
+
+
+def connection(field: str, after: bool = False) -> str:
+    """The first comments or reviews of an item, or the ones after $after."""
+    date = "createdAt" if field == "comments" else "submittedAt"
+    arguments = "first: $inner"
+    arguments += ", after: $after" if after else ""
+    arguments += f", {STATES}" if field == "reviews" else ""
+    return (
+        f"{field}({arguments}) {{ pageInfo {{ hasNextPage endCursor }} "
+        f"nodes {{ {date} author {{ login __typename }} authorAssociation }} }}"
+    )
+
+
+def list_query(kind: str) -> str:
+    """A page of the pull requests or issues, the newest changes first: reading
+    stops at what was read before."""
+    reviews = connection("reviews") if kind == "prs" else ""
+    return f"""
+query($owner: String!, $name: String!, $after: String, $page: Int!, $inner: Int!) {{
+  repository(owner: $owner, name: $name) {{
+    {FIELDS[kind]}(first: $page, after: $after,
+          orderBy: {{field: UPDATED_AT, direction: DESC}}) {{
+      totalCount
+      pageInfo {{ hasNextPage endCursor }}
+      nodes {{ id number createdAt updatedAt author {{ login }}
+               {connection("comments")} {reviews} }}
+    }}
+  }}
+}}
+"""
+
+
+def more_query(field: str) -> str:
+    """The next comments or reviews of an item."""
+    found = connection(field, after=True)
+    types = ["Issue", "PullRequest"] if field == "comments" else ["PullRequest"]
+    on = " ".join(f"... on {name} {{ {found} }}" for name in types)
+    return (
+        f"query($id: ID!, $after: String, $inner: Int!) {{ node(id: $id) {{ {on} }} }}"
+    )
+
+
+def same_user(login: str, other: str | None) -> bool:
+    """Handles are not case sensitive."""
+    return login.lower() == (other or "").lower()
+
+
 class ResponseCollector(Collector):
-    """Reads when the pull requests and issues were first answered."""
+    """Reads when the pull requests and issues were first answered.
 
-    def review_responses(self, base: str, pull: dict) -> list[list]:
-        """The reviews as [login, association, bot, date] of a pull request.
+    GraphQL returns an item with its first comments and reviews, so a hundred
+    pull requests need two requests instead of hundreds. What is read is
+    remembered per repository and kind with the time of the newest change; the
+    next run reads the items from the newest change back to that time only."""
 
-        Remembered while the pull request was not updated, like the reviews of
-        the contributors analysis."""
-
-        def fetch():
-            return [
-                [
-                    (r.get("user") or {}).get("login"),
-                    r.get("author_association"),
-                    (r.get("user") or {}).get("type") == "Bot",
-                    r.get("submitted_at"),
-                ]
-                for r in self.all(f"{base}/pulls/{pull['number']}/reviews")
-                if r.get("state") != "PENDING"
-            ]
-
-        if not pull.get("updated_at"):
-            return fetch()
-        return self.remembered(
-            f"review responses|{base}|{pull['number']}|{pull['updated_at']}", fetch
+    def graphql(self, query: str, **variables) -> dict:
+        headers, data = self.send(
+            "POST", "/graphql", input={"query": query, "variables": variables}
         )
+        self.note_rate_limit(headers)
+        if data.get("errors"):
+            raise RuntimeError(f"GraphQL: {data['errors'][0].get('message')}")
+        return data["data"]
+
+    def first_responses(
+        self, item: dict, field: str, connection: dict
+    ) -> dict[str, datetime]:
+        """The date of the first comment or review of each class by someone else
+        than the author of the item. The next ones are read as long as a class is
+        missing, so a bot that answers first does not hide the others."""
+        owner = (item.get("author") or {}).get("login")
+        found: dict[str, datetime] = {}
+        while True:
+            for node in connection["nodes"]:
+                actor = node.get("author") or {}
+                date = node.get("createdAt") or node.get("submittedAt")
+                if actor.get("login") and not same_user(actor["login"], owner) and date:
+                    response = classify(
+                        actor["login"],
+                        node.get("authorAssociation"),
+                        actor.get("__typename") == "Bot",
+                    )
+                    found[response] = min(
+                        parse_date(date), found.get(response, UTC_MAX)
+                    )
+            page = connection["pageInfo"]
+            if not page["hasNextPage"] or len(found) == len(CLASSES):
+                return found
+            node = self.graphql(
+                more_query(field), id=item["id"], after=page["endCursor"], inner=FOLLOW
+            )["node"]
+            connection = node[field]
+
+    def read_items(
+        self, prefix: str, name: str, kind: str, since: date | None = None
+    ) -> list[list]:
+        """[created, {class: seconds}] of the items of a kind created since the
+        date (all if None).
+
+        An item created since the date was changed since, too, so reading the
+        newest changes down to that time finds all of them."""
+        owner, repo = name.split("/", 1)
+        key = self.cache and self.cache.key(
+            self.token, f"graphql responses 2|{name}|{kind}"
+        )
+        limit = f"{since.isoformat()}T00:00:00Z" if since else ""
+        stored = key and self.cache.recall(key)
+        if stored:
+            stored.setdefault("from", "")
+        # A stored result that starts later than wanted cannot be extended.
+        if not stored or (stored["from"] and stored["from"] > limit):
+            stored = {"read": None, "from": limit, "items": {}}
+        items: dict[str, list] = stored["items"]
+        newest = stored["read"]  # the time of the newest change read
+        stop = max(stored["read"] or "", limit)  # older changes are not read
+        label = "pull requests" if kind == "prs" else "issues"
+        changed = set()
+        cursor, more, done = None, True, False
+        while more and not done:
+            found = self.graphql(
+                list_query(kind),
+                owner=owner,
+                name=repo,
+                after=cursor,
+                page=PAGE,
+                inner=INNER,
+            )["repository"][FIELDS[kind]]
+            for item in found["nodes"]:
+                if item["updatedAt"] < stop:
+                    done = True  # the older ones are unchanged or too old
+                    break
+                created = parse_date(item["createdAt"])
+                responses = self.first_responses(item, "comments", item["comments"])
+                if kind == "prs":
+                    for response, date_ in self.first_responses(
+                        item, "reviews", item["reviews"]
+                    ).items():
+                        responses[response] = min(
+                            date_, responses.get(response, UTC_MAX)
+                        )
+                items[str(item["number"])] = [
+                    item["createdAt"],
+                    {
+                        response: max((date_ - created).total_seconds(), 0)
+                        for response, date_ in responses.items()
+                    },
+                ]
+                changed.add(item["number"])
+                newest = max(newest or "", item["updatedAt"])
+            more, cursor = (
+                found["pageInfo"]["hasNextPage"],
+                found["pageInfo"]["endCursor"],
+            )
+            unchanged = ""
+            if done:
+                unchanged = (
+                    ", the rest unchanged" if stored["read"] else ", the rest older"
+                )
+            total = found["totalCount"]
+            self.say(f"{prefix}: {label} {len(changed)}/{total} read{unchanged}")
+        self.skipped += len(items) - len(changed)
+        if key:
+            self.cache.remember(
+                key, {"read": newest, "from": stored["from"], "items": items}
+            )
+        return [item for item in items.values() if item[0] >= limit]
 
     def collect_responses(
-        self, number: int, count: int, name: str
-    ) -> dict[str, list[tuple[str, timedelta] | None]]:
+        self, number: int, count: int, name: str, since: date | None = None
+    ) -> dict[str, list[Times]]:
         """Read one repository: per kind ("prs", "issues") one entry for each
-        item, the class and time of the first response or None if there is none.
+        item, the time to the first response of each class that responded.
         """
         prefix = f"[{number}/{count}] {name}"
-        base = f"/repos/{name}"
-        oldest_first = {"sort": "created", "direction": "asc"}
-
-        with self.step("pull requests"):
-            pulls = self.read_list(
-                prefix, "pull requests", f"{base}/pulls", state="all", **oldest_first
-            )
-        with self.step("issues"):
-            all_issues = self.read_list(
-                prefix, "issues", f"{base}/issues", state="all", **oldest_first
-            )
-        pulls = {p["number"]: p for p in pulls}
-        issues = {i["number"]: i for i in all_issues if "pull_request" not in i}
-        with self.step("comments"):
-            comments = self.read_list(
-                prefix, "comments", f"{base}/issues/comments", **oldest_first
-            )
-        with self.step("review comments"):
-            review_comments = self.read_list(
-                prefix, "review comments", f"{base}/pulls/comments", **oldest_first
-            )
-
-        # (date, class) of every response from someone else than the author
-        responses: dict[tuple[str, int], list[tuple[datetime, str]]] = defaultdict(list)
-
-        def author(item: dict) -> str | None:
-            return (item.get("user") or {}).get("login")
-
-        def respond(kind: str, number_: int, owner: dict, login, date, response):
-            """Add a response, unless it is by the author or of an unknown item."""
-            if login and login != author(owner) and date:
-                responses[kind, number_].append((parse_date(date), response))
-
-        def comment_class(comment: dict) -> str:
-            user = comment.get("user") or {}
-            return classify(
-                user.get("login", ""),
-                comment.get("author_association"),
-                user.get("type") == "Bot",
-            )
-
-        for comment in comments:
-            number_ = int(comment["issue_url"].rsplit("/", 1)[1])
-            for kind, items in (("issues", issues), ("prs", pulls)):
-                if number_ in items:
-                    respond(
-                        kind, number_, items[number_], author(comment),
-                        comment["created_at"], comment_class(comment),
-                    )  # fmt: skip
-        for comment in review_comments:
-            number_ = int(comment["pull_request_url"].rsplit("/", 1)[1])
-            if number_ in pulls:
-                respond(
-                    "prs", number_, pulls[number_], author(comment),
-                    comment["created_at"], comment_class(comment),
-                )  # fmt: skip
-
-        numbers = list(pulls)
-        self.say(
-            f"{prefix}: reviews of pull request 0/{len(numbers)}, one request each"
-        )
-        with self.step("reviews"):
-            found = self.pool.map(
-                lambda n: self.review_responses(base, pulls[n]), numbers
-            )
-            for position, (number_, reviews) in enumerate(zip(numbers, found), 1):
-                for login, association, bot, date in reviews:
-                    respond(
-                        "prs", number_, pulls[number_], login, date,
-                        classify(login or "", association, bot),
-                    )  # fmt: skip
-                if position % REVIEW_PROGRESS_EVERY == 0 and position != len(numbers):
-                    self.say(
-                        f"{prefix}: reviews of pull request {position}/{len(numbers)}"
-                    )
-        self.say(f"{prefix}: reviews of pull request {len(numbers)}/{len(numbers)}")
-
-        result: dict[str, list[tuple[str, timedelta] | None]] = {
-            "prs": [],
-            "issues": [],
-        }
-        for kind, items in (("prs", pulls), ("issues", issues)):
-            for number_, item in items.items():
-                created = parse_date(item["created_at"])
-                found_responses = responses.get((kind, number_))
-                if not found_responses:
-                    result[kind].append(None)
-                    continue
-                date, response = min(found_responses)
-                result[kind].append((response, max(date - created, timedelta())))
+        result = {}
+        for kind in FIELDS:
+            with self.step("pull requests" if kind == "prs" else "issues"):
+                items = self.read_items(prefix, name, kind, since)
+            result[kind] = [
+                {
+                    response: timedelta(seconds=seconds)
+                    for response, seconds in found.items()
+                }
+                for _, found in items
+            ]
         return result
 
 
@@ -188,16 +261,18 @@ def collect_responses(
     cache: ResponseCache | None = None,
     base_url: str = "https://api.github.com",
     jobs: int = JOBS,
-) -> dict[str, list[tuple[str, timedelta] | None]]:
+    since: date | None = None,
+) -> dict[str, list[Times]]:
     """The first responses of the pull requests ("prs") and issues ("issues").
 
-    One entry per pull request or issue: the class of the first response (bot,
-    external, collaborator or higher) and the time it took, or None if nobody
-    but the author responded. The cache and the parallel requests are the
-    same as for collect().
+    One entry per pull request or issue: for each class (bot, external,
+    collaborator or higher) that responded, the time until its first response. A
+    bot that is faster does not hide the others. Only those created since the
+    date (if given) are included. Items are read with GraphQL; with a cache only
+    those changed since the last run are read again.
     """
     repositories = list(repositories)
-    result: dict[str, list[tuple[str, timedelta] | None]] = {"prs": [], "issues": []}
+    result: dict[str, list[Times]] = {"prs": [], "issues": []}
     with installed(cache), ThreadPoolExecutor(max_workers=jobs) as pool:
         gh = Github(
             auth=Auth.Token(token),
@@ -208,7 +283,7 @@ def collect_responses(
         collector = ResponseCollector(gh, progress, pool, cache, token)
         for number, name in enumerate(repositories, 1):
             for kind, entries in collector.collect_responses(
-                number, len(repositories), name
+                number, len(repositories), name, since
             ).items():
                 result[kind] += entries
         collector.say(f"Done: {len(repositories)} repositories")
@@ -220,49 +295,99 @@ def bucket(delay: timedelta) -> str:
     return next((label for label, limit in BUCKETS if delay <= limit), SLOWER)
 
 
-def histogram(
-    entries: list[tuple[str, timedelta] | None],
-) -> list[tuple[str, dict[str, int]]]:
-    """For each column of the chart, the number of responses of each class."""
+def histogram(entries: list[Times]) -> list[tuple[str, dict[str, int]]]:
+    """For each column of the chart, the number of first responses of each class."""
     labels = [label for label, _ in BUCKETS] + [SLOWER]
     counts = {label: dict.fromkeys(CLASSES, 0) for label in labels}
     for entry in entries:
-        if entry:
-            counts[bucket(entry[1])][entry[0]] += 1
+        for response, delay in entry.items():
+            counts[bucket(delay)][response] += 1
     return [(label, counts[label]) for label in labels]
 
 
 def format_duration(delay: timedelta) -> str:
-    """Two units at most: 45m, 3h 12m, 2d 4h."""
+    """Two units at most: 45min, 3h 12min, 2d 4h (min is minutes)."""
     minutes = round(delay.total_seconds() / 60)
     days, minutes = divmod(minutes, 1440)
     hours, minutes = divmod(minutes, 60)
     if days:
         return f"{days}d {hours}h" if hours else f"{days}d"
     if hours:
-        return f"{hours}h {minutes}m" if minutes else f"{hours}h"
-    return f"{minutes}m"
+        return f"{hours}h {minutes}min" if minutes else f"{hours}h"
+    return f"{minutes}min"
 
 
-def summary(entries: list[tuple[str, timedelta] | None]) -> list[tuple[str, int, str]]:
-    """(class, number, "average X, median Y") of each class that has responses."""
-    lines = []
+TABLE_HEADER = ("class", "n", "fit", "average", "std error", "median", "95%")
+
+
+def summary(entries: list[Times]) -> list[tuple[str, ...]]:
+    """The rows (class, n, fit, average, std error, median, 95%) of a table, three
+    for each class that has responses, with the times as text and "-" where
+    there is none.
+
+    - measured: the average and the median of the times, and the standard error
+      of the average (the standard deviation s / sqrt(n); none for one time).
+    - normal: the average and s of the times, so the standard error is
+      s / sqrt(n), the median is the average and the 95th percentile
+      average + 1.645 * s.
+    - exponential: its maximum likelihood rate is 1 / average, so the average
+      stays, the standard deviation is the average (standard error average /
+      sqrt(n)), the median is average * ln 2 and the 95th percentile
+      average * ln 20.
+    """
+
+    def show(value: float) -> str:
+        return format_duration(timedelta(seconds=value))
+
+    rows = []
     for response in CLASSES:
-        delays = [e[1] for e in entries if e and e[0] == response]
-        if delays:
-            average = timedelta(seconds=mean(d.total_seconds() for d in delays))
-            lines.append(
-                (
-                    response,
-                    len(delays),
-                    f"average {format_duration(average)}, "
-                    f"median {format_duration(median(delays))}",
-                )
-            )
-    return lines
+        seconds = [e[response].total_seconds() for e in entries if response in e]
+        if not seconds:
+            continue
+        count = len(seconds)
+        average = mean(seconds)
+        deviation = stdev(seconds) if count > 1 else None
+        shown = show(deviation / math.sqrt(count)) if deviation is not None else "-"
+        head = (response, str(count))
+        rows += [
+            (*head, "measured", show(average), shown, show(median(seconds)), "-"),
+            (
+                *head,
+                "normal",
+                show(average),
+                shown,
+                show(average),
+                show(average + NORMAL_95 * deviation) if deviation is not None else "-",
+            ),
+            (
+                *head,
+                "exponential",
+                show(average),
+                show(average / math.sqrt(count)),
+                show(average * math.log(2)),
+                show(average * math.log(20)),
+            ),
+        ]
+    return rows
 
 
-def scale(entries: list[tuple[str, timedelta] | None]) -> int:
+def table(rows: list[tuple[str, ...]]) -> list[tuple[str, str]]:
+    """The header and the rows as aligned lines, with the class of each: the
+    text columns are left aligned, the numbers right aligned."""
+    widths = [max(len(r[i]) for r in [TABLE_HEADER, *rows]) for i in range(7)]
+    left = {0, 2}
+
+    def line(row: tuple[str, ...]) -> str:
+        cells = [
+            cell.ljust(width) if i in left else cell.rjust(width)
+            for i, (cell, width) in enumerate(zip(row, widths, strict=True))
+        ]
+        return "  " + "  ".join(cells)
+
+    return [("", line(TABLE_HEADER))] + [(row[0], line(row)) for row in rows]
+
+
+def scale(entries: list[Times]) -> int:
     """How many responses one character of a bar stands for."""
     longest = max((sum(c.values()) for _, c in histogram(entries)), default=0)
     return max(1, math.ceil(longest / MAX_BAR))
@@ -270,17 +395,17 @@ def scale(entries: list[tuple[str, timedelta] | None]) -> int:
 
 def render(
     title: str,
-    entries: list[tuple[str, timedelta] | None],
+    entries: list[Times],
     paint: Callable[[str, str], str] = lambda text, response: text,
 ) -> list[str]:
-    """The lines of the bar chart of one kind, stacked by who answered first.
+    """The lines of the bar chart of one kind and a table of the times.
 
-    paint(text, class) colours the text of a class."""
-    answered = [e for e in entries if e]
-    lines = [
-        f"{title} ({len(entries)}, {len(entries) - len(answered)} without response)"
-    ]
-    if not answered:
+    A row of the chart is a time, the number of first responses of each class
+    in it, right aligned, and the bars of the classes stacked. paint(text,
+    class) colours the text of a class."""
+    silent = sum(1 for e in entries if not e)
+    lines = [f"{title} ({len(entries)}, {silent} without any response)"]
+    if silent == len(entries):
         return [*lines, "  no responses"]
     step = scale(entries)
     lines.append(
@@ -289,17 +414,20 @@ def render(
     if step > 1:
         lines.append(f"  one bar character is up to {step} responses")
     rows = histogram(entries)
-    width = max(len(label) for label, _ in rows) + 2
-    for label, counts in rows:
-        name = "> 3w" if label == SLOWER else f"<= {label}"
+    names = ["> 3w" if label == SLOWER else f"<= {label}" for label, _ in rows]
+    label_width = max(len(name) for name in names)
+    number_width = max(len(str(n)) for _, counts in rows for n in counts.values())
+    for name, (_, counts) in zip(names, rows, strict=True):
+        numbers = " ".join(
+            paint(str(counts[response]).rjust(number_width), response)
+            for response in CLASSES
+        )
         bars = "".join(
             paint("█" * math.ceil(counts[response] / step), response)
             for response in CLASSES
         )
-        numbers = " ".join(
-            paint(str(counts[response]), response) for response in CLASSES
-        )
-        lines.append(f"  {name.rjust(width + 1)} | {bars} {numbers}")
-    for response, number, text in summary(entries):
-        lines.append(paint(f"  {response}: {number} responses, {text}", response))
+        lines.append(f"  {name.rjust(label_width)}  {numbers} | {bars}")
+    lines.append("")
+    for response, line in table(summary(entries)):
+        lines.append(paint(line, response) if response else line)
     return lines

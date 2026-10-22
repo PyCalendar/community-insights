@@ -1,7 +1,7 @@
 """Command line interface: gh-community."""
 
 import re
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -191,6 +191,14 @@ def response(
     cache_dir: CacheDirOption = None,
     no_cache: NoCacheOption = False,
     jobs: JobsOption = JOBS,
+    since: Annotated[
+        str | None,
+        typer.Option(
+            "--since",
+            metavar="YYYY-MM-DD",
+            help="Only pull requests and issues created on or after this date.",
+        ),
+    ] = None,
 ) -> None:
     """Show how long pull requests and issues wait for their first response.
 
@@ -200,6 +208,12 @@ def response(
     or collaborator) or a collaborator or higher. Comments, comments on the
     changes and reviews of someone else than the author are responses.
     """
+    try:
+        first_day = date.fromisoformat(since) if since else None
+    except ValueError as error:
+        raise typer.BadParameter(
+            f"{since!r} is not a date like 2026-01-31.", param_hint="--since"
+        ) from error
     cfg = load_config(config, token, repositories)
     found = collect_responses(
         cfg.token,
@@ -207,7 +221,9 @@ def response(
         progress=lambda message: typer.echo(message, err=True),
         cache=None if no_cache else ResponseCache(cache_dir or default_cache_dir()),
         jobs=jobs,
+        since=first_day,
     )
+    suffix = f" since {since}" if since else ""
 
     def paint(text: str, kind: str) -> str:
         return typer.style(text, fg=RESPONSE_COLORS[kind])
@@ -217,7 +233,7 @@ def response(
     ):
         if position:
             typer.echo()
-        typer.echo("\n".join(render(title, found[kind], paint)))
+        typer.echo("\n".join(render(title + suffix, found[kind], paint)))
 
 
 def _complete_result(ctx: typer.Context, incomplete: str) -> list[str]:

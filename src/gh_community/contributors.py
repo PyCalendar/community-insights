@@ -289,14 +289,16 @@ class Collector:
         """One response: the headers and the JSON."""
         if page:
             params |= {"per_page": PER_PAGE, "page": page}
+        return self.send("GET", path, parameters=params)
+
+    def send(self, verb: str, path: str, **kwargs) -> tuple[dict, object]:
+        """One request, counted: the headers and the JSON of the response."""
         with self.lock:
             self.requests += 1
             self.active += 1
             self.peak = max(self.peak, self.active)
         try:
-            headers, data = self.gh.requester.requestJsonAndCheck(
-                "GET", path, parameters=params
-            )
+            headers, data = self.gh.requester.requestJsonAndCheck(verb, path, **kwargs)
             self.note_rate_limit(headers)
             return headers, data
         finally:

@@ -199,23 +199,52 @@ then `and`, then `or`. There are no functions.
 ```sh
 gh-community response                     # the repositories of the config
 gh-community response owner/name --no-cache
+gh-community response --since 2026-01-01  # only items created on or after
 ```
 
 Two bar charts, one for the pull requests and one for the issues, show how long
 they waited for their first response: one row for each time up to `1h 3h 6h 12h
-24h 2d 3d 5d 1w 2w 3w` (and `> 3w`). Each pull request or issue is counted once,
-in the colour of whoever responded first:
+24h 2d 3d 5d 1w 2w 3w` (and `> 3w`). For each of three classes, the first
+response of that class counts, so a bot that answers first does not hide the
+others and one pull request or issue can be counted in several classes. A row
+shows the number of each class, right aligned, and the stacked bars in their
+colours:
 
 - a **bot** (`[bot]` in the handle, Copilot, or GitHub's user type Bot),
-- an **external** person (association contributor, first timer, none, ...),
-- a **collaborator or higher** (owner, member or collaborator).
+- an **external** person: not the author, and no owner, member or collaborator
+  (association contributor, first timer, none, ...),
+- a **collaborator or higher** (owner, member or collaborator), not the author.
 
 A response is a comment, a comment on the changes or a submitted review by someone
-other than the author. Below the chart are the number, average and median per
-class; pull requests or issues nobody responded to are counted in the title.
-Bars longer than 40 characters are scaled down. The cache, `--jobs`, `--token`
-and `--config` work as for `contributors all`; a second run only asks which lists
-changed, and reviews are only requested again for pull requests that were updated.
+other than the author (handles are compared in any case). Below the chart is a table with three rows for each class that has responses
+(n responses), aligned to compare: the average, its standard error, the median
+and the 95th percentile, for
+
+- **measured**: the average and median of the times and the standard error of
+  the average (the standard deviation s / √n), no 95th percentile,
+- **normal**: the average and standard deviation s of the times; the standard
+  error is s / √number, the median is the average, the 95th percentile is the
+  average + 1.645 s (no standard error for a single response).
+- **exponential**: the average is the same (the maximum likelihood rate is
+  1 / average), the standard error is average / √number, the median is the
+  average × ln 2 and the 95th percentile the average × ln 20.
+
+Pull requests or issues nobody responded to are counted in the title. A `-` is
+a value that cannot be calculated, such as a standard error for one response.
+Bars longer than 40 characters are scaled down.
+
+The items are read with the GraphQL API: 50 pull requests or issues with their
+first comments and reviews in one request, newest changes first (a repository with
+2000 pull requests needs about 40 requests, not thousands). The token needs the
+same read access. With the cache (`--cache-dir`, `--no-cache`) what was read is
+remembered per repository with the time of the newest change, so the next run
+only reads the items changed since, usually one request for pull requests and one
+for issues. With `--since`, reading stops at that date (an item created since was changed
+since, too); a later run with an earlier date reads again, with the same or a
+later date it uses what was read. `--token` and `--config` work as for
+`contributors all`. The GraphQL API
+has its own rate limit, shown in the progress. This cache is not the one of the ETags:
+a run that is stopped before it ends has stored nothing.
 
 ### Configuration
 
