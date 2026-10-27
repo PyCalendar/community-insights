@@ -11,6 +11,10 @@ def fetch_worker_mode(app_configs=None, **kwargs) -> list[checks.Error]:
 
     Returns:
         An error that says the modes, or nothing.
+
+    Args:
+        app_configs: The apps to check, as Django gives them.
+        **kwargs: More arguments of Django.
     """
     from .pipeline import modes
 

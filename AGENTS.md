@@ -41,6 +41,13 @@ see also [Contribute](https://community-insights.readthedocs.io/en/latest/contri
 - Never change a migration that may be applied somewhere, also not the first one;
   add a new migration with `manage.py makemigrations`. A changed migration leaves
   databases with missing columns, such as `no such column`.
+- The variables of queries are named consistently, as the command line tool
+  before: a prefix of what they are about (`user_`, `commits_`, `prs_`, `issues_`,
+  `comments_`, `actions_`, `activity_`) or the unit first (`hours_`, `days_`,
+  `months_`); parts of a total are shown as `part/total`. docs/reference/queries.rst
+  lists all of them in an alphabetical table that links to the explanation of each;
+  `tests/quality/test_docs_links.py` and `tests/statistics/test_variable_names.py`
+  check it.
 - Pages and statistics never ask GitHub; only fetches do. The tests never use the
   network: GitHub is faked (`tests/fakes/`).
 - Small classes with one responsibility, low coupling: see `docs/how-to/develop.rst`.

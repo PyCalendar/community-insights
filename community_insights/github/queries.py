@@ -27,12 +27,26 @@ REPOSITORY = (
 
 
 def escape(text: str) -> str:
-    """A string inside a GraphQL query."""
+    """A string inside a GraphQL query.
+
+    Args:
+        text: The text.
+
+    Returns:
+        The text with backslashes and quotes escaped.
+    """
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def repositories(owner: str | None) -> str:
-    """A page of the repositories of the viewer (None) or of an owner."""
+    """A page of the repositories of the viewer (None) or of an owner.
+
+    Args:
+        owner: The organisation or user, None for the owner of the token.
+
+    Returns:
+        The query, with the variables ``login`` and ``after``.
+    """
     if owner is None:
         root, args = "viewer", "ownerAffiliations: OWNER, "
     else:
@@ -47,7 +61,15 @@ def repositories(owner: str | None) -> str:
 
 
 def each_repository(full_names: list[str], fields: str) -> str:
-    """The fields of several repositories, as r0, r1, ..."""
+    """The fields of several repositories, as r0, r1, ...
+
+    Args:
+        full_names: The repositories as ``owner/name``.
+        fields: The fields to read of each.
+
+    Returns:
+        The query.
+    """
     asked = " ".join(
         f'r{i}: repository(owner: "{escape(name.split("/")[0])}", '
         f'name: "{escape(name.split("/", 1)[1])}") {{ {fields} }}'
@@ -57,7 +79,14 @@ def each_repository(full_names: list[str], fields: str) -> str:
 
 
 def people(count: int) -> str:
-    """name, location and avatar of the users $l0, $l1, ... as u0, u1, ..."""
+    """name, location and avatar of the users $l0, $l1, ... as u0, u1, ...
+
+    Args:
+        count: How many users.
+
+    Returns:
+        The query.
+    """
     declared = ", ".join(f"$l{i}: String!" for i in range(count))
     fields = "".join(
         f"u{i}: user(login: $l{i}) {{ login name location avatarUrl }} " for i in range(count)

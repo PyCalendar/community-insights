@@ -86,6 +86,8 @@ a { color: var(--link); }
 .navbar-gh .navbar-brand, .navbar-gh .nav-link { color: var(--nav-text); }
 .navbar-gh .nav-link:hover { color: var(--green-light); }
 .theme-switch .btn { --bs-btn-color: var(--nav-text); --bs-btn-border-color: rgba(255,255,255,.5); --bs-btn-active-bg: rgba(255,255,255,.2); --bs-btn-active-color: #fff; --bs-btn-hover-color: #fff; }
+.dropdown-menu { --bs-dropdown-link-active-bg: var(--button-bg); --bs-dropdown-link-active-color: var(--button-text); }
+.theme-switch .dropdown-toggle span { display: inline-block; min-width: 1.1em; }
 .text-danger { color: var(--danger-text) !important; }
 
 .btn-primary {
@@ -121,3 +123,14 @@ a { color: var(--link); }
 code.snippet { word-break: break-all; }
 .allauth main { max-width: 34rem; }
 .allauth main ul.errorlist { color: #b02a37; padding-left: 1rem; }
+
+/* the columns of the contributors table (static/js/columns.js) */
+.column-chip { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: .375rem; padding: 0 .25rem; background: var(--surface-tint); cursor: grab; }
+/* the completion of the query field (static/js/query-complete.js) */
+.complete-host { position: relative; }
+.complete-list { position: absolute; z-index: 1000; left: 0; top: 100%; min-width: 14rem; max-height: 16rem; overflow-y: auto; box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .15); }
+/* the handle to drag a class (static/js/classes-order.js) */
+.drag-handle { cursor: grab; user-select: none; padding: 0 .25rem; color: var(--text-muted); }
+
+/* the names of the columns of the contributors table: variables or words (static/js/column-names.js) */
+[data-names="variables"] .name-words, [data-names="words"] .name-variable { display: none; }

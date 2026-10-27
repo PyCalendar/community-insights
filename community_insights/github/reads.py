@@ -11,12 +11,28 @@ from . import queries
 
 
 def batches(items: list, size: int = queries.BATCH) -> list[list]:
-    """The items in lists of `size`, for requests about several at once."""
+    """The items in lists of `size`, for requests about several at once.
+
+    Args:
+        items: The items.
+        size: How many go into one list.
+
+    Returns:
+        The lists, the last one shorter.
+    """
     return [items[start : start + size] for start in range(0, len(items), size)]
 
 
 async def viewer(graphql) -> str:
-    """The login of the owner of the token."""
+    """The login of the owner of the token.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+
+    Returns:
+        The login.
+    """
     return (await graphql(queries.VIEWER))["viewer"]["login"]
 
 
@@ -25,6 +41,18 @@ async def repositories(graphql, owner: str | None = None, limit: int = 300) -> l
 
     Repositories most stars first: those of the owner of the token (owner None) or of an
     organisation or user; private ones if the token sees them.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+        owner: An organisation or user; None for the owner of the token.
+        limit: How many to read at most.
+
+    Returns:
+        The repositories as GitHub answers them.
+
+    Raises:
+        OwnerNotFound: If GitHub does not know the owner.
     """
     query = queries.repositories(owner)
     found, after = [], None
@@ -42,7 +70,19 @@ async def repositories(graphql, owner: str | None = None, limit: int = 300) -> l
 
 
 async def repository(graphql, full_name: str) -> dict:
-    """One repository; RepositoryNotFound if it does not exist or the token cannot see it."""
+    """One repository; RepositoryNotFound if it does not exist or the token cannot see it.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+        full_name: The repository as ``owner/name``.
+
+    Returns:
+        The repository as GitHub answers it.
+
+    Raises:
+        RepositoryNotFound: If it does not exist or the token cannot see it.
+    """
     owner, name = full_name.split("/", 1)
     data = await graphql(queries.REPOSITORY, owner=owner, name=name)
     if not data.get("repository"):
@@ -56,6 +96,13 @@ async def suggestions(graphql) -> list[dict]:
     What the owner of the token is likely to look at, most stars first: their organisations,
     their repositories, those of their organisations and those they contributed to. [{"name",
     "kind", "stars"}]
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+
+    Returns:
+        The suggestions, each with a name, a kind and the stars.
     """
     data = (await graphql(queries.SUGGESTIONS))["viewer"]
     found: dict[str, dict] = {}
@@ -81,7 +128,17 @@ async def suggestions(graphql) -> list[dict]:
 
 
 async def each_repository(graphql, full_names: list[str], fields: str) -> dict[str, dict | None]:
-    """The fields of every repository; None for those the token cannot see."""
+    """The fields of every repository; None for those the token cannot see.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+        full_names: The repositories as ``owner/name``.
+        fields: The GraphQL fields to read of each.
+
+    Returns:
+        The fields of each repository by its name.
+    """
     parts = batches(full_names)
     answers = await asyncio.gather(
         *(graphql(queries.each_repository(part, fields)) for part in parts)
@@ -94,13 +151,31 @@ async def each_repository(graphql, full_names: list[str], fields: str) -> dict[s
 
 
 async def visible(graphql, full_names: list[str]) -> dict[str, bool]:
-    """Whether the token can read each repository."""
+    """Whether the token can read each repository.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+        full_names: The repositories as ``owner/name``.
+
+    Returns:
+        True or False for each repository by its name.
+    """
     found = await each_repository(graphql, full_names, "id")
     return {name: bool(data) for name, data in found.items()}
 
 
 async def totals(graphql, full_names: list[str]) -> dict[str, tuple[int, int] | None]:
-    """(pull requests, issues) of each repository."""
+    """(pull requests, issues) of each repository.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+        full_names: The repositories as ``owner/name``.
+
+    Returns:
+        The numbers of each repository by its name, None for those the token cannot see.
+    """
     found = await each_repository(
         graphql, full_names, "pullRequests { totalCount } issues { totalCount }"
     )
@@ -111,7 +186,16 @@ async def totals(graphql, full_names: list[str]) -> dict[str, tuple[int, int] | 
 
 
 async def people(graphql, logins: list[str]) -> dict[str, dict | None]:
-    """name, location and avatar of a few dozen users in one request."""
+    """name, location and avatar of a few dozen users in one request.
+
+    Args:
+        graphql: An async function that sends a GraphQL query with its variables and returns
+            the data, such as ``Client.graphql`` or ``TokenPool.graphql``.
+        logins: The logins.
+
+    Returns:
+        The profile of each login, None for those GitHub does not know.
+    """
     variables = {f"l{i}": login for i, login in enumerate(logins)}
     data = await graphql(queries.people(len(logins)), **variables)
     return {login: data.get(f"u{i}") for i, login in enumerate(logins)}

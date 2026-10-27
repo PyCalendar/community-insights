@@ -8,6 +8,12 @@ def parse_expiration(value: str | None) -> datetime | None:
 
     The header github-authentication-token-expiration, like "2026-11-30 12:00:00 UTC" or
     "2026-11-30 12:00:00 +0100".
+
+    Args:
+        value: The value of the header, or None.
+
+    Returns:
+        The time, None if there is none or it cannot be read.
     """
     if not value:
         return None
@@ -21,7 +27,15 @@ def parse_expiration(value: str | None) -> datetime | None:
 
 
 def header_int(headers, name: str) -> int | None:
-    """A header as a whole number; None if it is missing or no number."""
+    """A header as a whole number; None if it is missing or no number.
+
+    Args:
+        headers: The headers.
+        name: The name of the header.
+
+    Returns:
+        The number.
+    """
     try:
         return int(headers.get(name))
     except (TypeError, ValueError):

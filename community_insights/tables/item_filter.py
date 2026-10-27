@@ -20,7 +20,16 @@ class ItemFilter(django_filters.FilterSet):
         fields = ["kind", "state", "author", "responded"]
 
     def by_state(self, queryset, name, value):
-        """Open, closed, or merged pull requests."""
+        """Open, closed, or merged pull requests.
+
+        Args:
+            queryset: The items.
+            name: The name of the filter.
+            value: ``open``, ``closed`` or ``merged``.
+
+        Returns:
+            The items in that state.
+        """
         if value == "merged":
             return queryset.filter(merged=True)
         return queryset.filter(state=value)

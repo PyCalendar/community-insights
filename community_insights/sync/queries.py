@@ -9,7 +9,15 @@ FIELDS = {Item.PR: "pullRequests", Item.ISSUE: "issues"}
 
 
 def connection(field: str, after: bool = False) -> str:
-    """The first comments or reviews of an item, or those after $after."""
+    """The first comments or reviews of an item, or those after $after.
+
+    Args:
+        field: ``comments`` or ``reviews``.
+        after: Whether to read after the cursor ``$after``.
+
+    Returns:
+        The part of the query.
+    """
     date = "createdAt" if field == "comments" else "submittedAt"
     args = "first: $inner" + (", after: $after" if after else "")
     if field == "reviews":
@@ -25,6 +33,12 @@ def list_query(kind: str) -> str:
 
     A page of pull requests or issues with their first comments and reviews, newest change
     first.
+
+    Args:
+        kind: ``pr`` or ``issue``.
+
+    Returns:
+        The query.
     """
     extra = (
         f"merged mergedAt mergedBy {{ login }} {connection('reviews')}" if kind == Item.PR else ""
@@ -45,7 +59,11 @@ query($owner: String!, $name: String!, $after: String, $page: Int!, $inner: Int!
 
 
 def commits_query() -> str:
-    """A page of the history of the default branch, newest first."""
+    """A page of the history of the default branch, newest first.
+
+    Returns:
+        The query, with the variables ``owner``, ``name``, ``after`` and ``since``.
+    """
     return """
 query($owner: String!, $name: String!, $after: String, $since: GitTimestamp) {
   repository(owner: $owner, name: $name) {
@@ -61,7 +79,14 @@ query($owner: String!, $name: String!, $after: String, $since: GitTimestamp) {
 
 
 def more_query(field: str) -> str:
-    """The next comments or reviews of an item."""
+    """The next comments or reviews of an item.
+
+    Args:
+        field: ``comments`` or ``reviews``.
+
+    Returns:
+        The query, with the variables ``id``, ``after`` and ``inner``.
+    """
     types = ["Issue", "PullRequest"] if field == "comments" else ["PullRequest"]
     on = " ".join(f"... on {t} {{ {connection(field, True)} }}" for t in types)
     return f"query($id: ID!, $after: String, $inner: Int!) {{ node(id: $id) {{ {on} }} }}"

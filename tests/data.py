@@ -14,6 +14,7 @@ T0 = "2026-01-05T10:00:00Z"  # a Monday
 
 
 def full_client() -> FakeClient:
+    """A fake GitHub with pull requests, issues, people, repositories and commits."""
     return FakeClient(
         prs=[
             item(
@@ -47,6 +48,7 @@ def full_client() -> FakeClient:
 
 @pytest.fixture
 def user(db):
+    """A user with the default classes of people."""
     user = get_user_model().objects.create_user("alice", "alice@example.org", "pw")
     ensure_default_classes(user)
     return user
@@ -77,6 +79,7 @@ def world(user):
 
 @pytest.fixture
 def signed_in(client, user):
+    """A client signed in as the user, with a linked GitHub account, in Tokyo."""
     app = SocialApp.objects.create(provider="github", name="gh", client_id="i", secret="s")
     from django.contrib.sites.models import Site
 

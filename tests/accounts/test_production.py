@@ -7,6 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_production_refuses_default_passwords(db, settings):
+    """Production refuses default passwords."""
     from django.core.management import CommandError, call_command
 
     get_user_model().objects.create_superuser("admin", "a@example.org", "admin")
@@ -22,6 +23,7 @@ def test_production_refuses_default_passwords(db, settings):
 
 
 def test_the_name_as_password_is_refused_too(db, settings):
+    """The name as password is refused too."""
     from django.core.management import CommandError, call_command
 
     settings.PRODUCTION = True

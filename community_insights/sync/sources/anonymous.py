@@ -5,17 +5,36 @@ from ...models import Item, Repository
 
 
 async def nothing() -> None:
-    """The check that never stops anything."""
+    """The check that never stops anything.
+
+    Returns:
+        None.
+    """
     return None
 
 
 def number_at_end(url: str) -> int:
-    """The number at the end of an address of an issue or pull request."""
+    """The number at the end of an address of an issue or pull request.
+
+    Args:
+        url: The address, such as ``https://api.github.com/repos/o/r/issues/12``.
+
+    Returns:
+        The number, such as 12.
+    """
     return int(url.rstrip("/").rsplit("/", 1)[1])
 
 
 def node(comment: dict, key: str) -> dict:
-    """A comment of the REST API in the shape of a GraphQL node."""
+    """A comment of the REST API in the shape of a GraphQL node.
+
+    Args:
+        comment: The comment, as the REST API answers it.
+        key: The name of its time: ``createdAt`` or ``submittedAt``.
+
+    Returns:
+        The node.
+    """
     user = comment.get("user") or {}
     return {
         key: comment["created_at"],
@@ -42,6 +61,11 @@ class AnonymousSource:
     replaces_events = False
 
     def __init__(self, client):
+        """Read repositories without a token, with the REST API of GitHub.
+
+        Args:
+            client: The client without a token (``AnonymousClient``).
+        """
         self.client = client
         self.check = nothing
         # repository -> the load of both kinds: read once, also when both ask at once
@@ -62,14 +86,28 @@ class AnonymousSource:
         await self.client.close()
 
     async def load(self, repository: Repository) -> dict[str, list]:
-        """Both kinds at once, changed since the older of their last fetches."""
+        """Both kinds at once, changed since the older of their last fetches.
+
+        Args:
+            repository: The repository.
+
+        Returns:
+            The pull requests and issues by kind.
+        """
         full = repository.full_name
         if full not in self.read:
             self.read[full] = asyncio.ensure_future(self.read_both(repository))
         return await self.read[full]
 
     async def read_both(self, repository: Repository) -> dict[str, list]:
-        """Read the items, comments and review comments changed since the last fetch."""
+        """Read the items, comments and review comments changed since the last fetch.
+
+        Args:
+            repository: The repository.
+
+        Returns:
+            The pull requests and issues by kind, with their comments and reviews.
+        """
         full = repository.full_name
         prs, issues = repository.prs_synced_until, repository.issues_synced_until
         since = min(prs, issues) if prs and issues else None
@@ -130,12 +168,34 @@ class AnonymousSource:
         return found
 
     async def page(self, repository: Repository, kind: str, cursor, since) -> dict:
-        """All items of a kind in one page."""
+        """All items of a kind in one page.
+
+        Args:
+            repository: The repository.
+            kind: ``pr`` or ``issue``.
+            cursor: Not used: everything comes in one page.
+            since: Not used: ``load`` decides what changed.
+
+        Returns:
+            The page, in the shape of the GraphQL answers.
+        """
         found = await self.load(repository)
         return {"nodes": found[kind], "totalCount": None, "pageInfo": {"hasNextPage": False}}
 
     async def commits(self, repository: Repository, cursor, since) -> dict:
-        """All commits since the last fetch, in one page (100 per request)."""
+        """All commits since the last fetch, in one page (100 per request).
+
+        Args:
+            repository: The repository.
+            cursor: Not used: everything comes in one page.
+            since: The time of the last fetch, None for all commits.
+
+        Returns:
+            The commits, how many there are, and None for no next page.
+
+        Raises:
+            GitHubRequestRejected: If GitHub refuses the request, but not for an empty repository.
+        """
         await self.check()
         changed = {"since": since.isoformat()} if since else {}
         try:
@@ -156,9 +216,24 @@ class AnonymousSource:
         return {"nodes": [n for n in nodes if n["at"]], "total": None, "next": None}
 
     async def all_nodes(self, item: dict, field: str) -> list[dict]:
-        """The comments or reviews of an item: all came with it."""
+        """The comments or reviews of an item: all came with it.
+
+        Args:
+            item: The item, with its comments or reviews.
+            field: ``comments`` or ``reviews``.
+
+        Returns:
+            The comments or reviews.
+        """
         return list(item[field]["nodes"])
 
     async def people(self, logins: list[str]) -> dict:
-        """Nobody's name or location: they need a token."""
+        """Nobody's name or location: they need a token.
+
+        Args:
+            logins: The logins.
+
+        Returns:
+            None for each login.
+        """
         return dict.fromkeys(logins)  # names and locations need a token

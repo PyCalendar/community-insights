@@ -22,6 +22,15 @@ class Entry:
         shared: bool = False,
         allowance: HourAllowance | None = None,
     ):
+        """A token in a pool, with the limits of this site and of GitHub.
+
+        Args:
+            label: How the token is named in messages.
+            client: The GitHub client with the token.
+            stored: The stored token with its limits, None for one that is not stored.
+            shared: True for the points somebody else shares with this site.
+            allowance: The points the user allowed above the limits for this hour.
+        """
         self.label, self.client, self.stored = label, client, stored
         self.shared = shared
         self.allowance = allowance or HourAllowance(None)
@@ -30,7 +39,14 @@ class Entry:
             client.rate.reset_at = stored.rate_reset_at
 
     def left(self, now: datetime) -> int | None:
-        """Points this entry may use now; None for no limit of this site."""
+        """Points this entry may use now; None for no limit of this site.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points, or None.
+        """
         stored = self.stored
         if stored is None:
             return None
@@ -42,22 +58,50 @@ class Entry:
         return left
 
     def github_budget(self, now: datetime) -> int | None:
-        """Points left at GitHub; None if unknown or renewed."""
+        """Points left at GitHub; None if unknown or renewed.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points, or None.
+        """
         rate = self.client.rate
         if rate.remaining is None or (rate.reset_at and rate.reset_at <= now):
             return None  # unknown or renewed
         return rate.remaining
 
     def usable(self, now: datetime) -> bool:
-        """Whether the token may be used now."""
+        """Whether the token may be used now.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            True if neither this site nor GitHub says it has no points left.
+        """
         return all(b is None or b > 0 for b in (self.left(now), self.github_budget(now)))
 
     def expired(self, now: datetime) -> bool:
-        """Whether the stored token has expired."""
+        """Whether the stored token has expired.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            True if its expiration date has passed.
+        """
         return bool(self.stored and self.stored.expires_at and self.stored.expires_at <= now)
 
     def available_again(self, now: datetime) -> datetime:
-        """When this token can be used again."""
+        """When this token can be used again.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The time; in an hour if it is not known.
+        """
         times = []
         if self.left(now) == 0 and self.stored and self.stored.hour_started:
             times.append(self.stored.hour_started + HOUR)
@@ -66,7 +110,12 @@ class Entry:
         return max(times) if times else now + HOUR
 
     def spent(self, now: datetime, error: Exception | None = None) -> None:
-        """Count a request of the token, or remember why it failed."""
+        """Count a request of the token, or remember why it failed.
+
+        Args:
+            now: The time now.
+            error: Why the request failed, None if it worked.
+        """
         stored = self.stored
         if stored is None:
             return

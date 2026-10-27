@@ -3,8 +3,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext
 from django.utils.translation import gettext as _
 
+from ..demo import DEMO
 from ..errors import InvalidPercentage, LimitNotANumber, LimitTooSmall, MissingToken
 from ..feedback import show_error
 from ..models import (
@@ -19,38 +21,77 @@ EXPIRY_WARNING_DAYS = 14
 
 
 def positive_or_none(text: str) -> int | None:
-    """A whole number above 0 of a form, or None if empty; InvalidLimit otherwise."""
+    """A whole number above 0 of a form, or None if empty; InvalidLimit otherwise.
+
+    Args:
+        text: The value of the field.
+
+    Returns:
+        The number, None for an empty field.
+
+    Raises:
+        LimitNotANumber: If it is no whole number.
+        LimitTooSmall: If it is below 1.
+    """
     text = (text or "").strip()
     if not text:
         return None
     try:
         value = int(text)
     except ValueError:
-        raise LimitNotANumber(f"{text!r} is no whole number.") from None
+        raise LimitNotANumber(
+            gettext("%(text)s is no whole number.") % {"text": repr(text)}
+        ) from None
     if value < 1:
-        raise LimitTooSmall("The limit must be at least 1, or empty for no limit.")
+        raise LimitTooSmall(gettext("The limit must be at least 1, or empty for no limit."))
     return value
 
 
 def percent(text, default: int) -> int:
-    """A percentage of a slider, 0 to 100."""
+    """A percentage of a slider, 0 to 100.
+
+    Args:
+        text: The value of the slider.
+        default: The value for an empty one.
+
+    Returns:
+        The percentage.
+
+    Raises:
+        InvalidPercentage: If it is no whole number between 0 and 100.
+    """
     text = (text or "").strip()
     if not text:
         return default
     try:
         value = int(text)
     except ValueError:
-        raise InvalidPercentage(f"{text!r} is no whole number.") from None
+        raise InvalidPercentage(
+            gettext("%(text)s is no whole number.") % {"text": repr(text)}
+        ) from None
     if not 0 <= value <= 100:
-        raise InvalidPercentage("A percentage is between 0 and 100.")
+        raise InvalidPercentage(gettext("A percentage is between 0 and 100."))
     return value
 
 
 def add_token(request, user):
-    """Check a token with GitHub and store it with its sliders; warn if it never expires."""
+    """Check a token with GitHub and store it with its sliders; warn if it never expires.
+
+    Args:
+        request: The request, with the token, its name and the sliders.
+        user: Who gets the token.
+
+    Returns:
+        The stored token.
+
+    Raises:
+        MissingToken: If no token was entered.
+        InvalidPercentage: If a slider is not between 0 and 100.
+        TokenError: If GitHub does not accept the token.
+    """
     token = request.POST.get("token", "").strip()
     if not token:
-        raise MissingToken("Please paste a token.")
+        raise MissingToken(gettext("Please paste a token."))
     max_percent = percent(request.POST.get("max_percent"), 100)
     shared_percent = percent(request.POST.get("shared_percent"), 10)
     login, client = ask_one(token, "viewer")
@@ -81,9 +122,19 @@ def add_token(request, user):
 
 
 def test_token(stored: AccessToken) -> dict:
-    """Can the token read every repository of the projects of its user?"""
+    """Can the token read every repository of the projects of its user?
+
+    The made up demo repository is not on GitHub: it is not tested.
+
+    Args:
+        stored: The token.
+
+    Returns:
+        When it was checked, how many repositories it reads of how many, and those it cannot.
+    """
     names = sorted(
         Repository.objects.filter(projects__user=stored.user)
+        .exclude(full_name=DEMO)
         .distinct()
         .values_list("full_name", flat=True)
     )
@@ -106,7 +157,14 @@ def test_token(stored: AccessToken) -> dict:
 
 @login_required
 def github_access(request):
-    """The page GitHub access: the linked account, the tokens and the profile."""
+    """The page GitHub access: the linked account, the tokens and the profile.
+
+    Args:
+        request: The request; a POST changes the tokens or the profile, as its ``action`` says.
+
+    Returns:
+        The page, or a redirect to it after a change.
+    """
     user = request.user
     profile = Profile.of(user)
     if request.method == "POST":

@@ -28,6 +28,7 @@ LIMIT = {  # seconds
 
 @pytest.fixture
 def large(user):  # noqa: F811
+    """A project with many made up items."""
     ensure_default_classes(user)
     repository = store_repository({"nameWithOwner": "demo/large", "stargazerCount": 1})
     project = Project.objects.create(user=user, target="demo/large")
@@ -36,6 +37,7 @@ def large(user):  # noqa: F811
 
 
 def test_statistics_of_5000_items(large, user, signed_in, timer):  # noqa: F811
+    """Statistics of 5000 items."""
     repositories = Repository.objects.all()
     with timer("read 5000 made up items"):
         read_repository(DemoClient(seed=7, prs=3000, issues=2000), repositories.get())

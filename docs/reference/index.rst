@@ -7,6 +7,10 @@ Reference
 
    configuration
    classes
+   class-rules
+   queries
+   query-variables
+   query-operators
    locations
    badges
    urls

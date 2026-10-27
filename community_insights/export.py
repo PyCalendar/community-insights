@@ -10,6 +10,7 @@ import re
 from datetime import UTC, datetime
 
 from django.utils import timezone
+from django.utils.translation import gettext
 
 from . import stats
 from .errors import UnknownTable
@@ -19,12 +20,26 @@ TABLES = ("responses", "items", "events", "commits", "contributors")
 
 
 def column(name: str) -> str:
-    """The column of the seconds until the first response of a class."""
+    """The column of the seconds until the first response of a class.
+
+    Args:
+        name: The name of a class, such as ``collaborator or higher``.
+
+    Returns:
+        The name of the column, such as ``seconds_collaborator_or_higher``.
+    """
     return "seconds_" + re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
 def iso(value: datetime | None) -> str:
-    """A time as ISO 8601 in UTC with Z; empty for none."""
+    """A time as ISO 8601 in UTC with Z; empty for none.
+
+    Args:
+        value: A time, or None.
+
+    Returns:
+        The time, such as ``2026-01-05T10:00:00Z``.
+    """
     return value.astimezone(UTC).isoformat().replace("+00:00", "Z") if value else ""
 
 
@@ -36,6 +51,16 @@ def responses(
     One row per pull request or issue: the seconds until the first response of each class (empty
     if there was none) and of anybody. Without a response the time is censored:
     `observed_seconds` says how long it was waited for, until it was closed or until now.
+
+    Args:
+        repositories: The repositories.
+        classifier: Decides the class of each actor (``classify.Classifier``).
+        class_names: The names of the classes: one column each.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        One row per pull request or issue, by repository, kind and number.
     """
     now = timezone.now()
     items = list(
@@ -84,7 +109,16 @@ def responses(
 
 
 def items(repositories, since=None, until=None) -> list[dict]:
-    """The pull requests and issues created in the time range, one row each."""
+    """The pull requests and issues created in the time range, one row each.
+
+    Args:
+        repositories: The repositories.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The rows, by repository, kind and number.
+    """
     return [
         {
             "repository": item.repository.full_name,
@@ -108,7 +142,16 @@ def items(repositories, since=None, until=None) -> list[dict]:
 
 
 def events(repositories, since=None, until=None) -> list[dict]:
-    """The openings, comments and reviews in the time range, one row each."""
+    """The openings, comments and reviews in the time range, one row each.
+
+    Args:
+        repositories: The repositories.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The rows, oldest first.
+    """
     return [
         {
             "repository": event.item.repository.full_name,
@@ -129,7 +172,16 @@ def events(repositories, since=None, until=None) -> list[dict]:
 
 
 def commits(repositories, since=None, until=None) -> list[dict]:
-    """The commits in the time range, oldest first, one row each."""
+    """The commits in the time range, oldest first, one row each.
+
+    Args:
+        repositories: The repositories.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The rows: repository, sha, author, author_name and the time.
+    """
     found = Commit.objects.filter(repository__in=repositories).select_related("repository")
     if since:
         found = found.filter(at__gte=since)
@@ -148,7 +200,17 @@ def commits(repositories, since=None, until=None) -> list[dict]:
 
 
 def contributors(repositories, classifier, since=None, until=None) -> list[dict]:
-    """The contributors table: what each person did in the time range."""
+    """The contributors table: what each person did in the time range.
+
+    Args:
+        repositories: The repositories.
+        classifier: Decides the class of each person (``classify.Classifier``).
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        One row per person, sorted by the handle in any case.
+    """
     return [
         {
             "login": p.login,
@@ -180,7 +242,22 @@ def contributors(repositories, classifier, since=None, until=None) -> list[dict]
 def table(
     name: str, repositories, classifier, class_names: list[str], since=None, until=None
 ) -> list[dict]:
-    """A table of the data, of the items created (events made) in the time range."""
+    """A table of the data, of the items created (events made) in the time range.
+
+    Args:
+        name: ``responses``, ``items``, ``events``, ``commits`` or ``contributors``.
+        repositories: The repositories.
+        classifier: Decides the class of each actor (``classify.Classifier``).
+        class_names: The names of the classes, in their order.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The rows of the table.
+
+    Raises:
+        UnknownTable: If there is no table of that name.
+    """
     if name == "responses":
         return responses(repositories, classifier, class_names, since, until)
     if name == "items":
@@ -191,7 +268,7 @@ def table(
         return commits(repositories, since, until)
     if name == "contributors":
         return contributors(repositories, classifier, since, until)
-    raise UnknownTable(f"There is no table {name!r}.")
+    raise UnknownTable(gettext("There is no table %(name)s.") % {"name": repr(name)})
 
 
 # the tables a table is made from: the extra sheets of its ODS
@@ -205,7 +282,14 @@ SOURCES = {
 
 
 def about_rows(about: dict) -> list[dict]:
-    """What the export is: one row per fact, lists joined."""
+    """What the export is: one row per fact, lists joined.
+
+    Args:
+        about: What the export is, by the name of each fact.
+
+    Returns:
+        The rows of the sheet about the export, with a name and a value each.
+    """
     return [
         {
             "name": name,
@@ -222,6 +306,19 @@ def workbook(
 
     The sheets of the ODS of a table: the table (or `first`, e.g. the result of a query), the
     tables it was made from, and what the export is.
+
+    Args:
+        name: The name of the table.
+        repositories: The repositories.
+        classifier: Decides the class of each actor (``classify.Classifier``).
+        class_names: The names of the classes, in their order.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+        about: What the export is, for the last sheet.
+        first: Sheets to put first, such as the result of a query, as pairs of a name and rows.
+
+    Returns:
+        The sheets as pairs of a name and rows.
     """
     sheets = list(
         first or [(name, table(name, repositories, classifier, class_names, since, until))]
@@ -235,7 +332,14 @@ def workbook(
 
 
 def to_csv(rows: list[dict]) -> str:
-    """Rows as CSV with a header; None becomes an empty cell."""
+    """Rows as CSV with a header; None becomes an empty cell.
+
+    Args:
+        rows: The rows, all with the same keys.
+
+    Returns:
+        The CSV; empty without rows.
+    """
     buffer = io.StringIO()
     if rows:
         writer = csv.DictWriter(buffer, fieldnames=list(rows[0]), lineterminator="\n")
@@ -246,5 +350,13 @@ def to_csv(rows: list[dict]) -> str:
 
 
 def to_json(rows: list[dict], about: dict) -> str:
-    """Rows as JSON, with what the export is."""
+    """Rows as JSON, with what the export is.
+
+    Args:
+        rows: The rows.
+        about: What the export is: repositories, time range, classes and version.
+
+    Returns:
+        A JSON object with the facts of ``about`` and the rows under ``rows``.
+    """
     return json.dumps({**about, "rows": rows}, indent=1, ensure_ascii=False)

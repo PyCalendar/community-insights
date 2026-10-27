@@ -10,6 +10,7 @@ PASSWORD = "a long password 123"
 
 
 def sign_up(client, email="new@example.org"):
+    """Sign up with an email address and the password of the tests."""
     return client.post(
         "/accounts/signup/",
         {"email": email, "password1": PASSWORD, "password2": PASSWORD},
@@ -17,6 +18,7 @@ def sign_up(client, email="new@example.org"):
 
 
 def test_sign_up_sends_a_confirmation(client):
+    """Sign up sends a confirmation."""
     response = sign_up(client)
     assert response.status_code == 302
     assert len(mail.outbox) == 1
@@ -26,17 +28,20 @@ def test_sign_up_sends_a_confirmation(client):
 
 
 def test_optional_confirmation_lets_people_in(client):
+    """Optional confirmation lets people in."""
     sign_up(client)
     assert client.get("/dashboard/").status_code == 200
 
 
 def test_mandatory_confirmation(client, settings):
+    """Mandatory confirmation."""
     settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
     sign_up(client)
     assert client.get("/dashboard/").status_code == 302
 
 
 def test_password_reset_mail(client):
+    """Password reset mail."""
     sign_up(client)
     client.logout()
     mail.outbox.clear()
@@ -45,6 +50,7 @@ def test_password_reset_mail(client):
 
 
 def test_mail_settings(settings):
+    """Mail settings."""
     from django.conf import settings as live
 
     assert live.EMAIL_BACKEND.endswith(("console.EmailBackend", "locmem.EmailBackend"))

@@ -16,11 +16,15 @@ SKIP = ("/accounts/logout", "/accounts/github/", "/admin/", "/accounts/3rdparty/
 
 
 class Links(HTMLParser):
+    """The links, resources, ids and references of a page."""
+
     def __init__(self):
+        """Nothing found yet."""
         super().__init__()
         self.links, self.resources, self.ids, self.anchors = [], [], set(), []
 
     def handle_starttag(self, tag, attrs):
+        """Note the id, the link, the resource or the reference of a tag."""
         attrs = dict(attrs)
         if "id" in attrs:
             self.ids.add(attrs["id"])
@@ -36,11 +40,13 @@ class Links(HTMLParser):
 
 
 def static_exists(path: str) -> bool:
+    """Whether a static file of an address exists."""
     name = path.removeprefix(staticfiles_storage.base_url).split("?")[0]
     return finders.find(name) is not None
 
 
 def crawl(client, start: list[str], limit: int = 400) -> dict[str, int]:
+    """Visit the pages from the start, follow their links, and fail with all problems."""
     seen: dict[str, int] = {}
     todo = list(start)
     problems = []
@@ -62,8 +68,14 @@ def crawl(client, start: list[str], limit: int = 400) -> dict[str, int]:
             continue
         if not kind.startswith("text/html"):
             continue
+        html = response.content.decode()
         page = Links()
-        page.feed(response.content.decode())
+        page.feed(html)
+        if "navbar-gh" not in html:
+            problems.append(f"{url}: not in the layout of the site")
+        content = html[html.index("<main") : html.index("</main>")] if "<main" in html else ""
+        if content.count("<h1") != 1:
+            problems.append(f"{url}: {content.count('<h1')} headings h1, not one")
         for target in page.anchors:
             if target and target not in page.ids:
                 problems.append(f"{url}: refers to #{target} which is not on the page")
@@ -95,6 +107,7 @@ def crawl(client, start: list[str], limit: int = 400) -> dict[str, int]:
 
 def test_every_page_and_link_works_signed_in(world, signed_in, monkeypatch):  # noqa: F811
     # the fetch page asks GitHub for an estimate: mocked
+    """Every page and link works signed in."""
     monkeypatch.setattr("community_insights.github.Client", lambda token: FakeClient())
     seen = crawl(signed_in, ["/", "/dashboard/"])
     pages = {urlparse(u).path for u in seen}
@@ -103,7 +116,6 @@ def test_every_page_and_link_works_signed_in(world, signed_in, monkeypatch):  # 
         "/dashboard/",
         "/about/",
         "/dashboard/classes/",
-        "/dashboard/cache/",
         "/dashboard/github/",
         "/dashboard/downloads/",
         f"/s/{project}/",
@@ -119,6 +131,7 @@ def test_every_page_and_link_works_signed_in(world, signed_in, monkeypatch):  # 
 
 def test_every_public_page_works(client, world, monkeypatch):  # noqa: F811
     # the fetch page asks GitHub for an estimate: mocked
+    """Every public page works."""
     monkeypatch.setattr("community_insights.github.Client", lambda token: FakeClient())
     seen = crawl(client, ["/", "/about/", "/accounts/login/", "/accounts/signup/"])
     assert all(code in (200, 302) for code in seen.values())

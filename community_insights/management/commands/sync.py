@@ -11,13 +11,28 @@ class Command(BaseCommand):
     help = "Queue and run fetches for a user's projects, e.g. from cron."
 
     def add_arguments(self, parser):
-        """The email of the user, repositories and a limit of points."""
+        """The email of the user, repositories and a limit of points.
+
+        Args:
+            parser: The parser of the arguments of the command.
+        """
         parser.add_argument("email")
         parser.add_argument("repositories", nargs="*", help="owner/name; all projects if empty")
         parser.add_argument("--limit", type=int, help="API points for this fetch")
 
     def handle(self, *args, email, repositories, limit, **options):
-        """Estimate, queue with low priority, run, and print the outcome of each job."""
+        """Estimate, queue with low priority, run, and print the outcome of each job.
+
+        Args:
+            *args: The positional arguments Django passes.
+            **options: The other options of the command.
+            email: The email of the user whose tokens read.
+            repositories: ``owner/name`` of their projects; all if empty.
+            limit: The most API points, None for no limit.
+
+        Raises:
+            CommandError: If there is no such user, or no such repository in their projects.
+        """
         user = get_user_model().objects.filter(email__iexact=email).first()
         if user is None:
             raise CommandError(f"No user {email}")

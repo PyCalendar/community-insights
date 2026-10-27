@@ -9,7 +9,14 @@ from odf.text import P
 
 
 def cell(value) -> Element:
-    """Numbers stay numbers, so the spreadsheet can calculate with them."""
+    """Numbers stay numbers, so the spreadsheet can calculate with them.
+
+    Args:
+        value: A number, a truth value, text or None.
+
+    Returns:
+        The cell: a number for numbers and truth values, else text.
+    """
     if isinstance(value, bool):
         value = int(value)
     if isinstance(value, int | float) and value == value and value not in (float("inf"),):
@@ -20,7 +27,14 @@ def cell(value) -> Element:
 
 
 def to_ods(sheets: list[tuple[str, list[dict]]]) -> bytes:
-    """[(name, rows)] as an ODS file; each sheet has a header row."""
+    """[(name, rows)] as an ODS file; each sheet has a header row.
+
+    Args:
+        sheets: The sheets as pairs of a name and rows; a name is cut to 31 characters.
+
+    Returns:
+        The ODS file.
+    """
     document = OpenDocumentSpreadsheet()
     for name, rows in sheets:
         table = Table(name=name[:31])

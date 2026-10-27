@@ -69,3 +69,44 @@ Feature: Projects and their statistics
     When I choose the light theme
     Then the page is light
     And the charts are light
+
+  Scenario: Write a query with the names of the variables and run it with Enter
+    Given I added the project "o/r"
+    And I read the project "o/r" from GitHub
+    When I click "Contributors"
+    And I type "prs_mer" into the query
+    Then the query suggests "prs_merged"
+    When I press Tab in the query
+    Then the query is "prs_merged "
+    When I type ">= 0" into the query
+    And I press Enter in the query
+    Then the address has the query "prs_merged >= 0"
+    And I see "people"
+
+  Scenario: Choose the columns of the contributors
+    Given I added the project "o/r"
+    And I read the project "o/r" from GitHub
+    When I click "Contributors"
+    And I remove the column "user_location"
+    And I move the column "user_class" left
+    And I add the column "activity_total"
+    And I click "Run the query"
+    Then the table has the columns "user_class user_handle" first
+    And the table has no column "user_location"
+    And I see "activity_total"
+
+  Scenario: Share a chart with the page it comes from
+    Given I added the project "o/r"
+    And I read the project "o/r" from GitHub
+    When I click "Share this chart"
+    Then I see "Share a chart"
+    And the code to share in Markdown contains "chart/responses-pr.svg"
+    And the code to share in reStructuredText contains ":target: http"
+    And all images are loaded
+
+  Scenario: The colours of the page are chosen from a menu with an icon
+    Given I open "/about/"
+    When I choose the dark theme
+    Then the theme switch shows "☾"
+    When I choose the auto theme
+    Then the theme switch shows "◐"

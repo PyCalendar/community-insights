@@ -14,12 +14,14 @@ pytestmark = pytest.mark.django_db
 
 
 def page(names, more):
+    """An answer with a page of repositories."""
     nodes = [{"nameWithOwner": n} for n in names]
     info = {"hasNextPage": more, "endCursor": "c"}
     return Response(body={"data": {"viewer": {"repositories": {"nodes": nodes, "pageInfo": info}}}})
 
 
 def test_sends_token_and_returns_data():
+    """Sends token and returns data."""
     sent = []
     client = answering(Response(body={"data": {"x": 1}}), sent=sent)
     assert run(client.graphql, "query { x }") == {"x": 1}
@@ -29,11 +31,13 @@ def test_sends_token_and_returns_data():
 
 
 def test_rejected_token():
+    """Rejected token."""
     with pytest.raises(TokenError):
         run(answering(Response(401)).graphql, "query { x }")
 
 
 def test_errors_but_not_missing_users():
+    """Errors but not missing users."""
     ok = Response(body={"data": {"u0": None}, "errors": [{"type": "NOT_FOUND", "message": "x"}]})
     assert run(answering(ok).people, ["ghost"]) == {"ghost": None}
     bad = Response(body={"errors": [{"type": "OTHER", "message": "boom"}]})
@@ -42,6 +46,7 @@ def test_errors_but_not_missing_users():
 
 
 def test_repositories_are_read_page_by_page():
+    """Repositories are read page by page."""
     sent = []
     client = answering(page(["a/1", "a/2"], True), page(["a/3"], False), sent=sent)
     assert [r["nameWithOwner"] for r in run(client.repositories)] == ["a/1", "a/2", "a/3"]
@@ -49,7 +54,10 @@ def test_repositories_are_read_page_by_page():
 
 
 def test_reads_work_with_any_graphql_function():
+    """Reads work with any graphql function."""
+
     async def graphql(query, **variables):
+        """Answer with the repositories of the viewer."""
         return {
             "viewer": {
                 "repositories": {
@@ -63,12 +71,14 @@ def test_reads_work_with_any_graphql_function():
 
 
 def test_missing_repository():
+    """Missing repository."""
     client = answering(Response(body={"data": {"repository": None}}))
     with pytest.raises(RepositoryNotFound, match="not found"):
         run(client.repository, "a/b")
 
 
 def test_many_repositories_are_asked_in_batches_at_the_same_time():
+    """Many repositories are asked in batches at the same time."""
     names = [f"o/r{i}" for i in range(120)]
     sent = []
     answers = [Response(body={"data": {f"r{i}": {"id": 1} for i in range(50)}}) for _ in range(3)]
@@ -78,6 +88,7 @@ def test_many_repositories_are_asked_in_batches_at_the_same_time():
 
 
 def test_client_closes():
+    """Client closes."""
     run(Client("t").close)
 
 
@@ -92,10 +103,12 @@ def test_client_closes():
     ],
 )
 def test_token_expiration_header(header, expected):
+    """Token expiration header."""
     assert parse_expiration(header) == expected
 
 
 def test_client_notes_rate_limit_and_expiry():
+    """Client notes rate limit and expiry."""
     client = answering(
         Response(
             body={"data": {}},
@@ -121,11 +134,13 @@ def test_client_notes_rate_limit_and_expiry():
     ],
 )
 def test_client_rate_limits(response):
+    """Client rate limits."""
     with pytest.raises(RateLimited):
         run(answering(response).graphql, "query { x }")
 
 
 def test_queries_escape_repository_names():
+    """Queries escape repository names."""
     sent = []
     client = answering(Response(body={"data": {"r0": None}}), sent=sent)
     assert run(client.visible, ['a"b/c\\d']) == {'a"b/c\\d': False}

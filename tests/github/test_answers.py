@@ -51,11 +51,13 @@ PLONE_REFUSAL = (
     ],
 )
 def test_github_answers_become_errors(response, expected):
+    """Github answers become errors."""
     with pytest.raises(expected):
         run(answering(response).graphql, "query { x }")
 
 
 def test_unreachable_github():
+    """Unreachable github."""
     import niquests
 
     client = answering(niquests.ConnectionError("no route"))
@@ -64,14 +66,17 @@ def test_unreachable_github():
 
 
 def test_not_json():
+    """Not json."""
     with pytest.raises(errors.GitHubError, match="not JSON"):
         run(answering(Response(body=ValueError("not json"))).graphql, "query { x }")
 
 
 def test_secondary_rate_limit_waits_and_tries_again(monkeypatch):
+    """Secondary rate limit waits and tries again."""
     waited = []
 
     async def sleep(seconds):
+        """Note the wait instead of waiting."""
         waited.append(seconds)
 
     monkeypatch.setattr("community_insights.github.client.asyncio.sleep", sleep)
@@ -84,7 +89,10 @@ def test_secondary_rate_limit_waits_and_tries_again(monkeypatch):
 
 
 def test_long_secondary_waits_are_left_to_the_pool(monkeypatch):
+    """Long secondary waits are left to the pool."""
+
     async def sleep(seconds):
+        """Note the wait instead of waiting."""
         raise AssertionError("must not wait that long")
 
     monkeypatch.setattr("community_insights.github.client.asyncio.sleep", sleep)
@@ -95,9 +103,11 @@ def test_long_secondary_waits_are_left_to_the_pool(monkeypatch):
 
 
 def test_secondary_rate_limit_without_retry_after_backs_off(monkeypatch):
+    """Secondary rate limit without retry after backs off."""
     waited = []
 
     async def sleep(seconds):
+        """Note the wait instead of waiting."""
         waited.append(seconds)
 
     monkeypatch.setattr("community_insights.github.client.asyncio.sleep", sleep)

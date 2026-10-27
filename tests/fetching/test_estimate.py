@@ -15,10 +15,12 @@ pytestmark = pytest.mark.django_db
 
 
 def job_for(user, name="o/r", **fields):  # noqa: F811
+    """A fetch job of a user for a repository."""
     return FetchJob.objects.create(user=user, repository=store_repository(repo(name)), **fields)
 
 
 def test_estimate_first_fetch_and_later(user):  # noqa: F811
+    """Estimate first fetch and later."""
     repository = store_repository(repo("o/r"))
     client = FakeClient(prs=[item(i, "a", "2026-01-01T00:00:00Z", reviews=[]) for i in range(120)])
     (estimate,) = run(pipeline.estimate, [repository], client)
@@ -31,12 +33,14 @@ def test_estimate_first_fetch_and_later(user):  # noqa: F811
 
 
 def test_estimate_of_a_repository_the_token_cannot_see(user):  # noqa: F811
+    """Estimate of a repository the token cannot see."""
     repository = store_repository(repo("o/secret"))
     (estimate,) = run(pipeline.estimate, [repository], FakeClient(hidden={"o/secret"}))
     assert estimate.prs is None and estimate.points == 0
 
 
 def test_completeness_without_and_with_data(user):  # noqa: F811
+    """Completeness without and with data."""
     repository = store_repository(repo("o/r"))
     data = pipeline.completeness([repository])
     assert data["percent"] == 0 and data["total"] is None and data["seconds_left"] is None
@@ -56,6 +60,7 @@ def test_completeness_without_and_with_data(user):  # noqa: F811
 
 
 def test_empty_repository_is_complete(user):  # noqa: F811
+    """Empty repository is complete."""
     repository = store_repository(repo("o/empty"))
     repository.prs_total = repository.issues_total = 0
     repository.save()
@@ -63,6 +68,7 @@ def test_empty_repository_is_complete(user):  # noqa: F811
 
 
 def test_seconds_left(user):  # noqa: F811
+    """Seconds left."""
     job = job_for(user, items_expected=200, items_done=0)
     assert pipeline.seconds_left([job]) == pytest.approx(200 / pipeline.ITEMS_PER_SECOND)
     waiting = job_for(

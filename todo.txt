@@ -16,7 +16,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Django project, Python 3.13, managed with uv
 - [x] Project name: Contributor Community Insights (site, docs); distribution `community-insights`, Django project package `community_insights`
 - [x] The GitHub repository is https://github.com/PyCalendar/community-insights: the links of the code and the docs use it; the image stays ghcr.io/pycalendar/community-insights (lowercase, as ghcr.io needs)
-- [ ] The name "Contributor Community Insights" is for now; decide the final name before the first release
+- [x] The name is Contributor Community Insights (decided)
 - [x] Docker container based on gunicorn, like open-web-calendar (`Dockerfile`, `docker/start-service.sh`, `PORT`, `WORKERS`)
 - [x] nginx in front of gunicorn in the container, like myco-webshop: it serves the static files (`docker/nginx.conf`); gunicorn on 127.0.0.1:8000
 - [x] Build the image locally and run `make docker-test`: healthy through nginx; with a default password and PRODUCTION on it stops with the explained error
@@ -37,7 +37,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] `make run` and the test container (`make docker-run`) use the same database in `./data` (container runs as the user; SQLite waits for the other process, WAL)
 - [x] Tutorial in the docs: set up with Docker Compose, sign in, first statistics, then optional steps: GitHub OAuth, the three ways to sign in, mails, superuser, separate worker, PostgreSQL, public address
 - [x] PostgreSQL in the image (`psycopg[binary]`) and a compose example with a database service (in comments), documented in the tutorial
-- [ ] The disk is nearly full on the development machine (1.2 GB free): check before large downloads or builds; the Docker image with scipy was not rebuilt locally
+- [x] The disk is nearly full on the development machine (about 4 GB free): checked before large downloads and builds; the Docker image was rebuilt locally and is healthy (`make docker-test`)
 
 ## Accounts and GitHub access
 - [x] `manage.py add_shared_token SUPERUSER TOKEN`: a token everyone on the site can use, owned by a superuser who must exist
@@ -81,7 +81,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 
 ## Dashboard and projects
 - [x] People do not need to sign in: Explore (the start page) with the public repositories and their numbers; all statistics pages for public scopes (`/s/owner~name/`, `/s/owner/`); they submit a repository, checked with the donated tokens; Read from GitHub says whether the donated tokens have the points and reads with them at low priority; badges of public scopes
-- [ ] Visitors: a limit of submissions and fetches per address (abuse of the donated tokens)
+- [x] Visitors: a limit of submissions and fetches per address and hour (`VISITOR_SUBMITS_PER_HOUR` 10, `VISITOR_FETCHES_PER_HOUR` 5; `community_insights/visitor_limit.py`, `VisitorLimitReached`); the address behind `TRUSTED_PROXIES` proxies (1 in the image: its nginx); counted in the cache, which the processes share
 - [x] For now only public repositories: private ones are refused with an explaining error (`PrivateRepositoryRefused`), the private repositories of organisations are skipped and not suggested, the button for private access is hidden (`PRIVATE_REPOSITORIES` = False)
 - [x] Landing page after sign in = dashboard: the repositories I want insight on as cards with simple numbers and a menu each (open its statistics, contributors, read from GitHub, remove)
 - [x] Dashboard tabs: added projects on top / in the first tab; my repositories (and organisations, contributions) in another tab
@@ -106,7 +106,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] `manage.py clear_cache --days N [--dry-run]`
 - [x] Incremental sync (only items changed since the last sync)
 - [x] Automatic clean-up once a day of what was not used for `CACHE_KEEP_DAYS` (90) days (`community_insights/cleanup.py`)
-- [ ] Per-user cache limit
+- [x] Per-user cache limit: `USER_MAX_ITEMS` (100000 pull requests and issues in the repositories of the projects of an account; 0 for none), for each user except the administrators; a fetch over it is refused (`UserItemsLimitReached`); the fetch page shows how many are held (`community_insights/user_limit.py`)
 - [x] Re-fetch people (location, name) when older than 30 days (`PEOPLE_MAX_AGE`)
 
 ## Statistics
@@ -142,14 +142,14 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Create classes by name, pattern, status (association), bot, or location
 - [x] Defaults: bot, collaborator or higher, external
 - [x] Order of the classes decides which one an actor belongs to
-- [ ] Edit / reorder classes without the admin-style form (drag and drop)
-- [ ] Classes shared between users
+- [x] Edit / reorder classes without the admin-style form: drag a class by its handle, or the arrows; name and colour are fields in the header of each class (`static/js/classes-order.js`; errors `ClassNameTaken`, `InvalidColor`, `InvalidClassOrder`)
+- [x] Classes are not shared, everybody makes their own; to share a statistic with other classes, each class has the user who edits it and a unique id derived from its name (`PersonClass.ident`, such as maintainer-3, found again by its number after a rename); the ids are part of the address (`classes`) when the classes differ from the default ones; statistics, charts, downloads, documents and badges use them; a note links back to the own classes; unknown ids show `UnknownClasses`
 
 ## Design and pages
 - [x] Profile checkbox: show a "Horizon Europe" tag next to the location of people in a country that takes part in Horizon Europe (EU and associated countries; locations matched with country names, codes and cities)
 - [x] Internationalization: every text of the site translatable (Django i18n: templates, Python, JavaScript), the language of the browser or chosen in the footer, a first translation (German, "du")
-- [ ] Internationalization, the rest: the details of the errors (f-strings in many places), the descriptions of the query variables, the texts in charts and exports, the allauth pages (allauth has its own translations), the badges stay English
-- [ ] German texts: checked by a person who speaks German (written by Claude); "du" or "Sie"?
+- [x] Internationalization, the rest: the details of the errors that pages show (forms, queries, dates, classes, adding repositories, visitor limits), the descriptions of the query variables, the texts in charts (axes, titles, legends, weekdays); the allauth pages use the translations of allauth; the badges stay English; the names of the columns of the exports stay English (scripts read them); the messages of fetches that run in the background stay English (no language there)
+- [ ] German texts: checked by a person who speaks German (written by Claude); "Du" with a capital letter was decided
 - [x] Bootstrap 5, mobile first, light and dark
 - [x] Green palette as CSS variables in `static/style.css` (#149414 #0e6b0e #649568 #9ccc9c #2b5329); white text only on #0e6b0e / #2b5329 (contrast >= 4.5), dark text on #9ccc9c
 - [x] Charts (matplotlib) in the colours of the website: green palette, series told apart by lightness with gaps between stacked bars, heat map from light to deep green (`community_insights/charts.py`)
@@ -180,8 +180,8 @@ Project constraints:
 - [x] pyright like icalendar (`make typecheck`, CI): type hints, the Django types (django-types or django-stubs), a reasoned ignore where a hint makes no sense; what the errors say about the abstractions
 - [x] Docstrings for all classes and functions of the application, Google style (ruff D with the google convention, in `make lint`)
 - [x] icalendar's documentation tests, adapted and under their license (BSD-2-Clause, `REUSE.toml`): `tests/test_with_doctest.py` (doctest of modules and docs), `tests/test_docstrings.py` (Google headings)
-- [ ] Add the Args / Returns / Raises sections: 336 docstrings lack one (the xfails of tests/test_docstrings.py)
-- [ ] Docstrings for all test functions and classes
+- [x] Add the Args / Returns / Raises sections: every docstring of community_insights/ has them, the dataclasses have Attributes; tests/quality/test_docstrings.py fails instead of xfail now
+- [x] Docstrings for all test functions and classes (checked by tests/quality/test_docstrings.py)
 - [x] Rename: the distribution community-insights, the Django project package community_insights; everything called gh-community is renamed (image, addresses, Makefile, compose service); the directory is renamed to community-insights by the user
 - [x] At the end: go through all files and remove old code that is not needed any more (vulture: `FetchJob.is_active`, django-tz-detect as an app, a mention of the old CLI; the rest it finds are Django hooks)
 - [x] Remove the old code (`old/`): the command line tool before the rewrite is in the git history (commit 239c258); no configuration ignores `old/` any more
@@ -247,25 +247,25 @@ Mark the ones to use; nothing below is used yet unless it says so.
 - [x] Download the tables behind the statistics (responses, items, events, contributors as CSV / JSON) (`community_insights/export.py`)
 - [x] `scipy.stats` used for the fits (more distributions and goodness of fit still open): fit exponential, normal, log-normal, gamma, Weibull to the response times (`expon.fit`, `lognorm.fit`), goodness of fit (`kstest`), bootstrap confidence intervals (`scipy.stats.bootstrap`) - replaces `stats.summary` by hand
 - [x] `numpy`: percentiles (`np.percentile`) and histograms - replaces `stats.percentile` and `stats.histogram`
-- [ ] `pandas`: the tables for export (CSV, JSON, Parquet), group by month / weekday / hour - replaces the dict loops in `stats.py`
-- [ ] `lifelines`: Kaplan-Meier survival curves for response times with items that never got a response (censored data); median survival time - not needed: scipy.stats.ecdf does Kaplan-Meier
-- [ ] `statsmodels`: trends over time (are responses getting faster?)
+- [ ] To implement: `pandas`: the tables for export (CSV, JSON, Parquet), group by month / weekday / hour - replaces the dict loops in `stats.py`
+- [ ] To implement: `lifelines`: Kaplan-Meier survival curves for response times with items that never got a response (censored data); median survival time - not needed: scipy.stats.ecdf does Kaplan-Meier
+- [ ] To implement: `statsmodels`: trends over time (are responses getting faster?)
 
 ### GitHub data
-- [ ] `githubkit`: typed GitHub REST and GraphQL client with rate limit handling and retries - replaces `community_insights/github.py`
-- [ ] `gql`: GraphQL client with query validation against the GitHub schema
-- [ ] `PyGithub`: what `old/` used; REST only, many requests
-- [ ] CHAOSS GrimoireLab `perceval`: fetches GitHub issues and pull requests with resumable fetches and token rotation (several tokens!)
-- [ ] CHAOSS `augur`: a whole community health platform; compare features before building more
-- [ ] `github-to-sqlite` (Datasette): reads issues, pull requests, comments into SQLite; ideas for the schema
+- [x] Rejected: `githubkit`: typed GitHub REST and GraphQL client with rate limit handling and retries - replaces `community_insights/github.py`
+- [ ] To implement: `gql`: GraphQL client with query validation against the GitHub schema
+- [x] Rejected: `PyGithub`: what `old/` used; REST only, many requests
+- [x] Rejected: CHAOSS GrimoireLab `perceval`: fetches GitHub issues and pull requests with resumable fetches and token rotation (several tokens!)
+- [x] Rejected: CHAOSS `augur`: a whole community health platform; compare features before building more
+- [x] Rejected: `github-to-sqlite` (Datasette): reads issues, pull requests, comments into SQLite; ideas for the schema
 
 ### Django
 Approved: all Django packages may be used where they replace code or enable requested features.
 - [x] `django-allauth`: GitHub sign-in, email sign-up, linking accounts (used)
 - [x] `django-tables2` + `django-filter`: sortable, filterable contributors table with CSV export - replaces the hand-written sorting - used for the list of pull requests and issues (`community_insights/tables/`); the contributors keep the query language
-- [ ] `djangoql`: a query language with autocompletion for the contributors page ("run queries") - not yet: it queries models, the contributors are computed rows; could query the list of pull requests and issues
+- [x] Rejected: `djangoql`: a query language with autocompletion for the contributors page ("run queries") - not yet: it queries models, the contributors are computed rows; could query the list of pull requests and issues
 - [x] `django-tz-detect`: sets the time zone from the browser - replaces `static/js/timezone.js` and the middleware - used, replaces `static/js/timezone.js` and the old middleware; a bad time zone of the browser is forgotten (`SafeTimezoneMiddleware`); its inline script is replaced by `static/js/time-zone.js`, so it is no installed app any more
-- [ ] `django-tasks` (Django 6 tasks) or `django-q2` / `huey` / `celery`: background fetches with progress - replaces the thread - not yet: no cancel, progress, waiting for the rate limit or concurrent jobs, which the own queue has
+- [x] Rejected: `django-tasks` (Django 6 tasks) or `django-q2` / `huey` / `celery`: background fetches with progress - replaces the thread - not yet: no cancel, progress, waiting for the rate limit or concurrent jobs, which the own queue has
 - [x] `django-ordered-model`: ordering of classes and tokens (move up / down) - replaces the position code - used for tokens and classes
 - [x] `django-fernet-encrypted-fields`: encrypt the stored GitHub tokens - used: the tokens are encrypted (`SALT_KEY`)
 - [x] `django-environ`: settings from the environment - replaces `env_list` and friends - used for all settings, replaces dj-database-url
@@ -275,59 +275,62 @@ Approved: all Django packages may be used where they replace code or enable requ
 
 ### UI components
 - [x] `django-bootstrap5` or `django-crispy-forms` + `crispy-bootstrap5`: Bootstrap forms - replaces the hand-written form markup and the allauth element overrides - django-bootstrap5 used for the filter form; the other forms are still written by hand
-- [ ] `django-allauth-ui`: styled allauth pages (Tailwind, so it would not match Bootstrap)
-- [ ] `htmx` (`django-htmx`): progress of a running fetch, live filtering without page reloads - option: would replace static/js/progress.js, which works and is tested
-- [ ] Chart.js or Apache ECharts in the browser: interactive charts with tooltips (keep matplotlib for the downloadable images)
-- [ ] `Sortable.js`: drag and drop to reorder classes and tokens
-- [ ] `pybadges` (Google) or `anybadge`: badge SVGs with correct text widths - replaces `community_insights/badges.py`
+- [x] Rejected: `django-allauth-ui`: styled allauth pages (Tailwind, so it would not match Bootstrap)
+- [ ] To implement: `htmx` (`django-htmx`): progress of a running fetch, live filtering without page reloads - option: would replace static/js/progress.js, which works and is tested
+- [ ] To implement: Chart.js or Apache ECharts in the browser: interactive charts with tooltips (keep matplotlib for the downloadable images)
+- [ ] To implement: `Sortable.js`: drag and drop to reorder classes and tokens - not used: the columns and the classes are moved with the drag and drop of the browser and arrow buttons (also for keyboards and phones), a few lines each
+- [ ] To implement: `pybadges` (Google) or `anybadge`: badge SVGs with correct text widths - replaces `community_insights/badges.py`
 
 ### Licenses and versions
-- [ ] `pip-licenses`: the license list; the About page reads `importlib.metadata` directly (same data, no dependency)
-- [ ] `hatch-vcs` / `setuptools-scm`: the version from the git tag, like calendaring-sync
-- [ ] reuse licenses must also be included in the license page
+- [ ] To implement: `pip-licenses`: the license list; the About page reads `importlib.metadata` directly (same data, no dependency)
+- [ ] To implement: `hatch-vcs` / `setuptools-scm`: the version from the git tag, like calendaring-sync
+- [x] reuse licenses must also be included in the license page (About: Code from other projects, from REUSE.toml)
 
 ### Tests
 - [x] `behave-django` + `selenium`: browser tests with Firefox (used)
 - [x] `pytest-django` (used), node's built-in `node:test` (used, no dependencies)
-- [ ] `pytest-playwright`: browser tests in Python with automatic waiting (less flaky than selenium)
-- [ ] `jsdom`: a DOM for the node tests instead of the hand-made fakes
-- [ ] `responses` or `respx`: mock the HTTP of the GitHub client
-- [ ] `factory_boy`: test data (repositories, items, events) for the crawler and the edge cases
-- [ ] `linkchecker`: check all links of the running site
+- [ ] To implement: `pytest-playwright`: browser tests in Python with automatic waiting (less flaky than selenium)
+- [ ] To implement: `jsdom`: a DOM for the node tests instead of the hand-made fakes
+- [ ] To implement: `responses` or `respx`: mock the HTTP of the GitHub client
+- [ ] To implement: `factory_boy`: test data (repositories, items, events) for the crawler and the edge cases
+- [ ] To implement: `linkchecker`: check all links of the running site
 
 ###
 - always check the .prompts dir if everything is covered in here
+
+### Visitors
+- [ ] To implement: `django-ratelimit`: limits per address - not used: its check asks for a shared cache backend in every setup, and the address behind proxies needs the own `TRUSTED_PROXIES` anyway; `community_insights/visitor_limit.py` is 50 lines
 
 ### Documentation
 - [x] `vale` (PyPI, daniperez/vale-python-package): installs the Vale binary, so `make vale` runs it with uvx like reuse and zizmor
 - [x] Sphinx's own `linkcheck` builder for `make linkcheck`, `sphinx-autobuild` for `make livehtml`
 ###
 
-- [ ] badges: the left side needs to be possible to override
-- [ ] also add rst and html and link tabs for the output, not just markdown
-- [ ] auto light and dark should be an icon with a dropdown like in sphinx
-- [ ] s/demo~community/ the statistics need to be not stacked bar diagrams but the bars must be next to each other
-- [ ] How fast they respond to others, per month this is always positive and not 10^0 and 10^1 but the numbers
-- [ ] across the dat and across week and day needs the units also. The heat graph should only go from dark to full color - white is confusing
-- [ ] Columns should be a field with drag and drop to change the order. Also a drop-down to add new/remove current columns, not a text field
-- [ ]  Who (a query, empty for everybody)  must refer to the documentation page on how to create a query
-- [ ] add a share button to the statistics page that copies the url
-- [ ] sign up page has no style
-- [ ] Suggested limit of API points when a fetch needs more than 5000  This is not clear what does this mean - needs a documentation link, too
-- [ ] Create a fine-grained token with an expiration date. Public repositories need no permissions. For now only public repositories are read. should be above the token heading
-- [ ] also create a documentation page for that on how to do that, preferably with a whole walk through and an example token
-- [ ] 1. GitHub account -> Link GitHub Account
-- [ ] token of niccokunzmann cannot read 1 of 1 repositories: demo/community This is not my project - it should always be excluded
-- [ ] http://127.0.0.1:5000/s/niccokunzmann~open-web-calendar/ The re should be a drop down to select which statistic to show. Otherwise it is very confusing. measured, normal, exponential/ ... and the one with the lowest std error is selected by default
-- [ ] unclear why 	923	Kaplan-Meier	always has the total number
-- [ ] demo/community should disappear when there are other projects one can explore
-- [ ] the page should have a share link
-- [ ] each graphic should have a share link. When you click that, you get to the page and similarly to the badge, you can share it in different formats. Also it always is shared with a link to the page that generated it.
-- [ ] coveralls should be registered as a bot
-- [ ] if a response is mostly given under 2 minutes for at least 10 issues/PRs suggest that as being a bot, so I can add that to the bots quite quickly
-- [ ]  Who (a query, empty for everybody) - this needs a link to the page with the documentation of how to formulate a query
-- [ ] below  Who (a query, empty for everybody) : the query field needs auto-completing for the variable names
-- [ ] all action steps must have names
+- [x] badges: the left side needs to be possible to override → the parameter `label` and the field *Left side* of the badge builder
+- [x] also add rst and html and link tabs for the output, not just markdown → tabs Markdown, reStructuredText, HTML, Link with Copy buttons (`static/js/share.js`, `copy.js`)
+- [x] auto light and dark should be an icon with a dropdown like in sphinx → one button with ◐ ☀ ☾ and a dropdown
+- [x] s/demo~community/ the statistics need to be not stacked bar diagrams but the bars must be next to each other → the bars of the classes side by side
+- [x] How fast they respond to others, per month this is always positive and not 10^0 and 10^1 but the numbers → the axis from 0 with durations such as 10min, 6h, 1d
+- [x] across the dat and across week and day needs the units also. The heat graph should only go from dark to full color - white is confusing → times of the day as 00:00, axis labels with units, the colours from dark to the full green
+- [x] Columns should be a field with drag and drop to change the order. Also a drop-down to add new/remove current columns, not a text field → drag and drop, arrows, remove buttons and a select to add (`static/js/columns.js`); without JavaScript the text field
+- [x]  Who (a query, empty for everybody)  must refer to the documentation page on how to create a query → link *How to write a query*
+- [x] add a share button to the statistics page that copies the url → *Share* copies the address of the page
+- [x] sign up page has no style → the templates of the site came after allauth's: the app is now before allauth in INSTALLED_APPS; forms with django-bootstrap5; the other allauth elements styled (`tests/accounts/test_account_pages.py`)
+- [x] Suggested limit of API points when a fetch needs more than 5000  This is not clear what does this mean - needs a documentation link, too → renamed *Limit proposed for large fetches*, with an explanation and a link to *Points and limits*
+- [x] Create a fine-grained token with an expiration date. Public repositories need no permissions. For now only public repositories are read. should be above the token heading → above *2. Tokens*, with a link to the walkthrough
+- [x] also create a documentation page for that on how to do that, preferably with a whole walk through and an example token → docs/how-to/tokens.rst: step by step through GitHub's form, with a made up example token
+- [x] 1. GitHub account -> Link GitHub Account → *1. Link GitHub account*
+- [x] token of niccokunzmann cannot read 1 of 1 repositories: demo/community This is not my project - it should always be excluded → the demo repository is not tested (`community_insights.demo.DEMO`)
+- [x] http://127.0.0.1:5000/s/niccokunzmann~open-web-calendar/ The re should be a drop down to select which statistic to show. Otherwise it is very confusing. measured, normal, exponential/ ... and the one with the lowest std error is selected by default → *Statistic* chooses the fit; the one with the lowest standard error, summed over the classes, first (`stats.best_fit`, `static/js/fit-select.js`)
+- [x] unclear why 	923	Kaplan-Meier	always has the total number → explained under the table and on the column n: Kaplan-Meier counts all items, those without a response as waiting
+- [x] demo/community should disappear when there are other projects one can explore → Explore hides it when there are other public repositories
+- [x] the page should have a share link → *Share* on every statistics page and the page of a person
+- [x] each graphic should have a share link. When you click that, you get to the page and similarly to the badge, you can share it in different formats. Also it always is shared with a link to the page that generated it. → *Share this chart* opens `/s/<scope>/share/<chart>/` with the code in four formats, linked to the page it came from
+- [x] coveralls should be registered as a bot → a handle of the default class bot; a migration adds it to existing classes
+- [x] if a response is mostly given under 2 minutes for at least 10 issues/PRs suggest that as being a bot, so I can add that to the bots quite quickly → *Maybe bots* on the page Classes with *Add to bot* (`stats.bot_suggestions`)
+- [x]  Who (a query, empty for everybody) - this needs a link to the page with the documentation of how to formulate a query → the same link *How to write a query*
+- [x] below  Who (a query, empty for everybody) : the query field needs auto-completing for the variable names → a list of the variables that start with the word typed (`static/js/query-complete.js`)
+- [x] all action steps must have names → every step of `.github/workflows/tests.yml`, checked by `tests/quality/test_ci.py`
 - [ ]
 
 
@@ -356,3 +359,35 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] Read the Docs: `pip install .[docs]` failed with "Multiple top-level packages discovered in a flat-layout". The package is built with hatchling, only `community_insights`; `make build` checks it in the CI; the docs were built like on Read the Docs, in a new environment
 - [x] Docs always refer to the latest version: links to https://community-insights.readthedocs.io/en/latest/ (README, `DOCS_URL`, `html_baseurl`), checked by `tests/quality/test_docs_links.py`
 - [x] Never change a migration that may be applied (AGENTS.md, docs/how-to/develop.rst)
+- [x] The errors of queries (such as `UnknownVariable`) link to the documentation of queries
+- [x] Enter in the query field runs the query; Tab takes the first name of the list, the arrows and Enter another one
+- [x] Check todo.txt and complete it: done above; open are the decisions (name, release, Read the Docs, German review, the library proposals) and the two questions (per-user cache limit, shared classes)
+- [x] All errors of queries (subclasses of `InvalidQuery`) link to the page that explains queries: on the site next to *What to do* (the `guide` of an error), and in their description in the documentation
+- [x] A reference page of queries: docs/reference/queries.rst, every variable, operator, sorting, group, column and error; `tests/quality/test_docs_links.py` checks that it lists every variable and group of the code
+- [x] `UnknownVariable` links to the known variables (reference/queries.html#variables), `UnknownGroup` to the groups, the other query errors to the parts of a query; the variable help of the contributors page links there, too
+- [x] "See How-to: Add GitHub tokens" was no link: every error links to the documentation it refers to, as a link in its description (`:doc:`, `:ref:`) and, on the site, as its guide next to *What to do*; `tests/errors/test_error_classes.py` checks that the pages and anchors exist
+- [x] Errors without a link to a page of the documentation, reviewed: `InvalidInput` is alright; its description says that only its subclasses are raised
+- [x] `PrivateRepositoryRefused` only when a token of the person can see the repository: tokens shared by others or donated to the site never tell that a private repository exists, it is then not found (`RepositoryNotFound`, the same message as for a missing one); with `PRIVATE_REPOSITORIES` on, such repositories are not added to a project either (`sync/projects.py`: `own_view`)
+- [x] An explanation page of measured, normal, exponential and Kaplan-Meier: what they display and how to read them (docs/explanation/response-times.rst); the overview links to it next to *Statistic* and under the table
+- [x] Badges choose the statistical model too: parameter `model` (measured, normal, exponential, kaplan-meier; `stats.model_percentile`), a select in the badge builder; Kaplan-Meier says *not reached* when the share never got a response
+- [x] A sound when Claude is ready for review: a Stop hook in `.claude/settings.local.json` (personal, ignored by git)
+- [x] "as it was before, variables must be named consistently": the variables of queries, as the command line tool before (see below)
+- [x] Question answered: ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS for production
+- [x] Link https://github.com/chaoss/CollectOSS/ in the README as related work
+- [x] Variables named consistently, as the command line tool before (git history, 239c258): `user_`, `commits_`, `prs_`, `issues_`, `comments_`, `actions_`, `activity_` and the unit first `hours_`, `days_`, `months_`; old variables back: `commits_total`, `prs_unmerged`, `prs_closed` (merged + unmerged), `prs_commented`, `prs_reviewed`, `issues_commented`, `user_association`, `actions_merges`, `days_to_merge`; saved queries renamed by a migration; an old name says its new one; a rule in AGENTS.md
+- [x] `actions_closes` and `actions_labels` of the tool before: omitted (decided)
+- [x] Example queries: most commits in the last month; external contributors who opened a pull request in the last month; new but continuous in the last two months; people of Horizon Europe (`user_horizon_europe`)
+- [x] The time range is a part of the query: `last` (the last days) next to From and To, examples set it, saved queries keep it
+- [x] All variables in an alphabetical table that links to the explanation of each: docs/reference/query-variables.rst; docs/reference/query-operators.rst; an explanation of how queries are built: docs/explanation/queries.rst
+- [x] Parts shown as `part/total` (prs_merged, prs_unmerged, prs_closed, prs_open of prs_total; issues_open, issues_closed of issues_opened); the table headers link to their variable in a new tab
+- [x] Sort the table by clicking a column header (the parameter `sort`; the column sorted by has an arrow and `aria-sort`; a second click sorts the other way)
+- [x] A switch for all columns between names in words and variable names (`static/js/column-names.js`, kept in the browser)
+- [x] Documents (ODS) made in the background with a progress bar and a download (`community_insights/documents/`, `Document`, a thread; kept a week); a message inbox for the account (read, unread, the number in the menu; `Message`); a finished or failed document creates a message; visitors get their document by their session
+- [x] Classes of the site link to an explanation of what they are for; they are hidden, not deleted (`preset`, `hidden`; `PresetClassNotDeleted`); hidden classes still sort people but are not shown in the statistics
+- [x] The kinds of rules (is a bot, handles, ...): docs/reference/class-rules.rst, an alphabetical table that links to the explanation of each; the classes page links each rule there
+- [x] Only the administrators may open the cache page (403 for others; the menu shows it to staff only)
+- [x] /accounts/3rdparty/ without style: fixed with the order of the apps (the site there runs an older version); every page of allauth is checked for the layout, one heading and Bootstrap fields; 403, 404 and 500 pages in the look of the site; the crawler checks layout and one heading on every page
+- [x] Profile: "Suggested limit of API points when a fetch needs more than this": the number is the threshold and the proposed limit (visitors: 5000)
+- [x] README: CHAOSS CollectOSS as related work
+- [x] All templates checked for the layout of the site and one heading: every page of allauth (tests/accounts/test_account_pages.py) and every page the crawler reaches; 403, 404 and 500 pages
+- [x] German: Du with a capital letter (Du, Dir, Dein), checked by tests/i18n/test_catalogs.py

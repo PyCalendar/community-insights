@@ -1,0 +1,1 @@
+The classes of people the site makes are hidden instead of deleted, still sorting people, and link to an explanation of what they are for; the kinds of rules have a reference page linked from each rule.

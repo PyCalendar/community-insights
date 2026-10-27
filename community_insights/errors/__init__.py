@@ -7,7 +7,14 @@ documentation (``CommunityError.docs_url``). Any other exception is translated i
 
 from .base import DOCS_URL, CommunityError, UnexpectedError
 from .configuration import ConfigurationError, UnknownWorkerMode
-from .fetching import AllTokensUsedUp, FetchCancelled, FetchLimitReached, FetchStopped
+from .fetching import (
+    AllTokensUsedUp,
+    FetchCancelled,
+    FetchLimitReached,
+    FetchStopped,
+    UserItemsLimitReached,
+    VisitorLimitReached,
+)
 from .github import (
     GitHubAnswerNotJSON,
     GitHubError,
@@ -22,11 +29,16 @@ from .github import (
     SecondaryRateLimitExceeded,
 )
 from .input import (
+    ClassNameTaken,
     DatesInWrongOrder,
     FetchLimitRequired,
+    InvalidClassOrder,
+    InvalidColor,
     InvalidDate,
     InvalidDateRange,
+    InvalidDays,
     InvalidExtraPoints,
+    InvalidHandle,
     InvalidInput,
     InvalidLimit,
     InvalidPercentage,
@@ -35,10 +47,13 @@ from .input import (
     LimitNotANumber,
     LimitTooSmall,
     MissingToken,
+    NoBotClass,
     NotAComparison,
     NotAValue,
+    PresetClassNotDeleted,
     QueryNotReadable,
     TextComparedWithNumber,
+    UnknownClasses,
     UnknownGroup,
     UnknownRuleKind,
     UnknownTable,
@@ -57,6 +72,9 @@ from .tokens import (
 from .translate import all_errors, by_code, translate
 
 __all__ = [
+    "ClassNameTaken",
+    "InvalidClassOrder",
+    "InvalidColor",
     "AllTokensUsedUp",
     "CommunityError",
     "ConfigurationError",
@@ -75,7 +93,9 @@ __all__ = [
     "InvalidAPIToken",
     "InvalidDate",
     "InvalidDateRange",
+    "InvalidDays",
     "InvalidExtraPoints",
+    "InvalidHandle",
     "InvalidInput",
     "InvalidLimit",
     "InvalidPercentage",
@@ -86,8 +106,10 @@ __all__ = [
     "MissingToken",
     "NoGitHubAccess",
     "NoPublicRepositories",
+    "NoBotClass",
     "NotAComparison",
     "NotAValue",
+    "PresetClassNotDeleted",
     "OwnerNotFound",
     "PrivateRepositoryRefused",
     "QueryNotReadable",
@@ -99,12 +121,15 @@ __all__ = [
     "TokenLifetimeRefused",
     "TokenNotAllowed",
     "UnexpectedError",
+    "UnknownClasses",
     "UnknownGroup",
     "UnknownRuleKind",
     "UnknownTable",
     "UnknownVariable",
     "UnknownWorkerMode",
     "UnsupportedComparison",
+    "UserItemsLimitReached",
+    "VisitorLimitReached",
     "WrongOperatorForText",
     "all_errors",
     "by_code",

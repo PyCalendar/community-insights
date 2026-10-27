@@ -2,6 +2,7 @@
 
 
 def node(login, at, association="NONE", typename="User", key="createdAt"):
+    """A comment or review as GitHub answers it."""
     return {
         key: at,
         "author": {"login": login, "__typename": typename},
@@ -10,12 +11,14 @@ def node(login, at, association="NONE", typename="User", key="createdAt"):
 
 
 def connection(*nodes):
+    """One page of nodes, without more pages."""
     return {"pageInfo": {"hasNextPage": False, "endCursor": None}, "nodes": list(nodes)}
 
 
 def item(
     number, author, created, comments=(), reviews=None, state="OPEN", merged=False, updated=None
 ):
+    """A pull request or issue as GitHub answers it."""
     data = {
         "id": f"id{number}",
         "number": number,
@@ -34,11 +37,13 @@ def item(
 
 
 def commit(sha, login, at, name=None):
+    """A commit as GitHub answers it."""
     user = {"login": login} if login else None
     return {"oid": sha, "committedDate": at, "author": {"name": name or login, "user": user}}
 
 
 def repo(name, stars=0, private=False):
+    """A repository as GitHub answers it."""
     return {
         "nameWithOwner": name,
         "description": "",

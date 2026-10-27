@@ -33,6 +33,12 @@ def clear_unused(days: int) -> tuple[int, int]:
 
     Delete the repositories and people not used for `days` days; their projects stay and read
     them again when needed. (repositories, people)
+
+    Args:
+        days: How many days without use.
+
+    Returns:
+        How many repositories and people were deleted.
     """
     limit = timezone.now() - timedelta(days=days)
     repositories = Repository.objects.filter(last_used_at__lt=limit)
@@ -47,7 +53,13 @@ def clean_up_daily() -> tuple[int, int] | None:
     """clear_unused(CACHE_KEEP_DAYS) if it did not run in the last day; None if it did not run.
 
     CACHE_KEEP_DAYS = 0 keeps everything.
+
+    Returns:
+        The repositories and people deleted, or None.
     """
+    from . import documents
+
+    documents.clean_up()
     days = getattr(settings, "CACHE_KEEP_DAYS", 90)
     if not days or not cache.add(LAST_CLEANUP, timezone.now().isoformat(), timeout=24 * 3600):
         return None
@@ -71,7 +83,11 @@ def _number(cursor, sql: str) -> int:
 
 
 def database_size() -> int | None:
-    """The size of the database files in bytes; None if it cannot be measured."""
+    """The size of the database files in bytes; None if it cannot be measured.
+
+    Returns:
+        The bytes, or None for other databases than SQLite and PostgreSQL.
+    """
     vendor = connection.vendor
     if vendor == "sqlite":
         name = Path(str(connection.settings_dict["NAME"]))
@@ -88,6 +104,9 @@ def database_used() -> int | None:
 
     The bytes the data uses: what the database will have after compacting, measured without
     compacting (SQLite: pages without the free ones).
+
+    Returns:
+        The bytes, or None if they cannot be measured.
     """
     if connection.vendor != "sqlite":
         return database_size()
@@ -107,7 +126,16 @@ def compact() -> None:
 
 @dataclass
 class ShrinkReport:
-    """What a check of the size did: the sizes, what was deleted and whether it fits now."""
+    """What a check of the size did: the sizes, what was deleted and whether it fits now.
+
+    Attributes:
+        before: The bytes the data used before.
+        after: The bytes it uses now.
+        limit: The bytes it is kept below.
+        repositories: How many repositories were deleted.
+        people: How many people were deleted.
+        enough: Whether it fits below the limit now.
+    """
 
     before: int
     after: int
@@ -117,7 +145,12 @@ class ShrinkReport:
     enough: bool = True  # False: only data younger than the minimum age is left
 
     def as_dict(self) -> dict:
-        """The report for the cache and the cache page, sizes in MB."""
+        """The report for the cache and the cache page, sizes in MB.
+
+        Returns:
+            When it was checked, the sizes before, after and of the limit, what was deleted
+            and whether that was enough.
+        """
         return {
             "checked": timezone.now().isoformat(),
             "before_mb": round(self.before / MB, 1),
@@ -130,7 +163,14 @@ class ShrinkReport:
 
 
 def young_since(now):
-    """The time after which data is too young to be deleted for space."""
+    """The time after which data is too young to be deleted for space.
+
+    Args:
+        now: The time now.
+
+    Returns:
+        The time: data used or read after it is kept.
+    """
     return now - timedelta(hours=getattr(settings, "DATABASE_MIN_AGE_HOURS", 24))
 
 
@@ -139,6 +179,12 @@ def removable(now) -> tuple:
 
     What may be deleted to save space: used and read before the minimum age, and no fetch of it
     queued or running. (repositories, people)
+
+    Args:
+        now: The time now.
+
+    Returns:
+        The repositories and the people, as queries, used longest ago first.
     """
     young = young_since(now)
     busy = FetchJob.objects.filter(status__in=FetchJob.ACTIVE).values("repository")
@@ -154,7 +200,14 @@ def removable(now) -> tuple:
 
 
 def next_chance(now):
-    """When the first repository is old enough to be deleted; in an hour if none can be found."""
+    """When the first repository is old enough to be deleted; in an hour if none can be found.
+
+    Args:
+        now: The time now.
+
+    Returns:
+        The time.
+    """
     hours = timedelta(hours=getattr(settings, "DATABASE_MIN_AGE_HOURS", 24))
     oldest = (
         Repository.objects.order_by("last_used_at")
@@ -174,6 +227,12 @@ def shrink(limit_mb: float | None = None) -> ShrinkReport | None:
     start it again; then compact once. When only young data is left, it is not tried again
     before some of it is old enough. None without a limit, a measurable size, or before that
     time.
+
+    Args:
+        limit_mb: The limit in megabytes, ``DATABASE_MAX_MB`` if None.
+
+    Returns:
+        What was done, or None.
     """
     limit_mb = limit_mb if limit_mb is not None else getattr(settings, "DATABASE_MAX_MB", 0)
     if not limit_mb:

@@ -3,9 +3,9 @@
 {% block title %}{% translate "GitHub access" %}{% endblock %}
 {% block content %}
 <h1 class="h3">{% translate "GitHub access" %}</h1>
-<p class="text-muted">{% translate "Data is read from GitHub with these accounts and tokens, in this order, then with the points others share on this site. Each GitHub account may use 5000 API points per hour; when one is used up, the next one is used. Friends can give you a token, too." %} <a href="{{ links.documentation }}en/latest/how-to/tokens.html">{% translate "How to create and add a token" %}</a>.</p>
+<p class="text-muted">{% translate "Data is read from GitHub with these accounts and tokens, in this order, then with the points others share on this site. Each GitHub account may use 5000 API points per hour; when one is used up, the next one is used. Friends can give you a token, too." %} <a href="{{ links.documentation }}how-to/tokens.html">{% translate "How to create and add a token" %}</a>.</p>
 
-<div class="card mb-3"><div class="card-header"><strong>{% translate "1. GitHub account" %}</strong></div><div class="card-body">
+<div class="card mb-3"><div class="card-header"><strong>{% translate "1. Link GitHub account" %}</strong></div><div class="card-body">
   {% if account %}
     <p class="mb-2">{% blocktranslate with login=account.extra_data.login %}Linked: <strong>{{ login }}</strong>, used first; its limits are below with the tokens.{% endblocktranslate %}</p>
     <div class="d-flex flex-wrap gap-2">
@@ -25,7 +25,8 @@
   {% endif %}
 </div></div>
 
-<div class="card mb-3"><div class="card-header"><strong>{% translate "Tokens" %}</strong></div>
+<p class="mb-2">{% translate 'Create a <a href="https://github.com/settings/personal-access-tokens/new">fine-grained token</a> with an expiration date. Public repositories need no permissions.' %} {% if private_repositories %}{% translate "Private ones need read access to <em>Pull requests</em>, <em>Issues</em> and <em>Metadata</em>." %}{% else %}{% translate "For now only public repositories are read." %}{% endif %} <a href="{{ links.documentation }}how-to/tokens.html">{% translate "Step by step, with an example" %}</a>.</p>
+<div class="card mb-3"><div class="card-header"><strong>{% translate "2. Tokens" %}</strong></div>
   <ul class="list-group list-group-flush">
   {% for t in tokens %}
     <li class="list-group-item">
@@ -79,18 +80,18 @@
         <div class="small text-muted mb-1" data-slider-text="shared">{% blocktranslate with shared=500 max=5000 %}{{ shared }} of {{ max }} points per hour for others on this site{% endblocktranslate %}</div>
       </div>
     </div>
-    <div class="form-text mb-2">{% translate 'Create a <a href="https://github.com/settings/personal-access-tokens/new">fine-grained token</a> with an expiration date. Public repositories need no permissions.' %} {% if private_repositories %}{% translate "Private ones need read access to <em>Pull requests</em>, <em>Issues</em> and <em>Metadata</em>." %}{% else %}{% translate "For now only public repositories are read." %}{% endif %}</div>
     <button class="btn btn-primary">{% translate "Add the token" %}</button>
   </form>
 </div>
 
 <div class="card"><div class="card-header"><strong>{% translate "Profile" %}</strong></div>
   <form method="post" class="card-body row g-2 align-items-end">{% csrf_token %}<input type="hidden" name="action" value="profile">
-    <div class="col-12 col-md-6"><label class="form-label" for="fetch_limit">{% translate "Suggested limit of API points when a fetch needs more than 5000" %}</label>
-      <input class="form-control" id="fetch_limit" name="fetch_limit" type="number" min="1" value="{{ profile.fetch_limit }}"></div>
+    <div class="col-12 col-md-6"><label class="form-label" for="fetch_limit">{% translate "Suggested limit of API points when a fetch needs more than this" %}</label>
+      <input class="form-control" id="fetch_limit" name="fetch_limit" type="number" min="1" value="{{ profile.fetch_limit }}" aria-describedby="fetch_limit_help">
+      <div class="form-text" id="fetch_limit_help">{% blocktranslate with docs=links.documentation %}GitHub counts each request in points; every account has 5000 points per hour. A fetch that would need more points than this number asks how many it may use at most, and proposes this number. <a href="{{ docs }}how-to/tokens.html#points-and-limits">What points are and how limits work</a>.{% endblocktranslate %}</div></div>
     <div class="col-12"><div class="form-check">
       <input class="form-check-input" type="checkbox" id="show_horizon_europe" name="show_horizon_europe" {% if profile.show_horizon_europe %}checked{% endif %}>
-      <label class="form-check-label" for="show_horizon_europe">{% blocktranslate with docs=links.documentation %}Show a <span class="badge text-bg-secondary">Horizon Europe</span> tag next to the locations in the countries of <a href="{{ docs }}en/latest/reference/locations.html">Horizon Europe</a>{% endblocktranslate %}</label></div></div>
+      <label class="form-check-label" for="show_horizon_europe">{% blocktranslate with docs=links.documentation %}Show a <span class="badge text-bg-secondary">Horizon Europe</span> tag next to the locations in the countries of <a href="{{ docs }}reference/locations.html">Horizon Europe</a>{% endblocktranslate %}</label></div></div>
     <div class="col-12 col-md-3"><button class="btn btn-primary">{% translate "Save" %}</button></div>
   </form>
 </div>

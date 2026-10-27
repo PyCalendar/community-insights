@@ -2,7 +2,14 @@
 
 
 def format_duration(seconds: float) -> str:
-    """Seconds in two units at most: 45min, 3h 12min, 2d 4h."""
+    """Seconds in two units at most: 45min, 3h 12min, 2d 4h.
+
+    Args:
+        seconds: The seconds.
+
+    Returns:
+        The duration.
+    """
     minutes = round(seconds / 60)
     days, minutes = divmod(minutes, 1440)
     hours, minutes = divmod(minutes, 60)

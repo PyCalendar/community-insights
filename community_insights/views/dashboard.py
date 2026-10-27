@@ -25,6 +25,13 @@ def add_project_for(user, target: str):
 
     Add a repository or organisation with the tokens of the user, or without a token if there is
     none.
+
+    Args:
+        user: The user who gets the project.
+        target: ``owner/name``, ``owner`` or the address of either on GitHub.
+
+    Returns:
+        The project.
     """
     from asgiref.sync import async_to_sync, sync_to_async
 
@@ -34,8 +41,10 @@ def add_project_for(user, target: str):
     async def adding():
         entries = await sync_to_async(entries_for)(user)
         reader = TokenPool(entries) if entries else AnonymousClient()
+        mine = [entry for entry in entries if not entry.shared]
+        own = TokenPool(mine) if mine else None  # who may know of a private repository
         try:
-            return await add_project(user, reader, target)
+            return await add_project(user, reader, target, own=own)
         finally:
             await reader.close()
 
@@ -43,7 +52,14 @@ def add_project_for(user, target: str):
 
 
 def github_login(user) -> str:
-    """The GitHub login of a user: of the linked account, else of the first token."""
+    """The GitHub login of a user: of the linked account, else of the first token.
+
+    Args:
+        user: A user.
+
+    Returns:
+        The login, "" without a linked account and without tokens.
+    """
     account = SocialAccount.objects.filter(user=user, provider="github").first()
     if account:
         return account.extra_data.get("login", "")
@@ -52,7 +68,11 @@ def github_login(user) -> str:
 
 
 def refresh_suggestions(user) -> None:
-    """Load the repositories and organisations to offer from GitHub."""
+    """Load the repositories and organisations to offer from GitHub.
+
+    Args:
+        user: The user, with a token or a linked account.
+    """
     found = ask(user, "suggestions")
     profile = Profile.of(user)
     profile.suggestions = found
@@ -67,6 +87,9 @@ def source_choices(user) -> list[dict]:
 
     Returns:
         Choices with "name", "kind" and "stars".
+
+    Args:
+        user: A user, or an anonymous one.
     """
     if not user.is_authenticated:
         known = Repository.objects.filter(is_private=False).order_by("-stars")[:200]
@@ -101,13 +124,29 @@ def numbers_of(user, repositories) -> dict:
 
 
 def project_card(user, project: Project) -> dict:
-    """The card of a project on the dashboard."""
+    """The card of a project on the dashboard.
+
+    Args:
+        user: Whose classes of people count.
+        project: The project.
+
+    Returns:
+        The project and its numbers.
+    """
     return {"project": project, **numbers_of(user, project.repositories.all())}
 
 
 @login_required
 def dashboard(request):
-    """The dashboard: the projects as cards, and adding repositories."""
+    """The dashboard: the projects as cards, and adding repositories.
+
+    Args:
+        request: The request; a POST adds a project, or reads the suggestions again with
+            ``refresh``.
+
+    Returns:
+        The page, or a redirect to it after a change.
+    """
     user = request.user
     ensure_default_classes(user)
     login = github_login(user)
@@ -138,7 +177,15 @@ def dashboard(request):
 @login_required
 @require_POST
 def project_delete(request, pk):
-    """Remove a project; its data stays until the cache is cleaned."""
+    """Remove a project; its data stays until the cache is cleaned.
+
+    Args:
+        request: The request of the owner.
+        pk: The id of the project.
+
+    Returns:
+        A redirect to the dashboard.
+    """
     get_object_or_404(Project, pk=pk, user=request.user).delete()
     return redirect("dashboard")
 
@@ -146,7 +193,15 @@ def project_delete(request, pk):
 @login_required
 @require_POST
 def project_rename(request, pk):
-    """Show the project with a name; an empty name shows its owner/name again."""
+    """Show the project with a name; an empty name shows its owner/name again.
+
+    Args:
+        request: The request of the owner, with ``name``.
+        pk: The id of the project.
+
+    Returns:
+        A redirect to the dashboard.
+    """
     project = get_object_or_404(Project, pk=pk, user=request.user)
     project.name = request.POST.get("name", "").strip()[:100]
     project.save(update_fields=["name"])

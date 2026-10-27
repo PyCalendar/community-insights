@@ -7,12 +7,28 @@ PAD = 10
 
 
 def width(text: str) -> int:
-    """The width of a part of a badge with the text, in pixels."""
+    """The width of a part of a badge with the text, in pixels.
+
+    Args:
+        text: The text.
+
+    Returns:
+        The width.
+    """
     return round(len(text) * CHAR_WIDTH + 2 * PAD)
 
 
 def badge(label: str, value: str, color: str = "#2a7de1") -> bytes:
-    """A flat SVG badge: the label on grey, the value on the colour."""
+    """A flat SVG badge: the label on grey, the value on the colour.
+
+    Args:
+        label: The text of the left side.
+        value: The text of the right side.
+        color: The colour of the right side.
+
+    Returns:
+        The SVG.
+    """
     left, right = width(label), width(value)
     total = left + right
     label, value = escape(label), escape(value)

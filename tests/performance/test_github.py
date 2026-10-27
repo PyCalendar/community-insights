@@ -23,6 +23,7 @@ pytestmark = [
 
 
 async def read(repository) -> tuple[int, str]:
+    """Read a repository from GitHub; the requests and the summary."""
     client = github.Client(real_token())
     try:
         message = await Syncer(client).sync(repository)
@@ -32,6 +33,7 @@ async def read(repository) -> tuple[int, str]:
 
 
 def test_reading_a_public_repository(timer):
+    """Reading a public repository."""
     wait_for_points(real_token(), needed=200)
     repository = store_repository({"nameWithOwner": REPOSITORY})
     with timer(f"first read of {REPOSITORY}"):

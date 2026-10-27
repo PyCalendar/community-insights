@@ -5,6 +5,8 @@
   "use strict";
 
   var CHOICES = ["auto", "light", "dark"];
+  /* The icon of the button of the switch for each choice. */
+  var ICONS = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };
 
   function readChoice(cookies) {
     var match = /(?:^|;\s*)theme=([a-z]+)/.exec(cookies || "");
@@ -35,6 +37,10 @@
     Array.prototype.forEach.call(charts, function (img) {
       var wanted = chartUrl(img.getAttribute("data-chart-src"), theme);
       if (img.getAttribute("src") !== wanted) img.setAttribute("src", wanted);
+    });
+    var icons = doc.querySelectorAll ? doc.querySelectorAll("[data-theme-icon]") : [];
+    Array.prototype.forEach.call(icons, function (icon) {
+      icon.textContent = ICONS[choice] || ICONS.auto;
     });
     var buttons = doc.querySelectorAll ? doc.querySelectorAll("[data-theme-set]") : [];
     Array.prototype.forEach.call(buttons, function (button) {
@@ -70,7 +76,7 @@
     return choose;
   }
 
-  var api = { readChoice: readChoice, resolve: resolve, chartUrl: chartUrl, apply: apply, setup: setup };
+  var api = { ICONS: ICONS, readChoice: readChoice, resolve: resolve, chartUrl: chartUrl, apply: apply, setup: setup };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   } else {

@@ -16,10 +16,12 @@ pytestmark = pytest.mark.django_db
 
 
 def stored(user, **fields):  # noqa: F811
+    """A stored token of a user."""
     return AccessToken.objects.create(user=user, token="t", login="x", **fields)
 
 
 def test_pool_uses_tokens_in_order(user):  # noqa: F811
+    """Pool uses tokens in order."""
     first, second = Counting("first"), Counting("second")
     pool = TokenPool([Entry("a", first, stored(user)), Entry("b", second, stored(user))])
     run(pool.graphql, "query { x }")
@@ -27,6 +29,7 @@ def test_pool_uses_tokens_in_order(user):  # noqa: F811
 
 
 def test_pool_skips_a_rate_limited_token(user):  # noqa: F811
+    """Pool skips a rate limited token."""
     reset = timezone.now() + timedelta(minutes=30)
     first = Counting("first", fail=RateLimited("used up", reset))
     second = Counting("second")
@@ -41,6 +44,7 @@ def test_pool_skips_a_rate_limited_token(user):  # noqa: F811
 
 
 def test_pool_respects_the_maximum_per_hour(user):  # noqa: F811
+    """Pool respects the maximum per hour."""
     first, second = Counting("first"), Counting("second")
     limited = stored(user, rate_limit=100, max_percent=2)  # 2 points per hour
     pool = TokenPool([Entry("a", first, limited), Entry("b", second, stored(user))])
@@ -52,6 +56,7 @@ def test_pool_respects_the_maximum_per_hour(user):  # noqa: F811
 
 
 def test_hourly_limit_starts_again_after_an_hour(user):  # noqa: F811
+    """Hourly limit starts again after an hour."""
     limited = stored(
         user,
         rate_limit=100,
@@ -64,6 +69,7 @@ def test_hourly_limit_starts_again_after_an_hour(user):  # noqa: F811
 
 
 def test_pool_drops_rejected_tokens(user):  # noqa: F811
+    """Pool drops rejected tokens."""
     bad = Counting("bad", fail=TokenError("revoked"))
     good = Counting("good")
     pool = TokenPool([Entry("a", bad, stored(user)), Entry("b", good, stored(user))])
@@ -75,6 +81,7 @@ def test_pool_drops_rejected_tokens(user):  # noqa: F811
 
 
 def test_no_token_left_tells_when_to_try_again(user):  # noqa: F811
+    """No token left tells when to try again."""
     reset = timezone.now() + timedelta(minutes=10)
     pool = TokenPool([Entry("a", Counting("a", fail=RateLimited("x", reset)), stored(user))])
     with pytest.raises(NoTokenLeft) as error:
@@ -83,6 +90,7 @@ def test_no_token_left_tells_when_to_try_again(user):  # noqa: F811
 
 
 def test_point_limit_of_a_fetch(user):  # noqa: F811
+    """Point limit of a fetch."""
     pool = TokenPool([Entry("a", Counting("a"), stored(user))], point_limit=1)
     run(pool.graphql, "query { x }")
     with pytest.raises(LimitReached):
@@ -90,11 +98,13 @@ def test_point_limit_of_a_fetch(user):  # noqa: F811
 
 
 def test_no_tokens_at_all():
+    """No tokens at all."""
     with pytest.raises(TokenError):
         TokenPool([])
 
 
 def test_expired_stored_token_is_skipped(world):  # noqa: F811
+    """Expired stored token is skipped."""
     from datetime import timedelta
 
     from django.utils import timezone

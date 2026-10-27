@@ -24,6 +24,12 @@ def kept_secret(name: str) -> str:
 
     A secret from the environment, or generated once into the data directory, the same for `make
     run` and the container.
+
+    Args:
+        name: The name of the setting and of its file, such as ``SECRET_KEY``.
+
+    Returns:
+        The secret.
     """
     if env(name, default=""):
         return env(name)
@@ -48,6 +54,8 @@ SALT_KEY = kept_secret("SALT_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# proxies in front of Django that add to X-Forwarded-For: 1 for the nginx of the container
+TRUSTED_PROXIES = env.int("TRUSTED_PROXIES", default=0)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -57,6 +65,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    # before allauth: its templates in templates/allauth/ replace those of allauth
+    "community_insights",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -67,7 +77,6 @@ INSTALLED_APPS = [
     "django_tables2",
     "health_check",
     "ordered_model",
-    "community_insights",
 ]
 try:  # development only: the browser tests (manage.py behave)
     import behave_django  # noqa: F401
@@ -203,6 +212,11 @@ DOCS_URL = env("DOCS_URL", default="https://community-insights.readthedocs.io/en
 # internal, external-http-container, external-separate-container, inline
 # (community_insights/pipeline/modes.py)
 FETCH_WORKER = env("FETCH_WORKER", default="internal")
+# visitors without an account, per address and hour (community_insights/visitor_limit.py); 0: none
+VISITOR_SUBMITS_PER_HOUR = env.int("VISITOR_SUBMITS_PER_HOUR", default=10)
+VISITOR_FETCHES_PER_HOUR = env.int("VISITOR_FETCHES_PER_HOUR", default=5)
+# pull requests and issues the projects of a user may hold, except administrators; 0: no limit
+USER_MAX_ITEMS = env.int("USER_MAX_ITEMS", default=100_000)
 FETCH_CONCURRENCY = env.int("FETCH_CONCURRENCY", default=4)  # jobs at the same time
 GITHUB_MAX_CONCURRENT = env.int("GITHUB_MAX_CONCURRENT", default=20)  # requests
 

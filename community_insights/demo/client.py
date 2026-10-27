@@ -25,6 +25,13 @@ class DemoClient:
     """
 
     def __init__(self, seed: int = 1, prs: int = 80, issues: int = 60):
+        """Made up data that the sync reads like GitHub's answers.
+
+        Args:
+            seed: The seed of the random numbers: the same seed gives the same data.
+            prs: How many pull requests to make up.
+            issues: How many issues to make up.
+        """
         self.random = random.Random(seed)
         self.items = {
             "pullRequests": self.make(prs, pr=True),
@@ -35,11 +42,30 @@ class DemoClient:
         self.rate = RateLimit()
 
     def when(self, after: datetime, hours: float) -> datetime:
-        """A random time after another one, about `hours` later on average."""
+        """A random time after another one, about `hours` later on average.
+
+        Args:
+            after: The time before.
+            hours: The average of the hours after it.
+
+        Returns:
+            The time.
+        """
         return after + timedelta(hours=self.random.expovariate(1 / hours))
 
     def node(self, login, association, at, typename="User", key="createdAt"):
-        """A comment or review as GitHub answers it."""
+        """A comment or review as GitHub answers it.
+
+        Args:
+            login: Who wrote it.
+            association: Their status in the repository, such as ``MEMBER``.
+            at: When.
+            typename: ``User`` or ``Bot``.
+            key: The name of the time: ``createdAt`` or ``submittedAt`` for reviews.
+
+        Returns:
+            The comment or review.
+        """
         return {
             key: at.isoformat(),
             "author": {"login": login, "__typename": typename},
@@ -47,7 +73,15 @@ class DemoClient:
         }
 
     def responses(self, author: str, created: datetime) -> list[dict]:
-        """Made up comments of bots and people on an item, not of its author."""
+        """Made up comments of bots and people on an item, not of its author.
+
+        Args:
+            author: The author of the item.
+            created: When the item was created.
+
+        Returns:
+            The comments, oldest first.
+        """
         found = []
         if self.random.random() < 0.4:
             found.append(
@@ -60,7 +94,15 @@ class DemoClient:
         return sorted(found, key=lambda n: n["createdAt"])
 
     def make(self, count: int, pr: bool) -> list[dict]:
-        """Made up pull requests or issues, at made up working hours."""
+        """Made up pull requests or issues, at made up working hours.
+
+        Args:
+            count: How many.
+            pr: True for pull requests, False for issues.
+
+        Returns:
+            The items, as GitHub answers them.
+        """
         found = []
         for number in range(1, count + 1):
             author, association, _ = self.random.choice(PEOPLE)
@@ -106,7 +148,14 @@ class DemoClient:
         return found
 
     def make_commits(self, count: int) -> list[dict]:
-        """Made up commits of the first people, newest first."""
+        """Made up commits of the first people, newest first.
+
+        Args:
+            count: How many.
+
+        Returns:
+            The commits, as GitHub answers them.
+        """
         found = []
         for number in range(count):
             login, _, _ = self.random.choice(PEOPLE[:5])
@@ -121,7 +170,15 @@ class DemoClient:
         return sorted(found, key=lambda c: c["committedDate"], reverse=True)
 
     async def graphql(self, query: str, **variables) -> dict:
-        """Answer a query of the sync like GitHub would: the commits or a page of items."""
+        """Answer a query of the sync like GitHub would: the commits or a page of items.
+
+        Args:
+            query: The GraphQL query of the sync.
+            **variables: Its variables, such as the cursor of a page.
+
+        Returns:
+            The data, as GitHub answers it.
+        """
         self.requests += 1
         if "history(first: 100" in query:
             history = {
@@ -140,7 +197,14 @@ class DemoClient:
         return {"repository": {field: page}}
 
     async def people(self, logins: list[str]) -> dict:
-        """The made up names and locations of people."""
+        """The made up names and locations of people.
+
+        Args:
+            logins: The logins.
+
+        Returns:
+            The profile of each login.
+        """
         self.requests += 1
         known = {login: location for login, _, location in PEOPLE}
         return {

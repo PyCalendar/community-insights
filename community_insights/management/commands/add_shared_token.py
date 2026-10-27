@@ -14,7 +14,11 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        """The superuser, the token and how much of it may be used."""
+        """The superuser, the token and how much of it may be used.
+
+        Args:
+            parser: The parser of the arguments of the command.
+        """
         parser.add_argument("superuser", help="the username of the superuser who owns it")
         parser.add_argument("token", help="the GitHub token, best with an expiration date")
         parser.add_argument("--label", default="shared by the site")
@@ -24,6 +28,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, superuser, token, label, max_percent, **options):
         """Check the token with GitHub and store it, fully shared.
+
+        Args:
+            *args: The positional arguments Django passes.
+            **options: The other options of the command.
+            superuser: The username of the superuser who owns the token.
+            token: The token.
+            label: The name of the token.
+            max_percent: The share of its points per hour the site may use.
 
         Raises:
             CommandError: If the superuser does not exist or the token does not work.

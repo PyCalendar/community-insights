@@ -4,6 +4,7 @@ from selenium.common.exceptions import (
     StaleElementReferenceException,
 )
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -288,7 +289,7 @@ def badge_markdown(context, text):
     """The Markdown of the badge contains the text."""
 
     def found():
-        value = browser(context).find_element(By.CSS_SELECTOR, '[data-badge="markdown"]')
+        value = browser(context).find_element(By.CSS_SELECTOR, '[data-share="markdown"]')
         return text in value.get_attribute("value")
 
     wait_for(context, found)
@@ -369,3 +370,129 @@ def charts_theme(context, theme):
         return sources and all(f"theme={theme}" in source for source in sources)
 
     wait_for(context, switched)
+
+
+def query_field(context):
+    """The field of the query on the contributors page."""
+    return browser(context).find_element(By.ID, "where")
+
+
+@when('I type "{text}" into the query')
+def type_query(context, text):
+    """Type at the end of the query."""
+    field = query_field(context)
+    browser(context).execute_script("arguments[0].scrollIntoView({block: 'center'});", field)
+    field.send_keys(text)
+
+
+@when("I press {key} in the query")
+def press_in_query(context, key):
+    """Press Enter, Tab, ArrowDown or Escape in the query field."""
+    keys = {"Enter": Keys.ENTER, "Tab": Keys.TAB, "ArrowDown": Keys.ARROW_DOWN}
+    query_field(context).send_keys(keys[key])
+
+
+@then('the query suggests "{name}"')
+def query_suggests(context, name):
+    """The list of names under the query shows the name."""
+
+    def shown():
+        lists = browser(context).find_elements(By.CSS_SELECTOR, ".complete-list")
+        return lists and lists[0].is_displayed() and name in lists[0].text.split()
+
+    wait_for(context, shown)
+
+
+@then('the query is "{text}"')
+def query_is(context, text):
+    """The text of the query field; a space at the end counts."""
+    wait_for(context, lambda: query_field(context).get_attribute("value") == text)
+
+
+@then('the address has the query "{text}"')
+def address_has_query(context, text):
+    """The query was run: the address of the page has it."""
+    from urllib.parse import parse_qs, urlsplit
+
+    def sent():
+        parameters = parse_qs(urlsplit(browser(context).current_url).query)
+        return parameters.get("where", [""])[0].strip() == text
+
+    wait_for(context, sent)
+
+
+def column_button(context, name, label):
+    """A button of a column of the column editor."""
+    chip = browser(context).find_element(By.CSS_SELECTOR, f'.column-chip[data-column="{name}"]')
+    browser(context).execute_script("arguments[0].scrollIntoView({block: 'center'});", chip)
+    found = (
+        f'[aria-label="{label} {name}"]'
+        if label == "Remove"
+        else f'[aria-label="{label} {name} left"]'
+    )
+    return chip.find_element(By.CSS_SELECTOR, found)
+
+
+@when('I remove the column "{name}"')
+def remove_column(context, name):
+    """Remove a column with its button."""
+    column_button(context, name, "Remove").click()
+
+
+@when('I move the column "{name}" left')
+def move_column_left(context, name):
+    """Move a column one place to the left with its button."""
+    column_button(context, name, "Move").click()
+
+
+@when('I add the column "{name}"')
+def add_column(context, name):
+    """Add a column with the select under the columns."""
+    select = browser(context).find_element(By.CSS_SELECTOR, ".column-list + select")
+    browser(context).execute_script("arguments[0].scrollIntoView({block: 'center'});", select)
+    Select(select).select_by_visible_text(name)
+
+
+@then('the table has the columns "{names}" first')
+def table_columns(context, names):
+    """The first columns of the table of the contributors."""
+    wanted = names.split()
+
+    def shown():
+        heads = browser(context).find_elements(
+            By.CSS_SELECTOR, "table.align-middle thead th .name-variable"
+        )
+        return [h.text for h in heads][: len(wanted)] == wanted
+
+    wait_for(context, shown)
+
+
+@then('the table has no column "{name}"')
+def table_has_no_column(context, name):
+    """The table of the contributors does not show the column."""
+    heads = browser(context).find_elements(
+        By.CSS_SELECTOR, "table.align-middle thead th .name-variable"
+    )
+    assert name not in [h.text for h in heads], [h.text for h in heads]
+
+
+@then('the code to share in {name} contains "{text}"')
+def share_code(context, name, text):
+    """The field of a format of the share page has the text."""
+    formats = {"Markdown": "markdown", "reStructuredText": "rst", "HTML": "html", "Link": "link"}
+    field = browser(context).find_element(By.CSS_SELECTOR, f'[data-share="{formats[name]}"]')
+    wait_for(context, lambda: text in field.get_attribute("value"))
+
+
+@then('the theme switch shows "{icon}"')
+def theme_icon(context, icon):
+    """The button of the theme switch shows the icon of the choice."""
+    wait_for(
+        context,
+        lambda: (
+            browser(context)
+            .find_element(By.CSS_SELECTOR, "[data-theme-icon]")
+            .get_attribute("textContent")
+            == icon
+        ),
+    )

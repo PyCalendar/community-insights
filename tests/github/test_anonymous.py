@@ -17,6 +17,7 @@ pytestmark = pytest.mark.django_db
 
 
 def rest_data():
+    """A fake REST API with pull requests, issues, comments and reviews."""
     return FakeREST(
         issues=[
             rest_issue(1, "bob", "2026-01-05T10:00:00Z", pull=True, merged=True, state="closed"),
@@ -31,10 +32,12 @@ def rest_data():
 
 
 def answering_rest(*responses):
+    """A client without a token that answers with the responses given."""
     client = AnonymousClient()
     answers = iter(responses)
 
     async def get(url, params, timeout):
+        """The next prepared answer."""
         return next(answers)
 
     client.session.get = get
@@ -43,12 +46,14 @@ def answering_rest(*responses):
 
 @pytest.fixture
 def quota():
+    """The quota of the server, restored after the test."""
     saved = (SERVER_QUOTA.limit, SERVER_QUOTA.remaining, SERVER_QUOTA.reset_at)
     yield SERVER_QUOTA
     SERVER_QUOTA.limit, SERVER_QUOTA.remaining, SERVER_QUOTA.reset_at = saved
 
 
 def test_items_comments_and_reviews_without_a_token(db):
+    """Items comments and reviews without a token."""
     repository = store_repository(repo("o/r"))
     rest = rest_data()
     message = run(Syncer(AnonymousSource(rest)).sync, repository)
@@ -62,6 +67,7 @@ def test_items_comments_and_reviews_without_a_token(db):
 
 
 def test_later_fetches_add_the_new_comments(db):
+    """Later fetches add the new comments."""
     repository = store_repository(repo("o/r"))
     rest = rest_data()
     run(Syncer(AnonymousSource(rest)).sync, repository)
@@ -76,6 +82,7 @@ def test_later_fetches_add_the_new_comments(db):
 
 
 def test_people_without_a_token_have_no_names(db):
+    """People without a token have no names."""
     from community_insights.models import Person
 
     repository = store_repository(repo("o/r"))
@@ -84,6 +91,7 @@ def test_people_without_a_token_have_no_names(db):
 
 
 def test_the_quota_of_the_server_is_noted_and_respected(quota):
+    """The quota of the server is noted and respected."""
     reset = int((datetime.now(UTC) + timedelta(minutes=20)).timestamp())
     headers = {
         "x-ratelimit-limit": "60",
@@ -98,6 +106,7 @@ def test_the_quota_of_the_server_is_noted_and_respected(quota):
 
 
 def test_rest_errors(quota):
+    """Rest errors."""
     quota.remaining = None
     with pytest.raises(errors.RepositoryNotFound):
         run(answering_rest(Response(404)).get, "/repos/o/missing")
@@ -109,6 +118,7 @@ def test_rest_errors(quota):
 
 
 def test_pages_of_100(quota):
+    """Pages of 100."""
     quota.remaining = None
     full = Response(body=[{"n": i} for i in range(100)])
     client = answering_rest(full, Response(body=[{"n": 100}]))
@@ -116,6 +126,7 @@ def test_pages_of_100(quota):
 
 
 def test_repository_in_the_shape_of_graphql(quota):
+    """Repository in the shape of graphql."""
     quota.remaining = None
     client = answering_rest(
         Response(body={"full_name": "o/r", "stargazers_count": 3, "private": False})
@@ -124,6 +135,7 @@ def test_repository_in_the_shape_of_graphql(quota):
 
 
 def test_a_user_without_tokens_reads_without_a_token(world, signed_in, monkeypatch, quota):  # noqa: F811
+    """A user without tokens reads without a token."""
     from allauth.socialaccount.models import SocialToken
 
     from community_insights.models import AccessToken
@@ -135,12 +147,16 @@ def test_a_user_without_tokens_reads_without_a_token(world, signed_in, monkeypat
     pk = world["empty"].pk
 
     class Totals:
+        """Totals without a token: one of each."""
+
         requests = 0
 
         async def totals(self, names):
+            """One pull request and one issue for each repository."""
             return dict.fromkeys(names, (1, 1))
 
         async def close(self):
+            """Nothing to close."""
             pass
 
     monkeypatch.setattr("community_insights.github.anonymous.AnonymousClient", Totals)

@@ -14,10 +14,12 @@ pytestmark = pytest.mark.django_db
 
 
 def stored(user, **fields):  # noqa: F811
+    """A stored token of a user."""
     return AccessToken.objects.create(user=user, token="t", login="x", **fields)
 
 
 def other_user(name="bob"):
+    """Another user."""
     from django.contrib.auth import get_user_model
 
     return get_user_model().objects.create_user(name, f"{name}@example.org", "pw")
@@ -34,6 +36,7 @@ def test_the_model_computes_the_numbers_of_the_sliders(user):  # noqa: F811
 
 
 def test_shared_points_of_others_come_after_the_own_tokens(user):  # noqa: F811
+    """Shared points of others come after the own tokens."""
     from community_insights.tokens import entries_for
 
     stored(user, label="own")
@@ -45,6 +48,7 @@ def test_shared_points_of_others_come_after_the_own_tokens(user):  # noqa: F811
 
 
 def test_others_use_only_the_shared_points(user):  # noqa: F811
+    """Others use only the shared points."""
     friend = other_user()
     token = AccessToken.objects.create(
         user=friend,
@@ -65,6 +69,7 @@ def test_others_use_only_the_shared_points(user):  # noqa: F811
 
 
 def test_the_reserve_stays_with_github(user):  # noqa: F811
+    """The reserve stays with github."""
     token = stored(user, rate_limit=5000, max_percent=90)  # stop when 500 are left
     token.rate_remaining = 501
     token.rate_reset_at = timezone.now() + timedelta(minutes=30)
@@ -74,6 +79,7 @@ def test_the_reserve_stays_with_github(user):  # noqa: F811
 
 
 def test_points_allowed_above_the_maximum_for_this_hour(user):  # noqa: F811
+    """Points allowed above the maximum for this hour."""
     from community_insights.models import Profile
     from community_insights.tokens import HourAllowance
 
@@ -97,6 +103,7 @@ def test_points_allowed_above_the_maximum_for_this_hour(user):  # noqa: F811
 
 
 def test_points_left(user):  # noqa: F811
+    """Points left."""
     from community_insights.tokens import points_left
 
     own = stored(user, rate_limit=100, max_percent=50)

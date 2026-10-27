@@ -10,7 +10,14 @@ class SafeTimezoneMiddleware(TimezoneMiddleware):
     """
 
     def process_request(self, request):
-        """Use the time zone of the browser; forget one that does not exist."""
+        """Use the time zone of the browser; forget one that does not exist.
+
+        Args:
+            request: The request.
+
+        Returns:
+            None, so that the request goes on.
+        """
         try:
             return super().process_request(request)
         except Exception:  # pytz.UnknownTimeZoneError and others

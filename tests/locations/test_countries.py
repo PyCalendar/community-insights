@@ -38,6 +38,7 @@ from community_insights.locations.places import plain
     ],
 )
 def test_country_of_a_location(location, country):
+    """Country of a location."""
     assert country_of(location) == country
 
 
@@ -45,15 +46,18 @@ def test_country_of_a_location(location, country):
     "location", ["", "   ", "Remote", "Earth", "the internet", ",,,", "localhost", "ZZ", "🌍"]
 )
 def test_unknown_locations_have_no_country(location):
+    """Unknown locations have no country."""
     assert country_of(location) is None
 
 
 def test_a_code_alone_is_a_country_not_a_state():
+    """A code alone is a country not a state."""
     assert country_of("DE") == "DE"
     assert country_of("Somewhere, DE") == "US"  # Delaware after a place
 
 
 def test_names_are_compared_without_case_and_accents():
+    """Names are compared without case and accents."""
     assert plain("  ÖSTERREICH ") == "osterreich"
     assert country_of("OSTERREICH") == "AT"
 
@@ -75,10 +79,12 @@ def test_names_are_compared_without_case_and_accents():
     ],
 )
 def test_in_horizon_europe(location, inside):
+    """In horizon europe."""
     assert in_horizon_europe(location) is inside
 
 
 def test_horizon_europe_has_the_member_states_and_the_associated_countries():
+    """Horizon europe has the member states and the associated countries."""
     assert len(HORIZON_EUROPE) == 27 + 23
     assert {"DE", "FR", "NO", "GB", "CH", "UA", "XK"} <= HORIZON_EUROPE
     assert not {"US", "RU", "CN", "AU", "IN"} & HORIZON_EUROPE

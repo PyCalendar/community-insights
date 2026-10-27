@@ -9,11 +9,12 @@ the headings of the Google style guide
 icalendar's, and the public classes and functions of all modules of community_insights/.
 
 ``ALLOWED_HEADINGS`` is a set of allowed headings. It may be amended as needed.
-Missing sections are reported as expected failures (xfail), as in icalendar: a
+Missing sections fail the tests; icalendar reports them as expected failures (xfail), a
 baseline that shrinks as the docstrings are improved.
 """
 
 import ast
+import dataclasses
 import importlib
 import inspect
 import re
@@ -110,11 +111,17 @@ def test_docstring_has_args_section(obj):
     params = [p for n, p in sig.parameters.items() if n not in ("self", "cls")]
     if not params:
         return
+    owner = getattr(importlib.import_module(obj.__module__), obj.__qualname__.split(".")[0], None)
+    if obj.__name__ == "__init__" and dataclasses.is_dataclass(owner):
+        # a dataclass makes its __init__: its fields are the Attributes of the class
+        if not re.search(r"^Attributes:$", inspect.getdoc(owner) or "", re.MULTILINE):
+            pytest.fail(f"'{owner.__qualname__}' lacks an Attributes section.")
+        return
     doc = inspect.getdoc(obj)
     if not doc:
         return
     if not re.search(r"^Args:$", doc, re.MULTILINE):
-        pytest.xfail(f"'{obj.__module__}.{obj.__qualname__}' lacks an Args section.")
+        pytest.fail(f"'{obj.__module__}.{obj.__qualname__}' lacks an Args section.")
 
 
 def check_returns_and_raises(obj):
@@ -137,7 +144,7 @@ def test_docstring_has_returns_section(obj):
     if not has_ret or not doc:
         return
     if not re.search(r"^Returns:$", doc, re.MULTILINE):
-        pytest.xfail(
+        pytest.fail(
             f"'{obj.__module__}.{obj.__qualname__}' returns a value but lacks a Returns section."
         )
 
@@ -150,6 +157,19 @@ def test_docstring_has_raises_section(obj):
     if not has_raise or not doc:
         return
     if not re.search(r"^Raises:$", doc, re.MULTILINE):
-        pytest.xfail(
+        pytest.fail(
             f"'{obj.__module__}.{obj.__qualname__}' raises an exception but lacks a Raises section."
         )
+
+
+def test_every_test_function_and_class_has_a_docstring():
+    """The tests are documented, too: AGENTS.md asks for a docstring everywhere."""
+    tests = Path(__file__).parent.parent
+    missing = [
+        f"{path.relative_to(tests)}:{node.lineno} {node.name}"
+        for path in sorted(tests.rglob("*.py"))
+        for node in ast.walk(ast.parse(path.read_text()))
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef)
+        and not ast.get_docstring(node)
+    ]
+    assert not missing, missing

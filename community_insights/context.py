@@ -6,12 +6,16 @@ from . import version
 
 
 def links() -> dict:
-    """The addresses of the code and the documentation (SOURCE_URL, DOCS_URL)."""
+    """The addresses of the code and the documentation (SOURCE_URL, DOCS_URL).
+
+    Returns:
+        The addresses of the documentation, the changelog, the code and new issues.
+    """
     source = settings.SOURCE_URL.rstrip("/")
     docs = settings.DOCS_URL.rstrip("/") + "/"
     return {
         "documentation": docs,
-        "changelog": f"{docs}en/latest/changelog.html",
+        "changelog": f"{docs}changelog.html",
         "source": source,
         "issues": f"{source}/issues/new",
     }
@@ -37,6 +41,13 @@ def bug_report_url(request, build: dict) -> str:
     """A new GitHub issue with the page and the version filled in.
 
     The page is given without its query, which can contain a badge token or a search.
+
+    Args:
+        request: The request of the page.
+        build: The build information: version and commit.
+
+    Returns:
+        The address of a new issue on GitHub.
     """
     body = BUG_REPORT.format(
         page=request.build_absolute_uri(request.path),
@@ -55,6 +66,12 @@ def site(request):
     Build information, links for the footer, and the theme: the choice of the switch (cookie
     "theme") and the theme the charts are drawn in first; for "auto" static/js/theme.js switches
     them if the system is dark.
+
+    Args:
+        request: The request of the page.
+
+    Returns:
+        The variables for every template.
     """
     build = version.get()
     choice = request.COOKIES.get("theme", "auto")
@@ -68,6 +85,11 @@ def site(request):
         "private_repositories": settings.PRIVATE_REPOSITORIES,
         "theme_shown": "dark" if choice == "dark" else "light",
         "show_horizon_europe": shows_horizon_europe(request.user),
+        "unread_messages": (
+            request.user.messages.filter(read_at__isnull=True).count()
+            if request.user.is_authenticated
+            else 0
+        ),
     }
 
 

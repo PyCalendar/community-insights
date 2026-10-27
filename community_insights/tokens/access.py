@@ -14,6 +14,12 @@ def mirror_linked_account(user) -> AccessToken | None:
 
     The token of the linked GitHub account as an AccessToken, first in the order, so it has the
     same limits and can be shared like the others; gone when the account is unlinked.
+
+    Args:
+        user: The user.
+
+    Returns:
+        The token of the linked account, None without one.
     """
     social = (
         SocialToken.objects.filter(account__user=user, account__provider="github")
@@ -42,6 +48,15 @@ def entries_for(user, make_client=None, shared: bool = True) -> list[Entry]:
 
     The tokens a user may use, in this order: the linked GitHub account, the own tokens, then
     the points others share on this site.
+
+    Args:
+        user: The user, or an anonymous one or None for a visitor: only the shared points.
+        make_client: Makes the GitHub client of a token, ``github.Client`` if None; tests give a
+            fake one.
+        shared: Whether to add the points others share.
+
+    Returns:
+        The tokens.
     """
     make_client = make_client or github.Client
     found = []
@@ -67,6 +82,13 @@ def points_left(entries: list[Entry], now) -> dict:
 
     The points the tokens may use in this hour: own, shared, and whether one has no limit of
     this site (the linked account).
+
+    Args:
+        entries: The tokens.
+        now: The time now.
+
+    Returns:
+        The own and shared points, and whether one has no limit.
     """
     own = shared = 0
     unlimited = False
@@ -93,6 +115,13 @@ def pool_for(user, point_limit: int | None = None) -> TokenPool:
 
     A pool of the tokens of a user (github.Client looked up when called, so tests can replace
     it).
+
+    Args:
+        user: The user.
+        point_limit: The most points the pool may use, None for no limit.
+
+    Returns:
+        The pool.
     """
     return TokenPool(entries_for(user, github.Client), point_limit)
 
@@ -106,6 +135,14 @@ def ask(user, read: str, *args):
     Run a read of github/reads.py with the tokens of a user, from synchronous code; the
     connections are closed afterwards. Without any token, the reads that work without one use
     the quota of this server.
+
+    Args:
+        user: The user, or an anonymous one, who uses the donated tokens.
+        read: The name of a read of github/reads.py, such as ``totals``.
+        *args: Its arguments.
+
+    Returns:
+        The result of the read.
     """
 
     async def asking():
@@ -127,6 +164,14 @@ def ask_one(token: str, read: str, *args):
 
     Run a read with one token, from synchronous code: (result, client), the client to see the
     rate limit and expiration GitHub told.
+
+    Args:
+        token: The token.
+        read: The name of a read of github/reads.py, such as ``visible``.
+        *args: Its arguments.
+
+    Returns:
+        The result of the read and the client.
     """
 
     async def asking():

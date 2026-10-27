@@ -19,6 +19,13 @@ class JobRunner:
     """
 
     def __init__(self, job: FetchJob, make_client=None):
+        """Run a fetch job: read the repository with the tokens of its user.
+
+        Args:
+            job: The claimed job.
+            make_client: Makes the GitHub client of a token, ``github.Client`` if None; tests give a
+                fake one.
+        """
         self.job = job
         self.make_client = make_client or github.Client
         self.items = 0  # read and not yet added to the job
@@ -34,7 +41,11 @@ class JobRunner:
             )
 
     async def check(self) -> None:
-        """Stop with FetchCancelled when the job was cancelled."""
+        """Stop with FetchCancelled when the job was cancelled.
+
+        Raises:
+            FetchCancelled: If somebody cancelled the job.
+        """
         if await sync_to_async(jobs.cancel_requested)(self.job):
             raise errors.FetchCancelled("What was read is kept.")
 
@@ -47,7 +58,11 @@ class JobRunner:
             self.pool.points = 0
 
     async def run(self) -> FetchJob:
-        """Read the repository and end the job with the outcome; it never raises."""
+        """Read the repository and end the job with the outcome; it never raises.
+
+        Returns:
+            The job, ended or queued again to wait for a rate limit.
+        """
         job = self.job
         budget = None if job.point_limit is None else max(0, job.point_limit - job.points_used)
         try:
@@ -72,6 +87,14 @@ class JobRunner:
         return await self.end(FetchJob.DONE, message)
 
     async def end(self, status: str, outcome) -> FetchJob:
-        """End the job with a status and a message or error."""
+        """End the job with a status and a message or error.
+
+        Args:
+            status: The status it ends with.
+            outcome: The message, or the error it stopped with.
+
+        Returns:
+            The job, saved.
+        """
         self.account()
         return await sync_to_async(jobs.finish)(self.job, status, outcome)

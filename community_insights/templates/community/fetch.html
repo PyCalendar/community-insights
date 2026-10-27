@@ -35,6 +35,7 @@
 </div>
 {% endif %}
 {% if not visitor %}<p class="small"><a href="{% url 'github_access' %}">{% translate "Add tokens or change their order and limits" %}</a>. {% translate "More tokens read faster." %}</p>{% endif %}
+{% if items_limit %}<p class="small text-muted">{% blocktranslate with held=items_held limit=items_limit %}Your projects hold {{ held }} of {{ limit }} pull requests and issues allowed for an account.{% endblocktranslate %}</p>{% endif %}
 <form method="post" class="card card-body">{% csrf_token %}
   <input type="hidden" name="next" value="{{ next }}">
   <div class="row g-2 align-items-end">

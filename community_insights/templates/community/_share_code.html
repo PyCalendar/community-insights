@@ -1,0 +1,11 @@
+{% load i18n community %}{# The code to share an image in each format, in tabs; static/js/share.js fills the fields of the element with data-share-image around it. "prefix" keeps the ids apart. #}{% share_formats as formats %}
+<ul class="nav nav-tabs mt-3" role="tablist">
+  {% for name, title in formats %}<li class="nav-item" role="presentation"><button class="nav-link{% if forloop.first %} active{% endif %}" id="{{ prefix }}-{{ name }}-tab" data-bs-toggle="tab" data-bs-target="#{{ prefix }}-{{ name }}-pane" type="button" role="tab" aria-controls="{{ prefix }}-{{ name }}-pane" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ title }}</button></li>{% endfor %}
+</ul>
+<div class="tab-content border border-top-0 rounded-bottom p-2">
+  {% for name, title in formats %}<div class="tab-pane{% if forloop.first %} show active{% endif %}" id="{{ prefix }}-{{ name }}-pane" role="tabpanel" aria-labelledby="{{ prefix }}-{{ name }}-tab" tabindex="0">
+    <label class="visually-hidden" for="{{ prefix }}-{{ name }}">{{ title }}</label>
+    <textarea id="{{ prefix }}-{{ name }}" data-share="{{ name }}" class="form-control form-control-sm font-monospace" rows="3" readonly></textarea>
+    <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-copy="#{{ prefix }}-{{ name }}">{% translate "Copy" %}</button>
+  </div>{% endfor %}
+</div>

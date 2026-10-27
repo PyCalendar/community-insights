@@ -13,6 +13,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_add_tokens_in_order_with_limits(world, signed_in, monkeypatch):  # noqa: F811
+    """Add tokens in order with limits."""
     expires = datetime(2027, 1, 1, tzinfo=UTC)
     monkeypatch.setattr("community_insights.github.Client", lambda token: Answering(token, expires))
     signed_in.post(
@@ -54,6 +55,7 @@ def test_add_tokens_in_order_with_limits(world, signed_in, monkeypatch):  # noqa
     ],
 )
 def test_bad_tokens_are_not_saved(world, signed_in, monkeypatch, fields):  # noqa: F811
+    """Bad tokens are not saved."""
     monkeypatch.setattr("community_insights.github.Client", lambda token: Answering(token))
     before = AccessToken.objects.filter(linked=False).count()
     response = signed_in.post("/dashboard/github/", {"action": "add", **fields}, follow=True)
@@ -62,6 +64,7 @@ def test_bad_tokens_are_not_saved(world, signed_in, monkeypatch, fields):  # noq
 
 
 def test_rejected_token_is_not_saved(world, signed_in, monkeypatch):  # noqa: F811
+    """Rejected token is not saved."""
     from community_insights.github import TokenError
 
     monkeypatch.setattr(
@@ -72,12 +75,14 @@ def test_rejected_token_is_not_saved(world, signed_in, monkeypatch):  # noqa: F8
 
 
 def test_token_without_expiry_is_warned(world, signed_in, monkeypatch):  # noqa: F811
+    """Token without expiry is warned."""
     monkeypatch.setattr("community_insights.github.Client", lambda token: Answering(token))
     response = signed_in.post("/dashboard/github/", {"action": "add", "token": "x"}, follow=True)
     assert b"This token never expires" in response.content
 
 
 def test_test_a_token_on_my_projects(world, signed_in, monkeypatch):  # noqa: F811
+    """Test a token on my projects."""
     monkeypatch.setattr("community_insights.github.Client", lambda token: Answering(token))
     token = world["user"].access_tokens.get()
     response = signed_in.post("/dashboard/github/", {"action": "test", "id": token.pk}, follow=True)
@@ -87,11 +92,13 @@ def test_test_a_token_on_my_projects(world, signed_in, monkeypatch):  # noqa: F8
 
 
 def test_profile_limit(world, signed_in):  # noqa: F811
+    """Profile limit."""
     signed_in.post("/dashboard/github/", {"action": "profile", "fetch_limit": "800"})
     assert world["user"].profile.fetch_limit == 800
 
 
 def test_the_linked_account_is_a_token_with_limits(world, signed_in):  # noqa: F811
+    """The linked account is a token with limits."""
     from allauth.socialaccount.models import SocialAccount, SocialToken
 
     from community_insights.tokens import entries_for
@@ -115,6 +122,7 @@ def test_the_linked_account_is_a_token_with_limits(world, signed_in):  # noqa: F
 
 
 def test_private_repositories_are_asked_for_when_wanted(world, signed_in, settings):  # noqa: F811
+    """Private repositories are asked for when wanted."""
     assert settings.SOCIALACCOUNT_PROVIDERS["github"]["SCOPE"] == ["read:user"]
     page = signed_in.get("/dashboard/github/").content.decode()
     assert "Allow reading private repositories" not in page, "for now only public ones"
@@ -124,6 +132,7 @@ def test_private_repositories_are_asked_for_when_wanted(world, signed_in, settin
 
 
 def test_tokens_are_encrypted_in_the_database(world):  # noqa: F811
+    """Tokens are encrypted in the database."""
     token = AccessToken.objects.get()
     with connection.cursor() as cursor:
         cursor.execute("SELECT token FROM community_accesstoken WHERE id = %s", [token.pk])
@@ -132,7 +141,36 @@ def test_tokens_are_encrypted_in_the_database(world):  # noqa: F811
 
 
 def test_token_order(world):  # noqa: F811
+    """Token order."""
     user_ = world["user"]
     second = AccessToken.objects.create(user=user_, token="b", login="b")
     second.up()
     assert [t.token for t in user_.access_tokens.all()] == ["b", "t"]
+
+
+def test_the_demo_project_is_not_tested(world, signed_in, monkeypatch):  # noqa: F811
+    """The demo project is not tested."""
+    from community_insights.demo import DEMO
+    from community_insights.models import Project
+    from community_insights.sync import store_repository
+
+    from ..fakes import repo
+
+    project = Project.objects.create(user=world["user"], target=DEMO)
+    project.repositories.add(store_repository(repo(DEMO)))
+    monkeypatch.setattr("community_insights.github.Client", lambda token: Answering(token))
+    token = world["user"].access_tokens.get()
+    signed_in.post("/dashboard/github/", {"action": "test", "id": token.pk})
+    token.refresh_from_db()
+    assert token.last_test["total"] == 2 and DEMO not in token.last_test["missing"]
+
+
+def test_the_page_says_how_to_create_a_token_before_the_tokens(world, signed_in):  # noqa: F811
+    """The page says how to create a token before the tokens."""
+    page = signed_in.get("/dashboard/github/").content.decode()
+    assert "1. Link GitHub account" in page
+    hint = page.index("fine-grained token")
+    assert hint < page.index("2. Tokens")
+    assert "how-to/tokens.html" in page[hint : page.index("2. Tokens")]
+    assert "Suggested limit of API points when a fetch needs more than this" in page
+    assert "how-to/tokens.html#points-and-limits" in page

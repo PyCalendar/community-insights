@@ -19,7 +19,11 @@ _server: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
 def server_slots() -> asyncio.Semaphore:
-    """Requests of this process at the same time, for the running event loop."""
+    """Requests of this process at the same time, for the running event loop.
+
+    Returns:
+        The semaphore of the running event loop.
+    """
     loop = asyncio.get_running_loop()
     if loop not in _server:
         _server[loop] = asyncio.Semaphore(getattr(settings, "GITHUB_MAX_CONCURRENT", 20))
@@ -27,5 +31,13 @@ def server_slots() -> asyncio.Semaphore:
 
 
 def backoff(attempt: int, retry_after: float | None) -> float:
-    """Seconds to wait before the next try: what GitHub asked, or 1, 2, 4..."""
+    """Seconds to wait before the next try: what GitHub asked, or 1, 2, 4...
+
+    Args:
+        attempt: How many tries failed before, from 0.
+        retry_after: The seconds GitHub asked to wait, None if it did not say.
+
+    Returns:
+        The seconds.
+    """
     return retry_after if retry_after is not None else 2**attempt

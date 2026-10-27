@@ -1,0 +1,20 @@
+{% extends "community/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Messages" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">{% translate "Messages" %}</h1>
+  <form method="post" action="{% url 'messages_read' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">{% translate "Mark all as read" %}</button></form>
+</div>
+<ul class="list-group">
+  {% for m in inbox %}
+  <li class="list-group-item d-flex flex-wrap justify-content-between gap-2{% if m.unread %} fw-semibold{% endif %}">
+    <span>{% if m.unread %}<span class="badge text-bg-primary me-1">{% translate "new" %}</span>{% endif %}<a href="{% url 'message_open' m.pk %}">{{ m.title }}</a>
+      {% if m.text %}<span class="d-block small text-muted fw-normal">{{ m.text }}</span>{% endif %}</span>
+    <small class="text-muted fw-normal">{{ m.created|date:"Y-m-d H:i" }}</small>
+  </li>
+  {% empty %}
+  <li class="list-group-item text-muted">{% translate "No messages yet. When a file you asked for is ready, a message tells you here." %}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -17,7 +17,7 @@
 <h2 class="h5 mt-4">{% translate "Free software" %}</h2>
 <p>{% blocktranslate with source=links.source docs=links.documentation %}The <a href="{{ source }}">source code</a> is under the GNU Affero General Public License 3.0 or later. Read the <a href="{{ docs }}">documentation</a> to run your own installation.{% endblocktranslate %}</p>
 <h2 class="h5 mt-4" id="bugs">{% translate "Report a bug" %}</h2>
-<p>{% blocktranslate with docs=links.documentation %}Something wrong or missing? <a href="{{ bug_report_url }}">Open an issue on GitHub</a>; the version is filled in for you. Please do not post tokens or private data. Security problems go to the maintainers privately, see <a href="{{ docs }}en/latest/how-to/report-bug.html">the documentation</a>.{% endblocktranslate %}</p>
+<p>{% blocktranslate with docs=links.documentation %}Something wrong or missing? <a href="{{ bug_report_url }}">Open an issue on GitHub</a>; the version is filled in for you. Please do not post tokens or private data. Security problems go to the maintainers privately, see <a href="{{ docs }}how-to/report-bug.html">the documentation</a>.{% endblocktranslate %}</p>
 <h2 class="h5 mt-4" id="version">{% translate "Version" %}</h2>
 <table class="table table-sm w-auto">
   <tr><th>{% translate "Version" %}</th><td>{{ build.version }}</td></tr>
@@ -31,6 +31,12 @@
   <thead><tr><th>{% translate "Project" %}</th><th>{% translate "Version" %}</th><th>{% translate "License" %}</th></tr></thead>
   <tbody>{% for p in scripts %}<tr><td><a href="{{ p.url }}">{{ p.name }}</a></td><td>{{ p.version }}</td><td><a href="{{ p.license_url }}">{{ p.license }}</a></td></tr>{% endfor %}</tbody>
 </table></div>
+{% if reused %}<h2 class="h5 mt-4" id="reused">{% translate "Code from other projects" %}</h2>
+<p class="text-muted small">{% translate "Parts of this project come from others and keep their license, as REUSE.toml says." %}</p>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>{% translate "Files" %}</th><th>{% translate "Copyright" %}</th><th>{% translate "License" %}</th></tr></thead>
+  <tbody>{% for p in reused %}<tr><td><a href="{{ p.url }}">{{ p.name }}</a></td><td>{{ p.version }}</td><td><a href="{{ p.license_url }}">{{ p.license }}</a></td></tr>{% endfor %}</tbody>
+</table></div>{% endif %}
 <h2 class="h5 mt-4" id="licenses">{% translate "Python packages on the server" %}</h2>
 <p class="text-muted small">{% translate "Read from the packages installed on this server." %}</p>
 <div class="table-responsive"><table class="table table-sm">

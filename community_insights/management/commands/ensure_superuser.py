@@ -14,11 +14,24 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        """name:password, or $DEFAULT_SUPERUSER."""
+        """name:password, or $DEFAULT_SUPERUSER.
+
+        Args:
+            parser: The parser of the arguments of the command.
+        """
         parser.add_argument("credentials", nargs="?", help='"name:password", or $DEFAULT_SUPERUSER')
 
     def handle(self, *args, credentials=None, **options):
-        """Create the superuser with a confirmed email address, unless it exists."""
+        """Create the superuser with a confirmed email address, unless it exists.
+
+        Args:
+            *args: The positional arguments Django passes.
+            **options: The other options of the command.
+            credentials: ``name:password``, or None for ``$DEFAULT_SUPERUSER``.
+
+        Raises:
+            CommandError: If the credentials are not ``name:password``.
+        """
         credentials = credentials or os.environ.get("DEFAULT_SUPERUSER", "")
         if not credentials:
             return

@@ -15,10 +15,13 @@
     <a class="navbar-brand" href="{% url 'home' %}">Contributor Community Insights</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="{% translate "Menu" %}"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="menu">
-    <div class="btn-group btn-group-sm theme-switch ms-md-2 my-2 my-md-0 order-md-last" role="group" aria-label="{% translate "Colours of the page" %}">
-      <button type="button" class="btn btn-outline-light{% if theme_choice == 'auto' %} active{% endif %}" data-theme-set="auto" aria-pressed="{% if theme_choice == 'auto' %}true{% else %}false{% endif %}" title="{% translate "As the system" %}">{% translate "Auto" %}</button>
-      <button type="button" class="btn btn-outline-light{% if theme_choice == 'light' %} active{% endif %}" data-theme-set="light" aria-pressed="{% if theme_choice == 'light' %}true{% else %}false{% endif %}" title="{% translate "Light" %}">{% translate "Light" %}</button>
-      <button type="button" class="btn btn-outline-light{% if theme_choice == 'dark' %} active{% endif %}" data-theme-set="dark" aria-pressed="{% if theme_choice == 'dark' %}true{% else %}false{% endif %}" title="{% translate "Dark" %}">{% translate "Dark" %}</button>
+    <div class="dropdown theme-switch ms-md-2 my-2 my-md-0 order-md-last">
+      <button type="button" class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% translate "Colours of the page" %}" title="{% translate "Colours of the page" %}"><span data-theme-icon aria-hidden="true">{% if theme_choice == 'light' %}☀{% elif theme_choice == 'dark' %}☾{% else %}◐{% endif %}</span></button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><button type="button" class="dropdown-item{% if theme_choice == 'auto' %} active{% endif %}" data-theme-set="auto" aria-pressed="{% if theme_choice == 'auto' %}true{% else %}false{% endif %}"><span aria-hidden="true">◐</span> {% translate "Auto (as the system)" %}</button></li>
+        <li><button type="button" class="dropdown-item{% if theme_choice == 'light' %} active{% endif %}" data-theme-set="light" aria-pressed="{% if theme_choice == 'light' %}true{% else %}false{% endif %}"><span aria-hidden="true">☀</span> {% translate "Light" %}</button></li>
+        <li><button type="button" class="dropdown-item{% if theme_choice == 'dark' %} active{% endif %}" data-theme-set="dark" aria-pressed="{% if theme_choice == 'dark' %}true{% else %}false{% endif %}"><span aria-hidden="true">☾</span> {% translate "Dark" %}</button></li>
+      </ul>
     </div>
 
       <ul class="navbar-nav me-auto">
@@ -26,8 +29,9 @@
       {% if user.is_authenticated %}
         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">{% translate "Dashboard" %}</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'downloads' %}">{% translate "Downloads" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'messages' %}">{% translate "Messages" %}{% if unread_messages %} <span class="badge text-bg-light" title="{% translate "unread" %}">{{ unread_messages }}</span>{% endif %}</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'classes' %}">{% translate "Classes" %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'cache' %}">{% translate "Cache" %}</a></li>
+        {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'cache' %}">{% translate "Cache" %}</a></li>{% endif %}
         <li class="nav-item"><a class="nav-link" href="{% url 'github_access' %}">{% translate "GitHub access" %}</a></li>
         {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">{% translate "Admin" %}</a></li>{% endif %}
       {% endif %}
@@ -71,6 +75,7 @@
 <script src="{% url 'javascript-catalog' %}"></script>
 <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/confirm.js' %}" defer></script>
+<script src="{% static 'js/copy.js' %}" defer></script>
 {% if not request.timezone_active %}<script src="{% static 'js/time-zone.js' %}" data-endpoint="{% url 'tz_detect__set' %}" data-csrf-token="{{ csrf_token }}" data-csrf-header="X-CSRFToken" defer></script>{% endif %}
 </body>
 </html>

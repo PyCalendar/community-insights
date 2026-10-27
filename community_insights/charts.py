@@ -11,9 +11,11 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from django.utils.translation import gettext, gettext_lazy  # noqa: E402
 from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
+from matplotlib.ticker import FixedLocator, FuncFormatter  # noqa: E402
 
-from .stats import histogram  # noqa: E402
+from .stats import format_duration, histogram  # noqa: E402
 
 plt.rcParams["svg.fonttype"] = "none"
 plt.rcParams["font.size"] = 9
@@ -47,20 +49,45 @@ KIND_COLORS = {
     },
 }
 BAR = {"light": GREEN_DARK, "dark": GREEN_LIGHT}
+# from dark (few) to the full green (many): no white, which looked like missing data
 HEAT = {
-    "light": LinearSegmentedColormap.from_list(
-        "community-light", ["#f3faf3", GREEN_LIGHT, GREEN, GREEN_DEEPEST]
-    ),
-    "dark": LinearSegmentedColormap.from_list(
-        "community-dark", ["#14231a", GREEN_DEEPEST, GREEN, GREEN_LIGHT]
-    ),
+    theme: LinearSegmentedColormap.from_list(
+        f"community-{theme}", ["#1c331b", GREEN_DEEPEST, GREEN_DARK, GREEN]
+    )
+    for theme in ("light", "dark")
 }
-WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+WEEKDAYS = [
+    gettext_lazy("Mon"),
+    gettext_lazy("Tue"),
+    gettext_lazy("Wed"),
+    gettext_lazy("Thu"),
+    gettext_lazy("Fri"),
+    gettext_lazy("Sat"),
+    gettext_lazy("Sun"),
+]
+# the kinds of activity in the legend, by the key of stats.by_month_and_kind
+KINDS = {
+    "pull request": gettext_lazy("pull request"),
+    "issue": gettext_lazy("issue"),
+    "comment": gettext_lazy("comment"),
+    "review": gettext_lazy("review"),
+    "commit": gettext_lazy("commit"),
+}
+HOURS = [f"{hour:02d}:00" for hour in range(0, 24, 3)]
+# the marks of a time axis, in hours: from a minute to a year
+DURATION_TICKS = [0, 1 / 60, 10 / 60, 1, 6, 24, 24 * 7, 24 * 30, 24 * 365]
 THEMES = ("light", "dark")
 
 
 def svg(figure) -> bytes:
-    """The figure as SVG, with a transparent background; the figure is closed."""
+    """The figure as SVG, with a transparent background; the figure is closed.
+
+    Args:
+        figure: A figure of matplotlib.
+
+    Returns:
+        The SVG.
+    """
     buffer = io.BytesIO()
     figure.savefig(buffer, format="svg", bbox_inches="tight", transparent=True)
     plt.close(figure)
@@ -68,7 +95,13 @@ def svg(figure) -> bytes:
 
 
 def style(axes, theme: str, legend: bool = False):
-    """The axes in the colours of the theme, with a legend if wanted."""
+    """The axes in the colours of the theme, with a legend if wanted.
+
+    Args:
+        axes: The axes of matplotlib.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+        legend: Whether to show the legend of the series.
+    """
     ink = INK[theme]
     for side in ("top", "right"):
         axes.spines[side].set_visible(False)
@@ -84,7 +117,15 @@ def style(axes, theme: str, legend: bool = False):
 
 
 def empty(message: str, theme: str = "light") -> bytes:
-    """A small chart that only says why there is nothing to show."""
+    """A small chart that only says why there is nothing to show.
+
+    Args:
+        message: Why there is nothing to show.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG.
+    """
     figure, axes = plt.subplots(figsize=(6, 1.2))
     axes.axis("off")
     axes.text(0.5, 0.5, message, ha="center", va="center", color=INK[theme])
@@ -92,33 +133,45 @@ def empty(message: str, theme: str = "light") -> bytes:
 
 
 def response_chart(title: str, entries, classes, theme: str = "light") -> bytes:
-    """Stacked bars of the first responses of each class per time.
+    """Bars side by side of the first responses of each class per time.
 
-    Stacked bars: how many first responses of each class fall in each time. The classes have the
-    colours chosen on the page Classes.
+    For each time, one bar per class: how many first responses of the class fall in that time.
+    The classes have the colours chosen on the page Classes.
+
+    Args:
+        title: The kind, such as *Pull requests*.
+        entries: The seconds until the first response of each class, one dictionary per item.
+        classes: The classes of people, in their order, with their colours.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG; a chart that says so without responses.
     """
     names = [c.name for c in classes]
     rows = histogram(entries, names)
     if not any(any(c.values()) for _, c in rows):
-        return empty(f"{title}: no responses yet", theme)
+        return empty(gettext("%(title)s: no responses yet") % {"title": title}, theme)
     figure, axes = plt.subplots(figsize=(7, 3.2))
-    bottoms = [0] * len(rows)
-    for person_class in classes:
-        values = [c[person_class.name] for _, c in rows]
+    width = 0.8 / max(1, len(classes))
+    for index, person_class in enumerate(classes):
+        offset = (index - (len(classes) - 1) / 2) * width
         axes.bar(
-            [label for label, _ in rows],
-            values,
-            bottom=bottoms,
+            [position + offset for position in range(len(rows))],
+            [c[person_class.name] for _, c in rows],
+            width=width,
             color=person_class.color,
             label=person_class.name,
             edgecolor=GAP[theme],
             linewidth=0.6,
         )
-        bottoms = [b + v for b, v in zip(bottoms, values, strict=True)]
+    axes.set_xticks(range(len(rows)), [label for label, _ in rows])
     silent = sum(1 for e in entries if not e)
-    axes.set_title(f"{title} ({len(entries)}, {silent} without a response)")
-    axes.set_xlabel("time until the first response")
-    axes.set_ylabel("responses")
+    axes.set_title(
+        gettext("%(title)s (%(items)s, %(silent)s without a response)")
+        % {"title": title, "items": len(entries), "silent": silent}
+    )
+    axes.set_xlabel(gettext("time until the first response"))
+    axes.set_ylabel(gettext("responses"))
     style(axes, theme, legend=True)
     return svg(figure)
 
@@ -126,9 +179,19 @@ def response_chart(title: str, entries, classes, theme: str = "light") -> bytes:
 def query_chart(
     labels: list[str], values: Sequence[float], title: str, theme: str = "light"
 ) -> bytes:
-    """Horizontal bars for the result of a query, the biggest on top."""
+    """Horizontal bars for the result of a query, the biggest on top.
+
+    Args:
+        labels: The people or groups, the biggest first.
+        values: Their numbers.
+        title: What the numbers are, for the axis.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG; a chart that says so when nobody matches.
+    """
     if not labels:
-        return empty("nobody matches the query", theme)
+        return empty(gettext("nobody matches the query"), theme)
     figure, axes = plt.subplots(figsize=(7, max(1.6, 0.28 * len(labels) + 0.8)))
     axes.barh(labels[::-1], values[::-1], color=BAR[theme])
     axes.set_xlabel(title)
@@ -137,27 +200,45 @@ def query_chart(
 
 
 def hour_chart(grid, theme: str = "light") -> bytes:
-    """Bars of the activities per hour of the day, of the 7 x 24 grid."""
+    """Bars of the activities per hour of the day, of the 7 x 24 grid.
+
+    Args:
+        grid: The activities, a list of 7 weekdays of 24 hours each.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG.
+    """
     totals = [sum(grid[day][hour] for day in range(7)) for hour in range(24)]
     figure, axes = plt.subplots(figsize=(6, 2.4))
     axes.bar(range(24), totals, color=BAR[theme])
-    axes.set_xticks(range(0, 24, 3))
-    axes.set_xlabel("hour of the day (your time zone)")
-    axes.set_ylabel("activities")
+    axes.set_xticks(range(0, 24, 3), HOURS)
+    axes.set_xlabel(gettext("time of the day (your time zone)"))
+    axes.set_ylabel(gettext("activities (number)"))
     style(axes, theme)
     return svg(figure)
 
 
 def heatmap(grid, theme: str = "light") -> bytes:
-    """The activities per weekday and hour of the 7 x 24 grid, as a heat map."""
+    """The activities per weekday and hour of the 7 x 24 grid, as a heat map.
+
+    Args:
+        grid: The activities, a list of 7 weekdays (Monday first) of 24 hours each.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG.
+    """
     figure, axes = plt.subplots(figsize=(7, 2.8))
     image = axes.imshow(grid, aspect="auto", cmap=HEAT[theme])
-    axes.set_yticks(range(7), WEEKDAYS)
-    axes.set_xticks(range(0, 24, 3))
-    axes.set_xlabel("hour of the day (your time zone)")
+    axes.set_yticks(range(7), [str(day) for day in WEEKDAYS])
+    axes.set_xticks(range(0, 24, 3), HOURS)
+    axes.set_xlabel(gettext("time of the day (your time zone)"))
+    axes.set_ylabel(gettext("weekday"))
     bar = figure.colorbar(image, ax=axes, pad=0.02)
     bar.outline.set_visible(False)
     bar.ax.tick_params(colors=INK[theme])
+    bar.set_label(gettext("activities (number)"), color=INK[theme])
     style(axes, theme)
     for side in ("left", "bottom"):
         axes.spines[side].set_visible(False)
@@ -165,7 +246,14 @@ def heatmap(grid, theme: str = "light") -> bytes:
 
 
 def month_span(keys) -> list[tuple[int, int]]:
-    """Every month from the first to the last of the keys."""
+    """Every month from the first to the last of the keys.
+
+    Args:
+        keys: Months as (year, month).
+
+    Returns:
+        The months as (year, month), without a gap.
+    """
     (y0, m0), (y1, m1) = min(keys), max(keys)
     return [
         (y0 + (m0 - 1 + i) // 12, (m0 - 1 + i) % 12 + 1)
@@ -178,11 +266,18 @@ def response_month_chart(months, theme: str = "light") -> bytes:
 
     The median hours until a person's first response, per month, with the number of responses as
     the size of the dots.
+
+    Args:
+        months: The seconds of the first responses by (year, month).
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG; a chart that says so without responses.
     """
     import statistics
 
     if not months:
-        return empty("no responses to others", theme)
+        return empty(gettext("no responses to others"), theme)
     span = month_span(list(months))
     labels = [f"{y}-{m:02d}" for y, m in span]
     medians = [statistics.median(months[k]) / 3600 if months.get(k) else None for k in span]
@@ -201,16 +296,42 @@ def response_month_chart(months, theme: str = "light") -> bytes:
     )
     step = max(1, len(span) // 12)
     axes.set_xticks(range(0, len(span), step), labels[::step], rotation=45, ha="right")
-    axes.set_ylabel("median hours")
-    axes.set_yscale("symlog", linthresh=1)
+    axes.set_ylabel(gettext("median time until the first response"))
+    duration_axis(axes, max(v for _, v, _ in shown))
     style(axes, theme)
     return svg(figure)
 
 
+def duration_axis(axes, highest: float):
+    """A y axis of hours that shows durations, such as 10min, 6h, 7d, from 0.
+
+    Args:
+        axes: The axes to change.
+        highest: The highest value shown, in hours.
+    """
+    axes.set_yscale("symlog", linthresh=1 / 60)
+    above = [tick for tick in DURATION_TICKS if tick >= highest]
+    top = above[0] if above else highest
+    axes.set_ylim(0, top * 1.05 or 1)
+    axes.yaxis.set_major_locator(FixedLocator([t for t in DURATION_TICKS if t <= top]))
+    axes.yaxis.set_minor_locator(FixedLocator([]))
+    axes.yaxis.set_major_formatter(
+        FuncFormatter(lambda hours, _: format_duration(hours * 3600) if hours else "0")
+    )
+
+
 def month_chart(months, theme: str = "light") -> bytes:
-    """Activities per month by kind (the dict of `stats.by_month_and_kind`)."""
+    """Activities per month by kind (the dict of `stats.by_month_and_kind`).
+
+    Args:
+        months: The activities by (year, month) and kind.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG; a chart that says so without activity.
+    """
     if not months:
-        return empty("no activity", theme)
+        return empty(gettext("no activity"), theme)
     keys = sorted(months)
     # every month between the first and the last, also those without activity
     (y0, m0), (y1, m1) = keys[0], keys[-1]
@@ -228,13 +349,13 @@ def month_chart(months, theme: str = "light") -> bytes:
             values,
             bottom=bottoms,
             color=color,
-            label=kind,
+            label=str(KINDS.get(kind, kind)),
             edgecolor=GAP[theme],
             linewidth=0.6,
         )
         bottoms = [b + v for b, v in zip(bottoms, values, strict=True)]
     step = max(1, len(span) // 12)
     axes.set_xticks(range(0, len(span), step), labels[::step], rotation=45, ha="right")
-    axes.set_ylabel("activities")
+    axes.set_ylabel(gettext("activities (number)"))
     style(axes, theme, legend=True)
     return svg(figure)

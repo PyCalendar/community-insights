@@ -17,7 +17,14 @@ from .rate import RateLimit
 
 
 def refusal(message: str) -> TokenError:
-    """The error for GitHub refusing a token (HTTP 403 or FORBIDDEN)."""
+    """The error for GitHub refusing a token (HTTP 403 or FORBIDDEN).
+
+    Args:
+        message: What GitHub said.
+
+    Returns:
+        The error, to raise.
+    """
     if "lifetime" in message.lower():
         return TokenLifetimeRefused(message)
     return TokenNotAllowed(message)
@@ -30,6 +37,28 @@ def data_of(
 
     Errors that only say that something was not found are no errors: a missing user is None in
     the data. `body` is the parsed JSON, or a ValueError if the answer was no JSON.
+
+    Args:
+        status: The HTTP status.
+        text: The text of the answer, for the messages.
+        body: The parsed JSON, or a ValueError if it was no JSON.
+        rate: The rate limit of the token, for when it can be used again.
+        retry_after: The seconds GitHub asks to wait, if it says so.
+
+    Returns:
+        The data.
+
+    Raises:
+        InvalidAPIToken: If GitHub does not accept the token.
+        ExpiredAPIToken: If the token has expired.
+        TokenLifetimeRefused: If an organisation refuses the token for its lifetime.
+        TokenNotAllowed: If the token may not read this.
+        RateLimitExceeded: If the points of the token are used up.
+        SecondaryRateLimitExceeded: If GitHub asks to slow down.
+        GitHubUnreachable: If GitHub answers with a server error.
+        GitHubRequestRejected: If GitHub refuses the request.
+        GitHubAnswerNotJSON: If the answer is no JSON.
+        GraphQLError: If GitHub reports another error of the query.
     """
     if status == 401:
         if rate.expired:

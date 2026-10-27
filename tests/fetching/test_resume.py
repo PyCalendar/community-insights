@@ -14,10 +14,12 @@ class Paged(FakeClient):
     """Gives the pull requests in pages of 2, and can stop after some pages."""
 
     def __init__(self, stop_after=None, **kwargs):
+        """A fake client that stops after some pages."""
         super().__init__(**kwargs)
         self.pages, self.stop_after = [], stop_after
 
     async def graphql(self, query, **variables):
+        """Note the pages of pull requests, and stop after the number given."""
         if "pullRequests(" not in query:
             return await super().graphql(query, **variables)
         if self.stop_after is not None and len(self.pages) == self.stop_after:
@@ -39,6 +41,7 @@ class Paged(FakeClient):
 
 
 def test_a_stopped_fetch_continues_where_it_stopped(user):  # noqa: F811
+    """A stopped fetch continues where it stopped."""
     from community_insights.sync import Syncer
 
     prs = [item(i, "a", f"2026-01-{i:02d}T00:00:00Z", reviews=[]) for i in range(1, 7)]

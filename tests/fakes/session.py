@@ -10,6 +10,7 @@ def answering(*responses, sent=None):
     answers = iter(responses)
 
     async def post(url, json, timeout):
+        """Answer the next prepared answer and note what was sent."""
         if sent is not None:
             sent.append((url, json))
         answer = next(answers)

@@ -26,6 +26,7 @@ def _fresh():
 
 
 def fill(name: str, days_ago: float, items: int = 40) -> Repository:
+    """A repository with items, used some days ago."""
     repository = store_repository(repo(name))
     body = [item(i, "a", "2026-01-01T00:00:00Z", reviews=[]) for i in range(1, items + 1)]
     for data in body:
@@ -37,11 +38,13 @@ def fill(name: str, days_ago: float, items: int = 40) -> Repository:
 
 
 def test_no_limit_no_shrinking(settings):
+    """No limit no shrinking."""
     settings.DATABASE_MAX_MB = 0
     assert cleanup.shrink() is None
 
 
 def test_the_data_used_longest_ago_goes_first_and_young_data_stays(settings, caplog):
+    """The data used longest ago goes first and young data stays."""
     settings.DATABASE_MIN_AGE_HOURS = 24
     fill("o/oldest", days_ago=30)
     fill("o/old", days_ago=10)
@@ -58,6 +61,7 @@ def test_the_data_used_longest_ago_goes_first_and_young_data_stays(settings, cap
 
 
 def test_a_limit_that_fits_deletes_nothing(settings):
+    """A limit that fits deletes nothing."""
     fill("o/old", days_ago=30)
     report = cleanup.shrink(limit_mb=10_000)
     assert report.enough and report.repositories == 0
@@ -65,6 +69,7 @@ def test_a_limit_that_fits_deletes_nothing(settings):
 
 
 def test_repositories_being_fetched_stay(user):  # noqa: F811
+    """Repositories being fetched stay."""
     repository = fill("o/old", days_ago=30)
     FetchJob.objects.create(user=user, repository=repository, status=FetchJob.QUEUED)
     report = cleanup.shrink(limit_mb=0.001)
@@ -72,6 +77,7 @@ def test_repositories_being_fetched_stay(user):  # noqa: F811
 
 
 def test_the_check_runs_after_fetching(user, settings, monkeypatch):  # noqa: F811
+    """The check runs after fetching."""
     from community_insights import pipeline
     from community_insights.models import AccessToken
 
@@ -86,7 +92,10 @@ def test_the_check_runs_after_fetching(user, settings, monkeypatch):  # noqa: F8
 
 
 def test_the_cache_page_shows_the_size(user, client, settings):  # noqa: F811
+    """The cache page shows the size."""
     settings.DATABASE_MAX_MB = 50
+    user.is_staff = True
+    user.save()
     client.force_login(user)
     page = client.get("/dashboard/cache/").content.decode()
     assert "Kept below 50" in page and "MB" in page
@@ -105,6 +114,7 @@ def test_no_work_when_only_young_data_is_left(settings, monkeypatch):
 
 
 def test_shrinking_leaves_room_below_the_limit(settings):
+    """Shrinking leaves room below the limit."""
     empty = cleanup.database_used()  # the tables of Django, users, ...
     for i in range(6):
         fill(f"o/r{i}", days_ago=30 - i, items=60)
@@ -119,6 +129,7 @@ def test_shrinking_leaves_room_below_the_limit(settings):
 
 
 def test_compact_once_however_many_batches(settings, monkeypatch):
+    """Compact once however many batches."""
     calls = []
     real = cleanup.compact
     monkeypatch.setattr(cleanup, "compact", lambda: (calls.append(1), real()))

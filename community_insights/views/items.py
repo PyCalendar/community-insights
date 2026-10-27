@@ -10,6 +10,13 @@ def items(request, scope):
 
     The pull requests and issues with their first response: filtered with django-filter, sorted
     and in pages with django-tables2.
+
+    Args:
+        request: The request, with the filters, the sorting and the page.
+        scope: The text of the scope.
+
+    Returns:
+        The page.
     """
     scope = scope_of(request, scope)
     found = ItemFilter(

@@ -35,6 +35,15 @@ def response_entries(
     Per kind, one entry for each item: the seconds until the first response of each class that
     responded. A response is a comment or review by someone other than the author, so a bot that
     answers first does not hide the others. The items are those created in the time range.
+
+    Args:
+        repositories: The repositories.
+        classifier: Decides the class of each actor.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The entries by kind: ``pr`` and ``issue``.
     """
     return response_times(repositories, classifier, since, until)[0]
 
@@ -47,6 +56,15 @@ def response_times(
     The entries of response_entries, and per kind for each item the seconds it was observed:
     until it was closed, or until now. An item without a response of a class waited at least
     that long for it (censored data).
+
+    Args:
+        repositories: The repositories.
+        classifier: Decides the class of each actor.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The entries by kind, and the seconds each item was observed by kind.
     """
     now = timezone.now()
     items = items_in(repositories, since, until)
@@ -78,12 +96,27 @@ def response_times(
 
 
 def bucket(seconds: float) -> str:
-    """The label of the bar of the chart a time falls into."""
+    """The label of the bar of the chart a time falls into.
+
+    Args:
+        seconds: The time until the response.
+
+    Returns:
+        The label, such as ``3h``.
+    """
     return next((label for label, limit in BUCKETS if seconds <= limit.total_seconds()), SLOWER)
 
 
 def histogram(entries: list[Times], names: list[str]) -> list[tuple[str, dict[str, int]]]:
-    """For each bar of the chart, how many first responses of each class fall into it."""
+    """For each bar of the chart, how many first responses of each class fall into it.
+
+    Args:
+        entries: The seconds until the first response of each class, one dictionary per item.
+        names: The classes to count.
+
+    Returns:
+        For each bar, its label and the number of each class.
+    """
     labels = [label for label, _ in BUCKETS] + [SLOWER]
     counted = {label: dict.fromkeys(names, 0) for label in labels}
     for entry in entries:
@@ -94,7 +127,15 @@ def histogram(entries: list[Times], names: list[str]) -> list[tuple[str, dict[st
 
 
 def percentile(values: list[float], p: float) -> float | None:
-    """The p-th percentile (0-100), as `numpy.percentile` (linear); None without data."""
+    """The p-th percentile (0-100), as `numpy.percentile` (linear); None without data.
+
+    Args:
+        values: The values.
+        p: The percentile, 0 to 100.
+
+    Returns:
+        The value, or None.
+    """
     if not len(values):
         return None
     return float(numpy.percentile(values, p))
@@ -105,6 +146,14 @@ def class_percentile(entries: list[Times], name: str | None, p: float) -> tuple[
 
     Percentile of the time until the first response of a class, or of the first response of any
     class if name is None; and the number of responses.
+
+    Args:
+        entries: The seconds until the first response of each class, one dictionary per item.
+        name: The class, None for the first response of anybody.
+        p: The percentile, 0 to 100.
+
+    Returns:
+        The seconds, None without responses, and how many responses there are.
     """
     if name is None:
         seconds = [min(e.values()) for e in entries if e]

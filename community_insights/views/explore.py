@@ -1,16 +1,19 @@
 """Explore: the public repositories the site knows, for everybody."""
 
 from asgiref.sync import async_to_sync, sync_to_async
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Case, When
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from ..demo import DEMO
 from ..feedback import show_error
 from ..github.anonymous import AnonymousClient
 from ..models import Repository
 from ..sync import add_public
 from ..tokens import TokenPool, entries_for
+from ..visitor_limit import VisitorLimit
 from .dashboard import numbers_of
 from .scope import scope_text
 
@@ -22,8 +25,14 @@ def explore(request):
 
     Returns:
         The page, the repositories with data first, most stars first.
+
+    Args:
+        request: The request, with the search ``q`` and the ``page``.
     """
     found = Repository.objects.filter(is_private=False)
+    real = found.exclude(full_name=DEMO)
+    if real.exists():  # the made up demo only while there is nothing else to explore
+        found = real
     search = request.GET.get("q", "").strip()
     if search:
         found = found.filter(full_name__icontains=search)
@@ -48,6 +57,9 @@ def submit_public(target: str) -> list[Repository]:
 
     Returns:
         The stored repositories.
+
+    Args:
+        target: ``owner/name`` or ``owner``, as typed or pasted.
     """
 
     async def submitting():
@@ -63,9 +75,17 @@ def submit_public(target: str) -> list[Repository]:
 
 @require_POST
 def submit(request):
-    """Add a public repository or organisation and show its statistics page."""
+    """Add a public repository or organisation and show its statistics page.
+
+    Args:
+        request: The request, with ``target``.
+
+    Returns:
+        A redirect to the statistics, or back to Explore with the error.
+    """
     target = request.POST.get("target", "")
     try:
+        VisitorLimit("submit", settings.VISITOR_SUBMITS_PER_HOUR).count(request)
         repositories = submit_public(target)
     except Exception as error:  # shown with what to do
         show_error(request, error)

@@ -18,8 +18,13 @@ class PersonClass(OrderedModel):
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, related_name="classes")
+    user_id: int  # the column of the foreign key, for the type checker
     name = models.CharField(max_length=60)
     color = models.CharField(max_length=7, default="#649568")
+    # the key of a class the site made (classify.DEFAULT_CLASSES): it is hidden, not deleted
+    preset = models.CharField(max_length=30, blank=True)
+    # hidden classes still decide who belongs to them, but are not shown in the statistics
+    hidden = models.BooleanField(default=False)
 
     order_with_respect_to = "user"
 
@@ -32,3 +37,13 @@ class PersonClass(OrderedModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def ident(self) -> str:
+        """The id of the class in addresses: its name and its number, such as ``maintainer-3``.
+
+        The number makes it unique and finds it again after the class was renamed.
+        """
+        from django.utils.text import slugify
+
+        return f"{slugify(self.name) or 'class'}-{self.pk}"

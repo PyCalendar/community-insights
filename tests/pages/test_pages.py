@@ -12,6 +12,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_pages_render(synced, signed_in):
+    """Pages render."""
     project = Project.objects.get()
     scope = str(project.pk)
     for url in [
@@ -22,7 +23,6 @@ def test_pages_render(synced, signed_in):
         f"/s/{scope}/contributors/?q=bob&sort=response&class=external",
         f"/s/{scope}/people/bob/",
         "/dashboard/classes/",
-        "/dashboard/cache/",
     ]:
         response = signed_in.get(url)
         assert response.status_code == 200, url
@@ -30,6 +30,7 @@ def test_pages_render(synced, signed_in):
 
 
 def test_charts_are_svg(synced, signed_in):
+    """Charts are svg."""
     scope = str(Project.objects.get().pk)
     for name, query in [
         ("responses-pr", ""),
@@ -47,6 +48,7 @@ def test_viewing_never_uses_github(synced, signed_in, monkeypatch):
     """Statistics, charts and badges come from the database; only a sync reads GitHub."""
 
     def refuse(*args, **kwargs):
+        """Fail: the pages must not use GitHub."""
         raise AssertionError("GitHub was used")
 
     monkeypatch.setattr("community_insights.github.Client", refuse)
@@ -64,6 +66,7 @@ def test_viewing_never_uses_github(synced, signed_in, monkeypatch):
 
 
 def test_empty_project_pages(world, signed_in):  # noqa: F811
+    """Empty project pages."""
     pk = world["empty"].pk
     for url in [f"/s/{pk}/", f"/s/{pk}/contributors/", f"/s/{pk}/chart/responses-pr.svg"]:
         assert signed_in.get(url).status_code == 200, url
@@ -74,5 +77,6 @@ def test_empty_project_pages(world, signed_in):  # noqa: F811
 
 
 def test_dashboard_card_says_when_the_data_is_complete(world, signed_in):  # noqa: F811
+    """Dashboard card says when the data is complete."""
     page = signed_in.get("/dashboard/").content.decode()
     assert "complete in about" in page, "the fixture has a running job"

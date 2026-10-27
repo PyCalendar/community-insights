@@ -62,6 +62,15 @@ The application reads its settings from environment variables. With Docker, put 
    * - ``FETCH_WORKER``
      - ``internal`` (development), ``external-http-container`` (the image)
      - Where the fetch worker runs, see :ref:`worker-modes`: ``internal`` (a thread of the web process), ``external-http-container`` (a process of its own in the web container), ``external-separate-container`` (only the ``worker`` service of the compose file; the web container runs none), ``inline`` (in the request, for tests). Another value stops the start with an error.
+   * - ``VISITOR_SUBMITS_PER_HOUR``, ``VISITOR_FETCHES_PER_HOUR``
+     - ``10``, ``5``
+     - How many repositories a visitor without an account may add, and how many fetches start, per address and hour. Visitors share the tokens people donated, so one visitor cannot use them all up. ``0`` for no limit. People with an account have no such limit.
+   * - ``USER_MAX_ITEMS``
+     - ``100000``
+     - How many pull requests and issues the repositories of the projects of an account may hold; a fetch that would add more is refused. Administrators have no limit. ``0`` for no limit.
+   * - ``TRUSTED_PROXIES``
+     - ``0`` (development), ``1`` (the image)
+     - How many proxies in front of the site add the address they were reached from to ``X-Forwarded-For``. The address of a visitor is the one the outermost of them added. The image has nginx in front: ``1``. Behind one more proxy with TLS, set ``2``. A number too high lets visitors choose their address.
    * - ``ACCOUNT_EMAIL_VERIFICATION``
      - ``optional``
      - ``none``, ``optional`` or ``mandatory``: whether people must confirm their email address.

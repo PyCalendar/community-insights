@@ -10,11 +10,18 @@ from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from .. import pipeline
-from ..classify import Classifier
-from ..errors import DatesInWrongOrder, InvalidDate, InvalidDateRange
+from ..classify import Classifier, class_list, classes_by_ids, differs_from_default
+from ..errors import (
+    DatesInWrongOrder,
+    InvalidDate,
+    InvalidDateRange,
+    InvalidDays,
+    UnknownClasses,
+)
 from ..feedback import show_error
 from ..models import (
     Person,
@@ -28,6 +35,19 @@ def date_range(parameters) -> tuple:
 
     Since and until (both optional, until inclusive) as times in the time zone of the browser;
     until is the start of the day after.
+
+    Args:
+        parameters: The parameters of the address, with ``since`` and ``until`` such as
+            ``2026-01-31``, or ``last``: the last days, such as ``30`` for the last 30 days
+            with today. All are optional; ``since`` wins over ``last``.
+
+    Returns:
+        The start and the end, each None if not given.
+
+    Raises:
+        InvalidDate: If a date cannot be read.
+        InvalidDays: If the last days are no whole number above 0.
+        DatesInWrongOrder: If the first date is not before the second.
     """
     found = []
     for name in ("since", "until"):
@@ -38,16 +58,49 @@ def date_range(parameters) -> tuple:
         try:
             day = date.fromisoformat(text)
         except ValueError:
-            raise InvalidDate(f"{text!r} is no date like 2026-01-31.") from None
+            raise InvalidDate(
+                gettext("%(text)s is no date like 2026-01-31.") % {"text": repr(text)}
+            ) from None
         if name == "until":
             day += timedelta(days=1)
         found.append(
             timezone.make_aware(datetime.combine(day, time()), timezone.get_current_timezone())
         )
     since, until = found
+    days = last_days(parameters)
+    if since is None and days is not None:
+        today = timezone.localdate()
+        since = timezone.make_aware(
+            datetime.combine(today - timedelta(days=days - 1), time()),
+            timezone.get_current_timezone(),
+        )
     if since and until and since >= until:
-        raise DatesInWrongOrder("The first date is after the second.")
+        raise DatesInWrongOrder(gettext("The first date is after the second."))
     return since, until
+
+
+def last_days(parameters) -> int | None:
+    """The number of the last days of the time range, from the parameter ``last``.
+
+    Args:
+        parameters: The parameters of the address.
+
+    Returns:
+        The days, None if not given.
+
+    Raises:
+        InvalidDays: If they are no whole number above 0.
+
+    Examples:
+        >>> last_days({"last": " 30 "}), last_days({})
+        (30, None)
+    """
+    text = (parameters.get("last") or "").strip()
+    if not text:
+        return None
+    if not text.isdigit() or int(text) < 1:
+        raise InvalidDays(gettext("%(text)s is no number of days above 0.") % {"text": repr(text)})
+    return int(text)
 
 
 PROJECTS = re.compile(r"^(all|\d+(-\d+)*)$")
@@ -64,7 +117,25 @@ class Scope:
     """
 
     def __init__(self, user, text: str, parameters=None):
+        """Read the scope of an address and its time range.
+
+        Args:
+            user: The user, or an anonymous one.
+            text: The scope of the address, such as ``3``, ``all`` or ``plone~volto``.
+            parameters: The parameters of the address: ``since`` and ``until``.
+
+        Raises:
+            PermissionDenied: If a visitor opens projects.
+            Http404: If the projects are not the user's, or the public repositories are
+                not known.
+            InvalidDateRange: If the time range cannot be read.
+        """
         self.since, self.until = date_range(parameters or {})
+        given = parameters or {}
+        self.last = None if (given.get("since") or "").strip() else last_days(given)
+        # the classes of a shared address; None for the viewer's own
+        named = (given.get("classes") or "").strip()
+        self.chosen = classes_by_ids(named) if named else None
         self.text = text
         self.user = user
         self.public = not PROJECTS.match(text)
@@ -93,30 +164,87 @@ class Scope:
     def range(self) -> dict[str, str]:
         """The time range as it is written in the address."""
         found = {}
-        if self.since:
+        if self.last:
+            found["last"] = str(self.last)  # stays the last days when the link is opened later
+        elif self.since:
             found["since"] = self.since.date().isoformat()
         if self.until:
             found["until"] = (self.until - timedelta(days=1)).date().isoformat()
         return found
 
     @property
-    def query(self) -> str:
-        """The time range for links: "?since=...&until=..." or ""."""
+    def carried(self) -> dict[str, str]:
+        """The classes that links carry, so that a shared address shows the same numbers.
+
+        Those of the address, or the own ones when they differ from the default ones.
+        """
+        if self.chosen is not None:
+            return {"classes": " ".join(c.ident for c in self.chosen)}
+        if differs_from_default(self.user):
+            return {"classes": " ".join(c.ident for c in class_list(self.user))}
+        return {}
+
+    @property
+    def carried_query(self) -> str:
+        """The classes for a link without a time range: "?classes=..." or ""."""
+        return f"?{urlencode(self.carried)}" if self.carried else ""
+
+    @property
+    def carried_more(self) -> str:
+        """The classes after other parameters: "&classes=..." or ""."""
+        return f"&{urlencode(self.carried)}" if self.carried else ""
+
+    @property
+    def own_classes_query(self) -> str:
+        """The time range without the classes of the address: for the own classes."""
         return f"?{urlencode(self.range)}" if self.range else ""
 
     @property
+    def borrowed(self) -> bool:
+        """Whether the page uses the classes of somebody else, from the address."""
+        user_id = self.user.pk if self.user.is_authenticated else None
+        return self.chosen is not None and any(c.user_id != user_id for c in self.chosen)
+
+    @property
+    def query(self) -> str:
+        """The time range and the classes for links: "?since=...&classes=..." or ""."""
+        found = self.range | self.carried
+        return f"?{urlencode(found)}" if found else ""
+
+    @property
     def query_more(self) -> str:
-        """The time range after other parameters: "&since=..." or ""."""
-        return f"&{urlencode(self.range)}" if self.range else ""
+        """The time range and the classes after other parameters: "&since=..." or ""."""
+        found = self.range | self.carried
+        return f"&{urlencode(found)}" if found else ""
+
+    def classes(self) -> list:
+        """The classes of people of the page: those of the address, or the own ones.
+
+        Returns:
+            The classes in their order, also the hidden ones.
+        """
+        return self.chosen if self.chosen is not None else class_list(self.user)
+
+    def visible_classes(self) -> list:
+        """The classes the statistics show: without the hidden ones.
+
+        Returns:
+            The classes in their order.
+        """
+        return [c for c in self.classes() if not c.hidden]
 
     def touch(self):
         """Remember that the repositories were used now."""
         self.repositories.update(last_used_at=timezone.now())
 
     def classifier(self) -> Classifier:
-        """The classes of people of the user (the defaults for visitors), with locations."""
+        """The classes of people of the user (the defaults for visitors), with locations.
+
+        Returns:
+            The classifier.
+        """
         locations = dict(Person.objects.exclude(location="").values_list("login", "location"))
-        return Classifier(self.user, locations)
+        return Classifier(self.user, locations, self.chosen)
 
 
 def public_repositories(text: str):
@@ -145,7 +273,14 @@ def public_repositories(text: str):
 
 
 def scope_text(repositories) -> str:
-    """The public scope of repositories, for an address: ``owner~name+...``."""
+    """The public scope of repositories, for an address: ``owner~name+...``.
+
+    Args:
+        repositories: The repositories.
+
+    Returns:
+        The text of the scope.
+    """
     return "+".join(r.full_name.replace("/", "~") for r in repositories)
 
 
@@ -163,6 +298,15 @@ def stats_page(request, scope: Scope, template: str, context: dict):
 
     A page that shows statistics: with how complete the data is, where it comes from, the
     running fetches and the choice of the sources.
+
+    Args:
+        request: The request.
+        scope: The scope shown.
+        template: The template of the page.
+        context: What the template needs besides.
+
+    Returns:
+        The page.
     """
     return render(
         request,
@@ -177,7 +321,7 @@ def stats_page(request, scope: Scope, template: str, context: dict):
             "keep_parameters": [
                 (name, value)
                 for name, value in context.get("parameters", {}).items()
-                if value and name not in ("since", "until")
+                if value and name not in ("since", "until", "last")
             ],
             "choices": source_choices(request.user),
             "page_name": request.resolver_match.url_name,
@@ -191,6 +335,13 @@ def scope_toggles(request, scope: Scope) -> list[tuple]:
 
     For each project: whether it is shown, and the address of this page with it switched on or
     off (None for the last one shown).
+
+    Args:
+        request: The request of the page.
+        scope: The scope shown.
+
+    Returns:
+        For each project of the user: the project, whether it is shown, and the address.
     """
     if scope.public or not request.user.is_authenticated:
         return []
@@ -232,13 +383,30 @@ def scope_view(view):
 def scope_of(request, text: str) -> Scope:
     """The projects of the address and the time range.
 
-    The projects of the address and the time range of its parameters; a range that cannot be
-    read is shown as an error and not used.
+    The projects of the address, the time range and the classes of its parameters; a range
+    or classes that cannot be read are shown as an error and not used.
+
+    Args:
+        request: The request, with the time range in its address.
+        text: The scope of the address.
+
+    Returns:
+        The scope, marked as used now.
     """
-    try:
-        scope = Scope(request.user, text, request.GET)
-    except InvalidDateRange as error:
-        show_error(request, error)
+    parameters = request.GET.dict()
+    for _attempt in range(3):  # each part that cannot be read is left out once
+        try:
+            scope = Scope(request.user, text, parameters)
+            break
+        except InvalidDateRange as error:
+            show_error(request, error)
+            parameters = {
+                k: v for k, v in parameters.items() if k not in ("since", "until", "last")
+            }
+        except UnknownClasses as error:
+            show_error(request, error)
+            parameters = {k: v for k, v in parameters.items() if k != "classes"}
+    else:
         scope = Scope(request.user, text)
     scope.touch()
     return scope

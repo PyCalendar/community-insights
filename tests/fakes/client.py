@@ -9,11 +9,14 @@ from .builders import connection
 
 
 class FakeClient:
+    """A GitHub client that answers the queries of the sync from prepared data."""
+
     token = "token"
 
     def __init__(
         self, prs=(), issues=(), people=None, repositories=(), suggested=(), hidden=(), commits=()
     ):
+        """The data to answer with; hidden repositories are not visible to the token."""
         self.prs, self.issues = list(prs), list(issues)
         self.commits = list(commits)  # {"oid", "committedDate", "author": {"name", "user"}}
         self.known = people or {}
@@ -25,6 +28,7 @@ class FakeClient:
         self.rate = RateLimit()
 
     async def graphql(self, query, **variables):
+        """Answer a query like GitHub would, counting the requests."""
         self.requests += 1
         if "history(first: 100" in query:
             since = variables.get("since") or ""
@@ -71,6 +75,7 @@ class FakeClient:
         return {"repository": {field: {**connection(*items), "totalCount": len(items)}}}
 
     def each_repository(self, query: str) -> dict:
+        """The answer to a query of several repositories."""
         names = re.findall(r'r(\d+): repository\(owner: "([^"]*)", name: "([^"]*)"\)', query)
         answer = {}
         for index, owner, name in names:
@@ -87,6 +92,7 @@ class FakeClient:
         return answer
 
     def suggestions_answer(self) -> dict:
+        """The answer to the query of the suggestions."""
         nodes = [
             {"nameWithOwner": s["name"], "stargazerCount": s.get("stars", 0)}
             for s in self.suggested
@@ -100,25 +106,33 @@ class FakeClient:
 
     # the reads, like the real client: through graphql
     async def viewer(self):
+        """The owner of the token."""
         return await reads.viewer(self.graphql)
 
     async def repositories(self, owner=None, limit=300):
+        """The repositories of an owner."""
         return await reads.repositories(self.graphql, owner, limit)
 
     async def repository(self, full_name):
+        """One repository."""
         return await reads.repository(self.graphql, full_name)
 
     async def suggestions(self):
+        """The repositories and organisations to offer."""
         return await reads.suggestions(self.graphql)
 
     async def visible(self, full_names):
+        """Whether the token sees each repository."""
         return await reads.visible(self.graphql, full_names)
 
     async def totals(self, full_names):
+        """The pull requests and issues of each repository."""
         return await reads.totals(self.graphql, full_names)
 
     async def people(self, logins):
+        """The profiles of people."""
         return await reads.people(self.graphql, logins)
 
     async def close(self):
+        """Nothing to close."""
         pass

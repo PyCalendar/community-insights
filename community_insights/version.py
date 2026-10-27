@@ -16,7 +16,11 @@ DEFAULT_VERSION_FILE = HERE / "default_version.json"
 
 
 def git_commit() -> str:
-    """The commit of the checkout, or "" without git."""
+    """The commit of the checkout, or "" without git.
+
+    Returns:
+        The full hash of the commit.
+    """
     try:
         found = subprocess.run(
             ["git", "-C", str(HERE), "rev-parse", "HEAD"],
@@ -46,7 +50,15 @@ def get() -> dict:
 
 
 def source_links(source_url: str, build: dict) -> dict:
-    """Where the code of this version is: the tag of a release, else the commit."""
+    """Where the code of this version is: the tag of a release, else the commit.
+
+    Args:
+        source_url: The address of the repository of the code.
+        build: The build information: commit and tag.
+
+    Returns:
+        The address of the commit and of the code of this version.
+    """
     source_url = source_url.rstrip("/")
     commit = build.get("commit_full") or ""
     links = {"commit_url": f"{source_url}/commit/{commit}" if commit else ""}

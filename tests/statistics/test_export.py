@@ -13,6 +13,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_response_table_matches_the_statistics(world):  # noqa: F811
+    """Response table matches the statistics."""
     alice = world["user"]
     names = [c.name for c in alice.classes.all()]
     rows = export.responses(Repository.objects.all(), Classifier(alice), names)
@@ -28,6 +29,7 @@ def test_response_table_matches_the_statistics(world):  # noqa: F811
 
 
 def test_csv_is_readable(world, signed_in):  # noqa: F811
+    """Csv is readable."""
     pk = world["project"].pk
     for table in export.TABLES:
         response = signed_in.get(f"/s/{pk}/data/{table}.csv")
@@ -39,6 +41,7 @@ def test_csv_is_readable(world, signed_in):  # noqa: F811
 
 
 def test_ods_downloads_have_the_source_data(world, signed_in):  # noqa: F811
+    """Ods downloads have the source data."""
     import io
 
     from odf.opendocument import load
@@ -47,10 +50,13 @@ def test_ods_downloads_have_the_source_data(world, signed_in):  # noqa: F811
     pk = world["project"].pk
 
     def sheets(url):
+        """The names of the sheets of the ODS of an address."""
         response = signed_in.get(url)
-        assert response.status_code == 200, url
-        assert response["Content-Type"] == "application/vnd.oasis.opendocument.spreadsheet"
-        document = load(io.BytesIO(response.content))
+        assert response.status_code == 302 and response["Location"].startswith("/documents/"), url
+        file = signed_in.get(response["Location"] + "download/")
+        assert file.status_code == 200, url
+        assert file["Content-Type"] == "application/vnd.oasis.opendocument.spreadsheet"
+        document = load(io.BytesIO(b"".join(file.streaming_content)))
         return [t.getAttribute("name") for t in document.spreadsheet.getElementsByType(Table)]
 
     assert sheets(f"/s/{pk}/data/responses.ods") == ["responses", "items", "events", "about"]
@@ -62,13 +68,14 @@ def test_ods_downloads_have_the_source_data(world, signed_in):  # noqa: F811
         "commits",
         "about",
     ]
-    query = sheets(f"/s/{pk}/contributors.ods?where=prs_opened+%3E+0")
+    query = sheets(f"/s/{pk}/contributors.ods?where=prs_total+%3E+0")
     assert query == ["query result", "contributors", "items", "events", "commits", "about"]
     assert signed_in.get(f"/s/{pk}/contributors.csv").status_code == 200
     assert signed_in.get(f"/s/{pk}/data/items.xlsx").status_code == 404
 
 
 def test_ods_numbers_are_numbers():
+    """Ods numbers are numbers."""
     import io
 
     from odf.opendocument import load

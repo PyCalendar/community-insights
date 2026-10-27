@@ -3,8 +3,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
-"Report-Msgid-Bugs-To: https://github.com/PyCalendar/community-insights/issues\n"
-"POT-Creation-Date: 2026-10-27 09:46+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-27 18:32+0000\n"
 "PO-Revision-Date: 2026-10-27 10:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: German\n"
@@ -14,8 +14,102 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "Mon"
+msgstr "Mo"
+
+msgid "Tue"
+msgstr "Di"
+
+msgid "Wed"
+msgstr "Mi"
+
+msgid "Thu"
+msgstr "Do"
+
+msgid "Fri"
+msgstr "Fr"
+
+msgid "Sat"
+msgstr "Sa"
+
+msgid "Sun"
+msgstr "So"
+
+msgid "pull request"
+msgstr "Pull Request"
+
+msgid "issue"
+msgstr "Issue"
+
+msgid "comment"
+msgstr "Kommentar"
+
+msgid "review"
+msgstr "Review"
+
+msgid "commit"
+msgstr "Commit"
+
+#, python-format
+msgid "%(title)s: no responses yet"
+msgstr "%(title)s: noch keine Antworten"
+
+#, python-format
+msgid "%(title)s (%(items)s, %(silent)s without a response)"
+msgstr "%(title)s (%(items)s, %(silent)s ohne Antwort)"
+
+msgid "time until the first response"
+msgstr "Zeit bis zur ersten Antwort"
+
+msgid "responses"
+msgstr "Antworten"
+
+msgid "nobody matches the query"
+msgstr "niemand passt zur Abfrage"
+
+msgid "time of the day (your time zone)"
+msgstr "Tageszeit (Deine Zeitzone)"
+
+msgid "activities (number)"
+msgstr "Aktivitäten (Anzahl)"
+
+msgid "weekday"
+msgstr "Wochentag"
+
+msgid "no responses to others"
+msgstr "keine Antworten an andere"
+
+msgid "median time until the first response"
+msgstr "Median der Zeit bis zur ersten Antwort"
+
+msgid "no activity"
+msgstr "keine Aktivität"
+
+#, python-format
+msgid "%(ident)s is no id of a class."
+msgstr "%(ident)s ist keine Kennung einer Gruppe."
+
+#, python-format
+msgid "There are no classes %(idents)s."
+msgstr "Es gibt keine Gruppen %(idents)s."
+
+#, python-format
+msgid "%(file)s is ready to download"
+msgstr "%(file)s ist bereit zum Herunterladen"
+
+#, python-format
+msgid "The file was made from the data on this site at %(time)s."
+msgstr "Die Datei wurde am %(time)s aus den Daten dieser Seite erstellt."
+
+#, python-format
+msgid "%(file)s could not be made"
+msgstr "%(file)s konnte nicht erstellt werden"
+
 msgid "Something went wrong"
 msgstr "Etwas ist schiefgegangen"
+
+msgid "How to report a bug"
+msgstr "Wie man einen Fehler meldet"
 
 msgid "Unexpected error"
 msgstr "Unerwarteter Fehler"
@@ -23,14 +117,32 @@ msgstr "Unerwarteter Fehler"
 msgid "Invalid configuration"
 msgstr "Ungültige Konfiguration"
 
+msgid "The settings of the site"
+msgstr "Die Einstellungen der Seite"
+
 msgid "Unknown mode of the fetch worker"
 msgstr "Unbekannter Modus des Fetch-Workers"
 
 msgid "The fetch stopped"
 msgstr "Das Lesen wurde angehalten"
 
+msgid "How data is fetched"
+msgstr "Wie Daten abgerufen werden"
+
+msgid "Too many requests from this address"
+msgstr "Zu viele Anfragen von dieser Adresse"
+
+msgid "Without an account"
+msgstr "Ohne Konto"
+
+msgid "Too many pull requests and issues for your account"
+msgstr "Zu viele Pull Requests und Issues für Dein Konto"
+
 msgid "Limit of API points reached"
 msgstr "Grenze der API-Punkte erreicht"
+
+msgid "API points and limits"
+msgstr "API-Punkte und Limits"
 
 msgid "All tokens used up for now"
 msgstr "Alle Tokens sind vorerst aufgebraucht"
@@ -47,8 +159,14 @@ msgstr "GitHub ist nicht erreichbar"
 msgid "Not found on GitHub"
 msgstr "Auf GitHub nicht gefunden"
 
+msgid "How to add GitHub tokens"
+msgstr "Wie man GitHub-Tokens hinzufügt"
+
 msgid "Organisation or user not found"
 msgstr "Organisation oder Person nicht gefunden"
+
+msgid "How to add projects"
+msgstr "Wie man Projekte hinzufügt"
 
 msgid "No public repositories"
 msgstr "Keine öffentlichen Repositories"
@@ -86,8 +204,14 @@ msgstr "Bitte setze eine Grenze"
 msgid "Invalid query"
 msgstr "Ungültige Abfrage"
 
+msgid "The parts of a query"
+msgstr "Die Teile einer Abfrage"
+
 msgid "Invalid time range"
 msgstr "Ungültiger Zeitraum"
+
+msgid "The time range"
+msgstr "Der Zeitraum"
 
 msgid "No token entered"
 msgstr "Kein Token eingegeben"
@@ -97,6 +221,9 @@ msgstr "Die Abfrage ist nicht lesbar"
 
 msgid "Unknown variable"
 msgstr "Unbekannte Variable"
+
+msgid "The variables of queries"
+msgstr "Die Variablen von Abfragen"
 
 msgid "Not a comparison"
 msgstr "Kein Vergleich"
@@ -115,6 +242,12 @@ msgstr "Dieser Vergleich passt nicht"
 
 msgid "Unknown group"
 msgstr "Unbekannte Gruppe"
+
+msgid "The groups of queries"
+msgstr "Die Gruppierungen von Abfragen"
+
+msgid "Invalid number of days"
+msgstr "Ungültige Anzahl an Tagen"
 
 msgid "Invalid date"
 msgstr "Ungültiges Datum"
@@ -137,8 +270,35 @@ msgstr "Ungültige Anzahl an Punkten"
 msgid "Unknown kind of rule"
 msgstr "Unbekannte Art von Regel"
 
+msgid "Classes of people"
+msgstr "Gruppen von Menschen"
+
+msgid "Not a GitHub handle"
+msgstr "Kein GitHub-Name"
+
+msgid "No class for bots"
+msgstr "Keine Gruppe für Bots"
+
+msgid "Class name taken"
+msgstr "Name der Gruppe vergeben"
+
+msgid "Class cannot be deleted"
+msgstr "Gruppe kann nicht gelöscht werden"
+
+msgid "Unknown classes"
+msgstr "Unbekannte Gruppen"
+
+msgid "Invalid colour"
+msgstr "Ungültige Farbe"
+
+msgid "Invalid order of the classes"
+msgstr "Ungültige Reihenfolge der Gruppen"
+
 msgid "Unknown table"
 msgstr "Unbekannte Tabelle"
+
+msgid "Check the numbers yourself"
+msgstr "Die Zahlen selbst prüfen"
 
 msgid "Problem with a token"
 msgstr "Problem mit einem Token"
@@ -157,6 +317,10 @@ msgstr "Token abgelehnt: es gilt zu lange"
 
 msgid "Token not allowed"
 msgstr "Token nicht erlaubt"
+
+#, python-format
+msgid "There is no table %(name)s."
+msgstr "Es gibt keine Tabelle %(name)s."
 
 msgid "What to do"
 msgstr "Was zu tun ist"
@@ -205,6 +369,171 @@ msgstr "normal"
 
 msgid "low"
 msgstr "niedrig"
+
+msgid "the GitHub handle"
+msgstr "der GitHub-Name"
+
+msgid "the name in the GitHub profile"
+msgstr "der Name im GitHub-Profil"
+
+msgid "the location in the GitHub profile"
+msgstr "der Ort im GitHub-Profil"
+
+msgid "the country of the location (ISO code, such as DE)"
+msgstr "das Land des Orts (ISO-Code, zum Beispiel DE)"
+
+msgid "True for locations in Horizon Europe"
+msgstr "True für Orte in Horizon Europe"
+
+msgid "the class of people"
+msgstr "die Gruppe von Personen"
+
+msgid "True for bots"
+msgstr "True für Bots"
+
+msgid "the most privileged status seen, such as member or contributor"
+msgstr "der höchste gesehene Status, zum Beispiel member oder contributor"
+
+msgid "commits"
+msgstr "Commits"
+
+msgid "pull requests opened"
+msgstr "eröffnete Pull Requests"
+
+msgid "pull requests opened and merged"
+msgstr "eröffnete und gemergte Pull Requests"
+
+msgid "pull requests opened and closed without merging"
+msgstr "eröffnete und ohne Merge geschlossene Pull Requests"
+
+msgid "pull requests opened and closed, merged or not"
+msgstr "eröffnete und geschlossene Pull Requests, gemergt oder nicht"
+
+msgid "pull requests still open"
+msgstr "noch offene Pull Requests"
+
+msgid "pull requests of others commented on"
+msgstr "kommentierte Pull Requests anderer"
+
+msgid "pull requests of others reviewed"
+msgstr "reviewte Pull Requests anderer"
+
+msgid "issues opened"
+msgstr "eröffnete Issues"
+
+msgid "issues opened and still open"
+msgstr "eröffnete und noch offene Issues"
+
+msgid "issues opened and closed"
+msgstr "eröffnete und geschlossene Issues"
+
+msgid "issues of others commented on"
+msgstr "kommentierte Issues anderer"
+
+msgid "comments on items of others"
+msgstr "Kommentare zu Einträgen anderer"
+
+msgid "pull requests merged by them"
+msgstr "von ihnen gemergte Pull Requests"
+
+msgid "pull requests, issues, comments, reviews and commits"
+msgstr "Pull Requests, Issues, Kommentare, Reviews und Commits"
+
+msgid "median hours until their first response on items of others"
+msgstr "Median der Stunden bis zu ihrer ersten Antwort auf Einträge anderer"
+
+msgid "median days until their pull requests were merged"
+msgstr "Median der Tage, bis ihre Pull Requests gemergt wurden"
+
+msgid "days since the first activity"
+msgstr "Tage seit der ersten Aktivität"
+
+msgid "days since the last activity"
+msgstr "Tage seit der letzten Aktivität"
+
+msgid "months with any activity"
+msgstr "Monate mit Aktivität"
+
+#, python-format
+msgid "There is no variable %(name)s."
+msgstr "Es gibt keine Variable %(name)s."
+
+#, python-format
+msgid "It is called %(new)s now."
+msgstr "Sie heißt jetzt %(new)s."
+
+#, python-format
+msgid "Did you mean %(names)s?"
+msgstr "Meintest Du %(names)s?"
+
+#, python-format
+msgid "%(text)s cannot be read: %(reason)s."
+msgstr "%(text)s kann nicht gelesen werden: %(reason)s."
+
+#, python-format
+msgid "Not a comparison: %(part)s."
+msgstr "Kein Vergleich: %(part)s."
+
+#, python-format
+msgid "Unsupported comparison in %(text)s."
+msgstr "Nicht unterstützter Vergleich in %(text)s."
+
+#, python-format
+msgid "Text and numbers are compared in %(text)s."
+msgstr "In %(text)s werden Text und Zahlen verglichen."
+
+#, python-format
+msgid ""
+"Text is compared with ==, !=, in and not in; numbers with ==, !=, <, <=, >, "
+">=: %(text)s."
+msgstr ""
+"Text wird mit ==, !=, in und not in verglichen, Zahlen mit ==, !=, <, <=, >,"
+" >=: %(text)s."
+
+#, python-format
+msgid "Expected a variable, a number or text, found %(part)s."
+msgstr ""
+"Erwartet wurde eine Variable, eine Zahl oder Text, gefunden wurde %(part)s."
+
+#, python-format
+msgid "Group by one of %(groups)s, not %(group)s."
+msgstr "Gruppiere nach einem von %(groups)s, nicht nach %(group)s."
+
+#, python-format
+msgid "%(target)s is not owner/name or owner."
+msgstr "%(target)s ist nicht owner/name oder owner."
+
+#, python-format
+msgid "%(target)s is private."
+msgstr "%(target)s ist privat."
+
+#, python-format
+msgid "%(target)s has no public repositories."
+msgstr "%(target)s hat keine öffentlichen Repositories."
+
+#, python-format
+msgid "%(target)s was not found, or the token cannot see it."
+msgstr "%(target)s wurde nicht gefunden, oder der Token sieht es nicht."
+
+msgid "Not allowed"
+msgstr "Nicht erlaubt"
+
+msgid "This page is not for your account."
+msgstr "Diese Seite ist nicht für Dein Konto."
+
+msgid "To the start page"
+msgstr "Zur Startseite"
+
+msgid "Not found"
+msgstr "Nicht gefunden"
+
+msgid "There is no page at this address, or what it shows is not known yet."
+msgstr ""
+"Unter dieser Adresse gibt es keine Seite, oder was sie zeigt, ist noch nicht"
+" bekannt."
+
+msgid "Share this chart"
+msgstr "Dieses Diagramm teilen"
 
 msgid "Data"
 msgstr "Daten"
@@ -267,7 +596,7 @@ msgstr ""
 "ist."
 
 msgid "How to check the numbers with scipy"
-msgstr "Wie du die Zahlen mit scipy prüfst"
+msgstr "Wie Du die Zahlen mit scipy prüfst"
 
 msgid "Sources shown"
 msgstr "Gezeigte Quellen"
@@ -301,6 +630,12 @@ msgid_plural "%(count)s repositories"
 msgstr[0] "%(count)s Repository"
 msgstr[1] "%(count)s Repositories"
 
+msgid "Copy the address of this page"
+msgstr "Die Adresse dieser Seite kopieren"
+
+msgid "Share"
+msgstr "Teilen"
+
 msgid "Overview"
 msgstr "Überblick"
 
@@ -322,11 +657,26 @@ msgstr "Von"
 msgid "To"
 msgstr "Bis"
 
+msgid "Or the last days"
+msgstr "Oder die letzten Tage"
+
 msgid "Show this time"
 msgstr "Diesen Zeitraum zeigen"
 
 msgid "All time"
 msgstr "Gesamte Zeit"
+
+#, python-format
+msgid ""
+"Pull requests and issues created, and activity, in the last %(days)s day."
+msgid_plural ""
+"Pull requests and issues created, and activity, in the last %(days)s days."
+msgstr[0] ""
+"Pull Requests und Issues, die erstellt wurden, und Aktivität am letzten "
+"%(days)s Tag."
+msgstr[1] ""
+"Pull Requests und Issues, die erstellt wurden, und Aktivität in den letzten "
+"%(days)s Tagen."
 
 #, python-format
 msgid ""
@@ -346,6 +696,15 @@ msgstr "Erstellte Pull-Requests und Issues und Aktivität bis %(until)s."
 
 msgid "All time."
 msgstr "Gesamte Zeit."
+
+msgid "Classes of people of the shared address:"
+msgstr "Gruppen von Personen der geteilten Adresse:"
+
+msgid "Use my own classes"
+msgstr "Meine eigenen Gruppen verwenden"
+
+msgid "Copy"
+msgstr "Kopieren"
 
 msgid "Add a repository or organisation"
 msgstr "Repository oder Organisation hinzufügen"
@@ -378,15 +737,15 @@ msgid ""
 "Your email address and, if you link it, your GitHub account and its token, "
 "or the personal access token you add."
 msgstr ""
-"Deine E-Mail-Adresse und, wenn du es verknüpfst, dein GitHub-Konto und sein "
-"Token, oder das persönliche Zugangstoken, das du hinzufügst."
+"Deine E-Mail-Adresse und, wenn Du es verknüpfst, Dein GitHub-Konto und sein "
+"Token, oder das persönliche Zugangstoken, das Du hinzufügst."
 
 msgid ""
 "What is read from GitHub for your projects: repositories, issues, pull "
 "requests, the times and authors of comments and reviews, and the public name"
 " and location of the people involved."
 msgstr ""
-"Was für deine Projekte von GitHub gelesen wird: Repositories, Issues, Pull-"
+"Was für Deine Projekte von GitHub gelesen wird: Repositories, Issues, Pull-"
 "Requests, die Zeiten und Autor*innen von Kommentaren und Reviews, und der "
 "öffentliche Name und Ort der beteiligten Menschen."
 
@@ -409,8 +768,8 @@ msgid ""
 " choose at the bottom of the page."
 msgstr ""
 "Dein Browser teilt der Seite seine Zeitzone in einem Cookie mit, damit "
-"Zeiten und Diagramme deine Ortszeit nutzen. Die Sprache ist die deines "
-"Browsers oder die, die du unten auf der Seite wählst."
+"Zeiten und Diagramme Deine Ortszeit nutzen. Die Sprache ist die Deines "
+"Browsers oder die, die Du unten auf der Seite wählst."
 
 msgid "Free software"
 msgstr "Freie Software"
@@ -434,13 +793,13 @@ msgid ""
 "Something wrong or missing? <a href=\"%(bug_report_url)s\">Open an issue on "
 "GitHub</a>; the version is filled in for you. Please do not post tokens or "
 "private data. Security problems go to the maintainers privately, see <a "
-"href=\"%(docs)sen/latest/how-to/report-bug.html\">the documentation</a>."
+"href=\"%(docs)show-to/report-bug.html\">the documentation</a>."
 msgstr ""
 "Ist etwas falsch oder fehlt etwas? <a href=\"%(bug_report_url)s\">Eröffne "
-"ein Issue auf GitHub</a>; die Version wird für dich eingetragen. Bitte "
+"ein Issue auf GitHub</a>; die Version wird für Dich eingetragen. Bitte "
 "veröffentliche keine Tokens oder privaten Daten. Sicherheitsprobleme gehen "
-"vertraulich an die Maintainer, siehe <a href=\"%(docs)sen/latest/how-"
-"to/report-bug.html\">die Dokumentation</a>."
+"vertraulich an die Maintainer, siehe <a href=\"%(docs)show-to/report-"
+"bug.html\">die Dokumentation</a>."
 
 msgid "Version"
 msgstr "Version"
@@ -473,6 +832,22 @@ msgstr "Projekt"
 msgid "License"
 msgstr "Lizenz"
 
+msgid "Code from other projects"
+msgstr "Code aus anderen Projekten"
+
+msgid ""
+"Parts of this project come from others and keep their license, as REUSE.toml"
+" says."
+msgstr ""
+"Teile dieses Projekts stammen aus anderen Projekten und behalten ihre "
+"Lizenz, wie REUSE.toml angibt."
+
+msgid "Files"
+msgstr "Dateien"
+
+msgid "Copyright"
+msgstr "Urheberrecht"
+
 msgid "Python packages on the server"
 msgstr "Python-Pakete auf dem Server"
 
@@ -488,11 +863,8 @@ msgstr "Menü"
 msgid "Colours of the page"
 msgstr "Farben der Seite"
 
-msgid "As the system"
-msgstr "Wie das System"
-
-msgid "Auto"
-msgstr "Auto"
+msgid "Auto (as the system)"
+msgstr "Automatisch (wie das System)"
 
 msgid "Light"
 msgstr "Hell"
@@ -508,6 +880,12 @@ msgstr "Dashboard"
 
 msgid "Downloads"
 msgstr "Downloads"
+
+msgid "Messages"
+msgstr "Nachrichten"
+
+msgid "unread"
+msgstr "ungelesen"
 
 msgid "Classes"
 msgstr "Gruppen"
@@ -561,7 +939,7 @@ msgid ""
 msgstr ""
 "Was von GitHub gelesen wurde, bleibt in der Datenbank. Die Repositories sind"
 " von der <strong>ältesten Nutzung</strong> bis zur neuesten sortiert; lösche"
-" die, die du nicht brauchst, sie werden neu gelesen, wenn eine Seite sie "
+" die, die Du nicht brauchst, sie werden neu gelesen, wenn eine Seite sie "
 "braucht."
 
 #, python-format
@@ -631,8 +1009,11 @@ msgstr "privat"
 msgid "The cache is empty."
 msgstr "Der Cache ist leer."
 
-msgid "Classes of people"
-msgstr "Gruppen von Menschen"
+msgid "What the kinds of rules mean"
+msgstr "Was die Arten von Regeln bedeuten"
+
+msgid "Classes of people in the documentation"
+msgstr "Gruppen von Personen in der Dokumentation"
 
 msgid ""
 "Response times are shown per class. Somebody belongs to the "
@@ -643,15 +1024,63 @@ msgstr ""
 "<strong>ersten</strong> Gruppe (von oben nach unten) mit einer passenden "
 "Regel; setze daher genaue Gruppen über allgemeine."
 
+msgid ""
+"Drag a class by its handle ⠿ to another place, or use the arrows. Change the"
+" name and the colour in the field at the top of a class and press Save."
+msgstr ""
+"Ziehe eine Gruppe an ihrem Griff ⠿ an eine andere Stelle, oder nutze die "
+"Pfeile. Ändere Name und Farbe im Feld oben in einer Gruppe und drücke "
+"Speichern."
+
+msgid "Drag to move"
+msgstr "Zum Verschieben ziehen"
+
+#, python-format
+msgid "Colour of %(name)s"
+msgstr "Farbe von %(name)s"
+
+#, python-format
+msgid "Id in shared addresses: %(ident)s"
+msgstr "Kennung in geteilten Adressen: %(ident)s"
+
+#, python-format
+msgid "Name of %(name)s"
+msgstr "Name von %(name)s"
+
+msgid "Save"
+msgstr "Speichern"
+
 msgid "Move up"
 msgstr "Nach oben"
 
 msgid "Move down"
 msgstr "Nach unten"
 
+msgid "Show"
+msgstr "Zeigen"
+
+msgid "The class still sorts people, but the statistics do not show it"
+msgstr ""
+"Die Gruppe ordnet weiter Personen zu, aber die Statistiken zeigen sie nicht"
+
+msgid "Hide"
+msgstr "Ausblenden"
+
 #, python-format
 msgid "Delete %(name)s?"
 msgstr "%(name)s löschen?"
+
+msgid "Id in shared addresses:"
+msgstr "Kennung in geteilten Adressen:"
+
+msgid "hidden"
+msgstr "ausgeblendet"
+
+msgid "Still sorts people, but the statistics do not show it."
+msgstr "Ordnet weiter Personen zu, aber die Statistiken zeigen sie nicht."
+
+msgid "What this class is for"
+msgstr "Wofür diese Gruppe ist"
 
 msgid "Delete rule"
 msgstr "Regel löschen"
@@ -667,6 +1096,32 @@ msgstr "Wert"
 
 msgid "Value"
 msgstr "Wert"
+
+msgid "Maybe bots"
+msgstr "Vielleicht Bots"
+
+#, python-format
+msgid ""
+"These accounts answered at least %(at_least)s pull requests and issues of "
+"others, most of them within %(fast_minutes)s minutes: people rarely answer "
+"that fast. GitHub does not mark them as bots."
+msgstr ""
+"Diese Konten haben auf mindestens %(at_least)s Pull Requests und Issues "
+"anderer geantwortet, die meisten davon innerhalb von %(fast_minutes)s "
+"Minuten: So schnell antworten Menschen selten. GitHub kennzeichnet sie nicht"
+" als Bots."
+
+msgid "Add the rule “is a bot” to a class to add them to it."
+msgstr ""
+"Füge einer Gruppe die Regel „ist ein Bot“ hinzu, um sie dort einzutragen."
+
+#, python-format
+msgid "%(fast)s of %(items)s first responses fast"
+msgstr "%(fast)s von %(items)s ersten Antworten schnell"
+
+#, python-format
+msgid "Add to %(name)s"
+msgstr "Zu %(name)s hinzufügen"
 
 msgid "New class"
 msgstr "Neue Gruppe"
@@ -723,6 +1178,12 @@ msgstr "Abfrage"
 msgid "Who (a query, empty for everybody)"
 msgstr "Wer (eine Abfrage, leer für alle)"
 
+msgid "How to write a query"
+msgstr "Wie man eine Abfrage schreibt"
+
+msgid "Examples:"
+msgstr "Beispiele:"
+
 msgid "Sort by"
 msgstr "Sortieren nach"
 
@@ -762,15 +1223,18 @@ msgstr "Variablen"
 msgid ""
 "Compare variables with numbers or \"text\" (any case) and combine them with "
 "<code>and</code>, <code>or</code>, <code>not</code> and parentheses: "
-"<code>\"berlin\" in location or class == \"maintainers\"</code>. Sort with "
-"<code>-name</code> for the biggest first. Columns are names separated by "
-"spaces."
+"<code>\"berlin\" in user_location or user_class == \"maintainers\"</code>. "
+"Sort with <code>-name</code> for the biggest first. Columns are names "
+"separated by spaces."
 msgstr ""
 "Vergleiche Variablen mit Zahlen oder \"Text\" (Groß- und Kleinschreibung "
 "egal) und verbinde sie mit <code>and</code>, <code>or</code>, "
-"<code>not</code> und Klammern: <code>\"berlin\" in location or class == "
-"\"maintainers\"</code>. Sortiere mit <code>-name</code>, um die größten "
-"zuerst zu sehen. Spalten sind durch Leerzeichen getrennte Namen."
+"<code>not</code> und Klammern: <code>\"berlin\" in user_location or "
+"user_class == \"maintainers\"</code>. Sortiere mit <code>-name</code> für "
+"die größten zuerst. Spalten sind Namen, getrennt durch Leerzeichen."
+
+msgid "All variables, operators and groups in the documentation"
+msgstr "Alle Variablen, Operatoren und Gruppierungen in der Dokumentation"
 
 msgid "Saved:"
 msgstr "Gespeichert:"
@@ -782,9 +1246,6 @@ msgstr "Die Abfrage %(name)s löschen"
 msgid "Name of this query"
 msgstr "Name dieser Abfrage"
 
-msgid "Save"
-msgstr "Speichern"
-
 msgid "Chart of the query"
 msgstr "Diagramm der Abfrage"
 
@@ -794,12 +1255,23 @@ msgstr "Gruppen"
 msgid "people"
 msgstr "Menschen"
 
+msgid "Column names in words"
+msgstr "Spaltennamen in Worten"
+
 #, python-format
 msgid ""
 "%(shown)s of %(total)s people. Times are in your time zone (%(timezone)s)."
 msgstr ""
-"%(shown)s von %(total)s Menschen. Die Zeiten sind in deiner Zeitzone "
+"%(shown)s von %(total)s Menschen. Die Zeiten sind in Deiner Zeitzone "
 "(%(timezone)s)."
+
+#, python-format
+msgid "Sort by: %(about)s"
+msgstr "Sortieren nach: %(about)s"
+
+#, python-format
+msgid "What %(c)s means"
+msgstr "Was %(c)s bedeutet"
 
 msgid "Nobody matches."
 msgstr "Niemand passt."
@@ -812,7 +1284,7 @@ msgid ""
 "To read GitHub, <a href=\"%(access_url)s\">link your GitHub account or add a"
 " personal access token</a>."
 msgstr ""
-"Um GitHub zu lesen, <a href=\"%(access_url)s\">verknüpfe dein GitHub-Konto "
+"Um GitHub zu lesen, <a href=\"%(access_url)s\">verknüpfe Dein GitHub-Konto "
 "oder füge ein persönliches Zugangstoken hinzu</a>."
 
 #, python-format
@@ -844,10 +1316,6 @@ msgstr ""
 msgid "Remove"
 msgstr "Entfernen"
 
-#, python-format
-msgid "Name of %(name)s"
-msgstr "Name von %(name)s"
-
 msgid "Open pull requests"
 msgstr "Offene Pull-Requests"
 
@@ -868,7 +1336,7 @@ msgstr ""
 msgid ""
 "Your repositories, those of your organisations and those you contributed to."
 msgstr ""
-"Deine Repositories, die deiner Organisationen und die, zu denen du "
+"Deine Repositories, die Deiner Organisationen und die, zu denen Du "
 "beigetragen hast."
 
 #, python-format
@@ -877,6 +1345,31 @@ msgstr "Vor %(ago)s gelesen."
 
 msgid "Refresh from GitHub"
 msgstr "Von GitHub aktualisieren"
+
+msgid "The file is ready."
+msgstr "Die Datei ist bereit."
+
+msgid "The file could not be made."
+msgstr "Die Datei konnte nicht erstellt werden."
+
+msgid ""
+"The file is being made from the data on this site. You can leave this page; "
+"the file waits here for a week."
+msgstr ""
+"Die Datei wird aus den Daten dieser Seite erstellt. Du kannst diese Seite "
+"verlassen; die Datei wartet hier eine Woche."
+
+msgid "A message tells you when it is ready."
+msgstr "Eine Nachricht sagt Dir, wenn sie bereit ist."
+
+msgid "Progress of the file"
+msgstr "Fortschritt der Datei"
+
+msgid "Download"
+msgstr "Herunterladen"
+
+msgid "Your messages"
+msgstr "Deine Nachrichten"
 
 msgid ""
 "Data is read from GitHub in the background, the highest priority first; that"
@@ -924,7 +1417,7 @@ msgid ""
 "it is read with the tokens people donated to this site."
 msgstr ""
 "Antwortzeiten für Issues und Pull-Requests, wer wann beiträgt, und Badges "
-"für deine README. Sieh dir die öffentlichen Repositories unten an oder füge "
+"für Deine README. Sieh Dir die öffentlichen Repositories unten an oder füge "
 "eines hinzu: es wird mit den Tokens gelesen, die Menschen dieser Seite "
 "gespendet haben."
 
@@ -1038,12 +1531,12 @@ msgid ""
 "Points left this hour: %(total)s (%(own)s of your tokens, %(shared)s shared "
 "by others)."
 msgstr ""
-"Übrige Punkte in dieser Stunde: %(total)s (%(own)s deiner Tokens, %(shared)s"
+"Übrige Punkte in dieser Stunde: %(total)s (%(own)s Deiner Tokens, %(shared)s"
 " von anderen geteilt)."
 
 #, python-format
 msgid "This includes %(extra_left)s you allowed above your maximum."
-msgstr "Das umfasst %(extra_left)s, die du über deinem Maximum erlaubt hast."
+msgstr "Das umfasst %(extra_left)s, die Du über Deinem Maximum erlaubt hast."
 
 msgid ""
 "You are not signed in: the site reads with the tokens people donated to it."
@@ -1067,11 +1560,11 @@ msgstr "Ihre Punkte reichen dafür."
 #, python-format
 msgid "<a href=\"%(signup_url)s\">Sign up</a> and add a token to read faster."
 msgstr ""
-"<a href=\"%(signup_url)s\">Registriere dich</a> und füge ein Token hinzu, um"
+"<a href=\"%(signup_url)s\">Registriere Dich</a> und füge ein Token hinzu, um"
 " schneller zu lesen."
 
 msgid "The limit of your tokens for this hour is reached."
-msgstr "Die Grenze deiner Tokens für diese Stunde ist erreicht."
+msgstr "Die Grenze Deiner Tokens für diese Stunde ist erreicht."
 
 #, python-format
 msgid ""
@@ -1083,7 +1576,7 @@ msgstr ""
 "bis zur nächsten Stunde."
 
 msgid "More points of your tokens that are fine this hour"
-msgstr "Weitere Punkte deiner Tokens, die in dieser Stunde in Ordnung sind"
+msgstr "Weitere Punkte Deiner Tokens, die in dieser Stunde in Ordnung sind"
 
 msgid "Allow"
 msgstr "Erlauben"
@@ -1093,6 +1586,14 @@ msgstr "Tokens hinzufügen oder ihre Reihenfolge und Grenzen ändern"
 
 msgid "More tokens read faster."
 msgstr "Mehr Tokens lesen schneller."
+
+#, python-format
+msgid ""
+"Your projects hold %(held)s of %(limit)s pull requests and issues allowed "
+"for an account."
+msgstr ""
+"Deine Projekte enthalten %(held)s von %(limit)s Pull Requests und Issues, "
+"die ein Konto haben darf."
 
 #, python-format
 msgid "Use at most this many API points (required: more than %(ask_above)s)"
@@ -1126,14 +1627,14 @@ msgstr ""
 "Daten werden mit diesen Konten und Tokens von GitHub gelesen, in dieser "
 "Reihenfolge, danach mit den Punkten, die andere auf dieser Seite teilen. "
 "Jedes GitHub-Konto darf 5000 API-Punkte pro Stunde nutzen; ist eines "
-"aufgebraucht, wird das nächste genutzt. Auch Freund*innen können dir ein "
+"aufgebraucht, wird das nächste genutzt. Auch Freund*innen können Dir ein "
 "Token geben."
 
 msgid "How to create and add a token"
-msgstr "Wie du ein Token erstellst und hinzufügst"
+msgstr "Wie Du ein Token erstellst und hinzufügst"
 
-msgid "1. GitHub account"
-msgstr "1. GitHub-Konto"
+msgid "1. Link GitHub account"
+msgstr "1. GitHub-Konto verknüpfen"
 
 #, python-format
 msgid ""
@@ -1153,7 +1654,7 @@ msgid ""
 "GitHub asks you to allow the <code>repo</code> permission; the site only "
 "reads."
 msgstr ""
-"GitHub bittet dich, die Berechtigung <code>repo</code> zu erlauben; die "
+"GitHub bittet Dich, die Berechtigung <code>repo</code> zu erlauben; die "
 "Seite liest nur."
 
 msgid "Link GitHub account"
@@ -1163,8 +1664,30 @@ msgid "This installation has no GitHub OAuth app: add tokens below."
 msgstr ""
 "Diese Installation hat keine GitHub-OAuth-App: füge unten Tokens hinzu."
 
-msgid "Tokens"
-msgstr "Tokens"
+msgid ""
+"Create a <a href=\"https://github.com/settings/personal-access-"
+"tokens/new\">fine-grained token</a> with an expiration date. Public "
+"repositories need no permissions."
+msgstr ""
+"Erstelle ein <a href=\"https://github.com/settings/personal-access-"
+"tokens/new\">fein granuliertes Token</a> mit einem Ablaufdatum. Öffentliche "
+"Repositories brauchen keine Berechtigungen."
+
+msgid ""
+"Private ones need read access to <em>Pull requests</em>, <em>Issues</em> and"
+" <em>Metadata</em>."
+msgstr ""
+"Private brauchen Lesezugriff auf <em>Pull requests</em>, <em>Issues</em> und"
+" <em>Metadata</em>."
+
+msgid "For now only public repositories are read."
+msgstr "Vorerst werden nur öffentliche Repositories gelesen."
+
+msgid "Step by step, with an example"
+msgstr "Schritt für Schritt, mit einem Beispiel"
+
+msgid "2. Tokens"
+msgstr "2. Tokens"
 
 #, python-format
 msgid "Expired %(date)s."
@@ -1237,45 +1760,38 @@ msgstr "Token"
 msgid "from Kim"
 msgstr "von Kim"
 
-msgid ""
-"Create a <a href=\"https://github.com/settings/personal-access-"
-"tokens/new\">fine-grained token</a> with an expiration date. Public "
-"repositories need no permissions."
-msgstr ""
-"Erstelle ein <a href=\"https://github.com/settings/personal-access-"
-"tokens/new\">fein granuliertes Token</a> mit einem Ablaufdatum. Öffentliche "
-"Repositories brauchen keine Berechtigungen."
-
-msgid ""
-"Private ones need read access to <em>Pull requests</em>, <em>Issues</em> and"
-" <em>Metadata</em>."
-msgstr ""
-"Private brauchen Lesezugriff auf <em>Pull requests</em>, <em>Issues</em> und"
-" <em>Metadata</em>."
-
-msgid "For now only public repositories are read."
-msgstr "Vorerst werden nur öffentliche Repositories gelesen."
-
 msgid "Add the token"
 msgstr "Token hinzufügen"
 
 msgid "Profile"
 msgstr "Profil"
 
-msgid "Suggested limit of API points when a fetch needs more than 5000"
+msgid "Suggested limit of API points when a fetch needs more than this"
 msgstr ""
-"Vorgeschlagene Grenze an API-Punkten, wenn ein Lesen mehr als 5000 braucht"
+"Vorgeschlagenes Limit an API-Punkten, wenn ein Abruf mehr als das braucht"
+
+#, python-format
+msgid ""
+"GitHub counts each request in points; every account has 5000 points per "
+"hour. A fetch that would need more points than this number asks how many it "
+"may use at most, and proposes this number. <a href=\"%(docs)show-"
+"to/tokens.html#points-and-limits\">What points are and how limits work</a>."
+msgstr ""
+"GitHub zählt jede Anfrage in Punkten; jedes Konto hat 5000 Punkte pro "
+"Stunde. Ein Abruf, der mehr Punkte als diese Zahl bräuchte, fragt, wie viele"
+" er höchstens verwenden darf, und schlägt diese Zahl vor. <a "
+"href=\"%(docs)show-to/tokens.html#points-and-limits\">Was Punkte sind und "
+"wie Limits funktionieren</a>."
 
 #, python-format
 msgid ""
 "Show a <span class=\"badge text-bg-secondary\">Horizon Europe</span> tag "
 "next to the locations in the countries of <a "
-"href=\"%(docs)sen/latest/reference/locations.html\">Horizon Europe</a>"
+"href=\"%(docs)sreference/locations.html\">Horizon Europe</a>"
 msgstr ""
 "Einen Tag <span class=\"badge text-bg-secondary\">Horizon Europe</span> "
 "neben den Orten in den Ländern von <a "
-"href=\"%(docs)sen/latest/reference/locations.html\">Horizon Europe</a> "
-"zeigen"
+"href=\"%(docs)sreference/locations.html\">Horizon Europe</a> zeigen"
 
 #, python-format
 msgid "Pull requests and issues of %(title)s"
@@ -1283,9 +1799,6 @@ msgstr "Pull-Requests und Issues von %(title)s"
 
 msgid "Filter"
 msgstr "Filter"
-
-msgid "Show"
-msgstr "Zeigen"
 
 #, python-format
 msgid "%(count)s pull requests and issues."
@@ -1295,8 +1808,21 @@ msgid ""
 "The columns sort when you click them. “Waiting” is how long an item without "
 "a response has waited, until it was closed or until now."
 msgstr ""
-"Die Spalten sortieren, wenn du sie anklickst. „Waiting“ ist, wie lange ein "
+"Die Spalten sortieren, wenn Du sie anklickst. „Waiting“ ist, wie lange ein "
 "Eintrag ohne Antwort gewartet hat, bis er geschlossen wurde oder bis jetzt."
+
+msgid "Mark all as read"
+msgstr "Alle als gelesen markieren"
+
+msgid "new"
+msgstr "neu"
+
+msgid ""
+"No messages yet. When a file you asked for is ready, a message tells you "
+"here."
+msgstr ""
+"Noch keine Nachrichten. Wenn eine Datei, die Du angefordert hast, bereit "
+"ist, sagt Dir eine Nachricht hier Bescheid."
 
 msgid "merged"
 msgstr "gemergt"
@@ -1331,8 +1857,27 @@ msgstr ""
 msgid "%(title)s: first response times"
 msgstr "%(title)s: Zeiten bis zur ersten Antwort"
 
+msgid "Statistic"
+msgstr "Statistik"
+
+msgid "lowest std error"
+msgstr "kleinster Standardfehler"
+
+msgid "all"
+msgstr "alle"
+
+msgid "What the statistics mean"
+msgstr "Was die Statistiken bedeuten"
+
 msgid "class"
 msgstr "Gruppe"
+
+msgid ""
+"How many items are counted: those with a response of the class; for Kaplan-"
+"Meier all items"
+msgstr ""
+"Wie viele Einträge gezählt werden: die mit einer Antwort der Gruppe; bei "
+"Kaplan-Meier alle Einträge"
 
 msgid "fit"
 msgstr "Modell"
@@ -1345,6 +1890,18 @@ msgstr "Standardfehler"
 
 msgid "median"
 msgstr "Median"
+
+msgid ""
+"n counts the items with a response of the class. Kaplan-Meier counts all "
+"items, so its n is the same for every class: the items without a response of"
+" the class count as waiting, until they were closed or until now."
+msgstr ""
+"n zählt die Einträge mit einer Antwort der Gruppe. Kaplan-Meier zählt alle "
+"Einträge, daher ist sein n für jede Gruppe gleich: Die Einträge ohne Antwort"
+" der Gruppe zählen als wartend, bis sie geschlossen wurden oder bis jetzt."
+
+msgid "How to read the response times"
+msgstr "Wie man die Antwortzeiten liest"
 
 msgid "Badges"
 msgstr "Badges"
@@ -1365,12 +1922,16 @@ msgid ""
 "The badge shows what is in the database and never calls GitHub. Parameters: "
 "<code>kind</code> = <code>pr</code> or <code>issue</code>, "
 "<code>percentile</code> = 0-100, <code>class</code> = a class name "
-"(optional)."
+"(optional), <code>model</code> = <code>measured</code>, <code>normal</code>,"
+" <code>exponential</code> or <code>kaplan-meier</code> (optional), "
+"<code>label</code> = the text of the left side (optional)."
 msgstr ""
 "Das Badge zeigt, was in der Datenbank ist, und fragt nie GitHub. Parameter: "
 "<code>kind</code> = <code>pr</code> oder <code>issue</code>, "
 "<code>percentile</code> = 0-100, <code>class</code> = ein Gruppenname "
-"(optional)."
+"(optional), <code>model</code> = <code>measured</code>, <code>normal</code>,"
+" <code>exponential</code> oder <code>kaplan-meier</code> (optional), "
+"<code>label</code> = der Text der linken Seite (optional)."
 
 msgid "Kind"
 msgstr "Art"
@@ -1389,6 +1950,12 @@ msgstr "Gruppe"
 
 msgid "any (first response)"
 msgstr "alle (erste Antwort)"
+
+msgid "Left side (empty for the text made from the choices)"
+msgstr "Linke Seite (leer für den Text aus der Auswahl)"
+
+msgid "such as: response time"
+msgstr "zum Beispiel: Antwortzeit"
 
 msgid "badge preview"
 msgstr "Vorschau des Badges"
@@ -1419,7 +1986,7 @@ msgstr[1] "Aktiv vom %(first)s bis %(last)s in %(months)s Monaten."
 
 #, python-format
 msgid "Times in your time zone: %(timezone)s."
-msgstr "Zeiten in deiner Zeitzone: %(timezone)s."
+msgstr "Zeiten in Deiner Zeitzone: %(timezone)s."
 
 msgid "Contributions per month"
 msgstr "Beiträge pro Monat"
@@ -1444,6 +2011,53 @@ msgstr "Über die Woche und den Tag"
 
 msgid "Heat map of the weekday and hour"
 msgstr "Heatmap von Wochentag und Stunde"
+
+msgid "Share a chart"
+msgstr "Ein Diagramm teilen"
+
+#, python-format
+msgid ""
+"The code shows the chart as it is now and links it to <a "
+"href=\"%(page)s\">the page it comes from</a>. The chart is drawn from the "
+"data of this site when it is opened; it never asks GitHub."
+msgstr ""
+"Der Code zeigt das Diagramm, wie es gerade ist, und verlinkt es mit <a "
+"href=\"%(page)s\">der Seite, von der es stammt</a>. Das Diagramm wird beim "
+"Öffnen aus den Daten dieser Seite gezeichnet; es fragt nie GitHub."
+
+msgid ""
+"This chart is of your own projects: only you can see it after you sign in. "
+"Others see the chart of public repositories only."
+msgstr ""
+"Dieses Diagramm zeigt Deine eigenen Projekte: Nur Du siehst es, nachdem Du "
+"Dich angemeldet hast. Andere sehen nur Diagramme öffentlicher Repositories."
+
+msgid "Back to the page of the chart"
+msgstr "Zurück zur Seite des Diagramms"
+
+msgid "Link"
+msgstr "Link"
+
+#, python-format
+msgid ""
+"Your projects hold %(held)s pull requests and issues; this fetch adds about "
+"%(adding)s, and %(limit)s are allowed."
+msgstr ""
+"Deine Projekte enthalten %(held)s Pull Requests und Issues; dieser Abruf "
+"fügt etwa %(adding)s hinzu, und %(limit)s sind erlaubt."
+
+#, python-format
+msgid "%(text)s is no whole number."
+msgstr "%(text)s ist keine ganze Zahl."
+
+msgid "The limit must be at least 1, or empty for no limit."
+msgstr "Das Limit muss mindestens 1 sein, oder leer für kein Limit."
+
+msgid "A percentage is between 0 and 100."
+msgstr "Ein Prozentwert liegt zwischen 0 und 100."
+
+msgid "Please paste a token."
+msgstr "Bitte füge einen Token ein."
 
 #, python-format
 msgid "The token of %(login)s was saved."
@@ -1485,6 +2099,74 @@ msgstr "Nicht gespeichert. "
 msgid "Cache cleared. It is read again when needed."
 msgstr "Cache geleert. Er wird bei Bedarf neu gelesen."
 
+msgid "chart of the query"
+msgstr "Diagramm der Abfrage"
+
+msgid "first response times of pull requests"
+msgstr "Zeiten bis zur ersten Antwort auf Pull Requests"
+
+msgid "first response times of issues"
+msgstr "Zeiten bis zur ersten Antwort auf Issues"
+
+msgid "how fast they respond to others, per month"
+msgstr "wie schnell sie anderen antworten, pro Monat"
+
+msgid "activities across the day"
+msgstr "Aktivitäten über den Tag"
+
+msgid "activities across the week and the day"
+msgstr "Aktivitäten über die Woche und den Tag"
+
+msgid "contributions per month"
+msgstr "Beiträge pro Monat"
+
+#, python-format
+msgid "%(login)s is no GitHub handle."
+msgstr "%(login)s ist kein GitHub-Name."
+
+#, python-format
+msgid "You have a class %(name)s already."
+msgstr "Du hast schon eine Gruppe %(name)s."
+
+#, python-format
+msgid "%(color)s is no colour like #649568."
+msgstr "%(color)s ist keine Farbe wie #649568."
+
+#, python-format
+msgid "%(name)s is a class of the site: hide it instead."
+msgstr "%(name)s ist eine Gruppe der Seite: Blende sie stattdessen aus."
+
+#, python-format
+msgid "There is no kind of rule %(kind)s."
+msgstr "Es gibt keine Art von Regel %(kind)s."
+
+msgid "The order does not name each of your classes once."
+msgstr "Die Reihenfolge nennt nicht jede Deiner Gruppen genau einmal."
+
+msgid "Most commits in the last month"
+msgstr "Die meisten Commits im letzten Monat"
+
+msgid "External contributors who opened a pull request in the last month"
+msgstr "Externe, die im letzten Monat einen Pull Request eröffnet haben"
+
+msgid "New, but contributed continuously in the last two months"
+msgstr "Neu, aber in den letzten zwei Monaten stetig beigetragen"
+
+msgid "Who opened a pull request, the most merged first"
+msgstr "Wer einen Pull Request eröffnet hat, die meisten gemergten zuerst"
+
+msgid "Who reviews the pull requests of others"
+msgstr "Wer die Pull Requests anderer reviewt"
+
+msgid "Who answers within a day"
+msgstr "Wer innerhalb eines Tages antwortet"
+
+msgid "People in a country of Horizon Europe"
+msgstr "Personen in einem Land von Horizon Europe"
+
+msgid "Opened issues, but no pull request"
+msgstr "Issues eröffnet, aber keinen Pull Request"
+
 msgid "The query was saved."
 msgstr "Die Abfrage wurde gespeichert."
 
@@ -1499,9 +2181,20 @@ msgstr "%(target)s wurde hinzugefügt."
 msgid "%(target)s is shown as %(label)s."
 msgstr "%(target)s wird als %(label)s gezeigt."
 
+msgid "Allow a whole number of points above 0."
+msgstr "Erlaube eine ganze Zahl von Punkten über 0."
+
 #, python-format
 msgid "%(extra)s more points of your tokens are fine until %(until)s."
-msgstr "%(extra)s weitere Punkte deiner Tokens sind bis %(until)s in Ordnung."
+msgstr "%(extra)s weitere Punkte Deiner Tokens sind bis %(until)s in Ordnung."
+
+#, python-format
+msgid "%(limit_text)s is no whole number above 0."
+msgstr "%(limit_text)s ist keine ganze Zahl über 0."
+
+#, python-format
+msgid "This fetch needs about %(points)s points."
+msgstr "Dieser Abruf braucht etwa %(points)s Punkte."
 
 #, python-format
 msgid "%(count)s repository queued."
@@ -1521,6 +2214,17 @@ msgid "%(target)s was added. Read it from GitHub to see its data."
 msgstr ""
 "%(target)s wurde hinzugefügt. Lies es von GitHub, um seine Daten zu sehen."
 
+#, python-format
+msgid "%(text)s is no date like 2026-01-31."
+msgstr "%(text)s ist kein Datum wie 2026-01-31."
+
+msgid "The first date is after the second."
+msgstr "Das erste Datum liegt nach dem zweiten."
+
+#, python-format
+msgid "%(text)s is no number of days above 0."
+msgstr "%(text)s ist keine Anzahl an Tagen über 0."
+
 msgid "response times"
 msgstr "Antwortzeiten"
 
@@ -1530,8 +2234,13 @@ msgstr "Pull-Requests und Issues"
 msgid "comments and reviews"
 msgstr "Kommentare und Reviews"
 
-msgid "commits"
-msgstr "Commits"
-
 msgid "contributors"
 msgstr "Beitragende"
+
+#, python-format
+msgid ""
+"Visitors may do this %(times)s times per hour. Sign up to use your own "
+"tokens, or wait for the next hour."
+msgstr ""
+"Besucher dürfen das %(times)s-mal pro Stunde. Registriere Dich, um Deine "
+"eigenen Tokens zu nutzen, oder warte auf die nächste Stunde."

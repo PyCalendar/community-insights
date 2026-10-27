@@ -9,9 +9,11 @@ from .access_token import AccessToken
 from .cached import Cached
 from .class_rule import ClassRule
 from .commit import Commit
+from .document import Document
 from .event import Event
 from .fetch_job import FetchJob
 from .item import Item
+from .message import Message
 from .person import Person
 from .person_class import PersonClass
 from .profile import Profile
@@ -24,9 +26,11 @@ __all__ = [
     "Cached",
     "ClassRule",
     "Commit",
+    "Document",
     "Event",
     "FetchJob",
     "Item",
+    "Message",
     "Person",
     "PersonClass",
     "Profile",

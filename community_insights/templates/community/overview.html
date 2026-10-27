@@ -22,22 +22,31 @@
 <h2 class="h5">{% translate "Response times" %}</h2>
 <p class="text-muted small">{% url 'classes' as classes_url %}{% blocktranslate %}Time until the first response of each class of people (<a href="{{ classes_url }}">edit classes</a>). The author's own comments do not count. <em>Measured</em>, <em>normal</em> and <em>exponential</em> use only the items that got a response; <em>Kaplan-Meier</em> counts the others, too, as waiting at least until they were closed or until now, and is "-" where less than half (or 95 %) got a response.{% endblocktranslate %}</p>
 <div class="row g-4">
-  {% for title, kind, rows in tables %}
+  {% for title, kind, rows, best in tables %}
   <div class="col-12 col-xl-6">
     <div class="chart mb-3">{% url 'chart' scope.text 'responses-'|add:kind as base %}{% blocktranslate asvar alt %}{{ title }}: first response times{% endblocktranslate %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
     {% if rows %}
-    <div class="table-responsive"><table class="table table-sm table-hover">
-      <thead><tr><th>{% translate "class" %}</th><th class="text-end">n</th><th>{% translate "fit" %}</th><th class="text-end">{% translate "average" %}</th><th class="text-end">{% translate "std error" %}</th><th class="text-end">{% translate "median" %}</th><th class="text-end">95%</th></tr></thead>
-      <tbody>{% for r in rows %}<tr><td>{{ r.name }}</td><td class="text-end">{{ r.n }}</td><td>{{ r.fit }}</td><td class="text-end">{{ r.average }}</td><td class="text-end">{{ r.std_error }}</td><td class="text-end">{{ r.median }}</td><td class="text-end">{{ r.p95 }}</td></tr>{% endfor %}</tbody>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <label class="form-label small mb-0" for="fit-{{ kind }}">{% translate "Statistic" %}</label>
+      <select id="fit-{{ kind }}" class="form-select form-select-sm w-auto" data-fit-select="#fits-{{ kind }}">
+        {% for fit in fits %}<option value="{{ fit }}"{% if fit == best %} selected{% endif %}>{{ fit }}{% if fit == best %} ({% translate "lowest std error" %}){% endif %}</option>{% endfor %}
+        <option value="">{% translate "all" %}</option>
+      </select>
+      <a class="small" href="{{ links.documentation }}explanation/response-times.html">{% translate "What the statistics mean" %}</a>
+    </div>
+    <div class="table-responsive"><table class="table table-sm table-hover" id="fits-{{ kind }}">
+      <thead><tr><th>{% translate "class" %}</th><th class="text-end" title="{% translate "How many items are counted: those with a response of the class; for Kaplan-Meier all items" %}">n</th><th>{% translate "fit" %}</th><th class="text-end">{% translate "average" %}</th><th class="text-end">{% translate "std error" %}</th><th class="text-end">{% translate "median" %}</th><th class="text-end">95%</th></tr></thead>
+      <tbody>{% for r in rows %}<tr data-fit="{{ r.fit }}"><td>{{ r.name }}</td><td class="text-end">{{ r.n }}</td><td>{{ r.fit }}</td><td class="text-end">{{ r.average }}</td><td class="text-end">{{ r.std_error }}</td><td class="text-end">{{ r.median }}</td><td class="text-end">{{ r.p95 }}</td></tr>{% endfor %}</tbody>
     </table></div>
+    <p class="small text-muted">{% translate "n counts the items with a response of the class. Kaplan-Meier counts all items, so its n is the same for every class: the items without a response of the class count as waiting, until they were closed or until now." %} <a href="{{ links.documentation }}explanation/response-times.html">{% translate "How to read the response times" %}</a></p>
     {% endif %}
   </div>
   {% endfor %}
 </div>
 
 <h2 class="h5 mt-4">{% translate "Badges" %}</h2>
-<p class="text-muted small">{% translate "Embed the response time in a README." %} {% if scope.public %}{% translate "The badge counts with the default classes of people." %}{% else %}{% blocktranslate with name=scope.projects.0.label %}The URL contains a secret token of the project <strong>{{ name }}</strong>.{% endblocktranslate %}{% endif %} {% translate "The badge shows what is in the database and never calls GitHub. Parameters: <code>kind</code> = <code>pr</code> or <code>issue</code>, <code>percentile</code> = 0-100, <code>class</code> = a class name (optional)." %}</p>
-<div class="card"><div class="card-body" data-badge-url="{{ badge_url }}">
+<p class="text-muted small">{% translate "Embed the response time in a README." %} {% if scope.public %}{% translate "The badge counts with the default classes of people." %}{% else %}{% blocktranslate with name=scope.projects.0.label %}The URL contains a secret token of the project <strong>{{ name }}</strong>.{% endblocktranslate %}{% endif %} {% translate "The badge shows what is in the database and never calls GitHub. Parameters: <code>kind</code> = <code>pr</code> or <code>issue</code>, <code>percentile</code> = 0-100, <code>class</code> = a class name (optional), <code>model</code> = <code>measured</code>, <code>normal</code>, <code>exponential</code> or <code>kaplan-meier</code> (optional), <code>label</code> = the text of the left side (optional)." %}</p>
+<div class="card"><div class="card-body" data-badge-url="{{ badge_url }}" data-share-image="{{ badge_url }}" data-share-link="{{ page_url }}" data-share-alt="">
   <div class="row g-2 align-items-end">
     <div class="col-6 col-md-3"><label class="form-label small" for="b-kind">{% translate "Kind" %}</label>
       <select id="b-kind" data-badge="kind" class="form-select form-select-sm"><option value="pr">{% translate "pull requests" %}</option><option value="issue">{% translate "issues" %}</option></select></div>
@@ -45,10 +54,15 @@
       <select id="b-p" data-badge="percentile" class="form-select form-select-sm"><option>50</option><option>75</option><option>90</option><option selected>95</option><option>99</option></select></div>
     <div class="col-12 col-md-6"><label class="form-label small" for="b-class">{% translate "Class" %}</label>
       <select id="b-class" data-badge="class" class="form-select form-select-sm"><option value="">{% translate "any (first response)" %}</option>{% for c in classes %}<option>{{ c.name }}</option>{% endfor %}</select></div>
+    <div class="col-12 col-md-6"><label class="form-label small" for="b-model">{% translate "Statistic" %}</label>
+      <select id="b-model" data-badge="model" class="form-select form-select-sm">{% for fit in fits %}<option value="{{ fit|lower }}">{{ fit }}</option>{% endfor %}</select></div>
+    <div class="col-12 col-md-6"><label class="form-label small" for="b-label">{% translate "Left side (empty for the text made from the choices)" %}</label>
+      <input id="b-label" data-badge="label" class="form-control form-control-sm" maxlength="60" placeholder="{% translate "such as: response time" %}"></div>
   </div>
   <div class="mt-3"><img id="b-img" data-badge="preview" alt="{% translate "badge preview" %}"></div>
-  <label class="form-label small mt-2" for="b-md">Markdown</label>
-  <textarea id="b-md" data-badge="markdown" class="form-control form-control-sm font-monospace" rows="2" readonly></textarea>
+  {% include "community/_share_code.html" with prefix="badge" %}
 </div></div>
+<script src="{% static 'js/share.js' %}" defer></script>
 <script src="{% static 'js/badge.js' %}" defer></script>
+<script src="{% static 'js/fit-select.js' %}" defer></script>
 {% endblock %}

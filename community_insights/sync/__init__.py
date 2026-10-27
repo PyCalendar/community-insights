@@ -13,7 +13,15 @@ Cancelled = FetchCancelled  # the user cancelled the fetch; what was read stays
 
 
 def read_repository(client, repository) -> str:
-    """Read a repository now, from synchronous code; a summary."""
+    """Read a repository now, from synchronous code; a summary.
+
+    Args:
+        client: The client or the pool of tokens.
+        repository: The repository.
+
+    Returns:
+        How many pull requests, issues and commits were read.
+    """
     return async_to_sync(Syncer(client).sync)(repository)
 
 

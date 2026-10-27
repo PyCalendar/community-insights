@@ -6,10 +6,11 @@
   <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}">{{ scope.title }}</a></li>
   <li class="breadcrumb-item"><a href="{% url 'contributors' scope.text %}">{% translate "Contributors" %}</a></li>
   <li class="breadcrumb-item active">{{ login }}</li></ol></nav>
-<div class="d-flex align-items-center gap-3 mb-3">
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
   {% if person.avatar_url %}<img class="avatar" src="{{ person.avatar_url }}" alt="">{% endif %}
   <div><h1 class="h3 mb-0"><a href="https://github.com/{{ person.login }}">{{ person.login }}</a></h1>
   <div class="text-muted">{{ person.name }}{% if person.name and person.location %} · {% endif %}{{ person.location }}{% if show_horizon_europe %}{% include "community/_horizon_europe.html" with location=person.location %}{% endif %}</div></div>
+  <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" data-copy-url title="{% translate "Copy the address of this page" %}">{% translate "Share" %}</button>
 </div>
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{{ person.prs_opened }}</div><small class="text-muted">{% blocktranslate with merged=person.prs_merged open=person.prs_open %}pull requests ({{ merged }} merged, {{ open }} open){% endblocktranslate %}</small></div></div>

@@ -26,4 +26,4 @@ The token of the signed-in user reads GitHub. A project only contains repositori
 Response times
 ==============
 
-A response is a comment or review by somebody other than the author. For each class the first response counts. The overview fits three models to the measured times: *measured* (average, median), *normal* and *exponential*, as in the earlier command line tool.
+A response is a comment or review by somebody other than the author. For each class the first response counts. The overview fits three models to the measured times: *measured* (average, median), *normal* and *exponential*, as in the earlier command line tool, and adds *Kaplan-Meier* for the items without a response. :doc:`response-times` explains how to read them.

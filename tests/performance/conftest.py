@@ -25,10 +25,12 @@ class Timer:
     """Measures and prints how long named steps take."""
 
     def __init__(self):
+        """No step measured yet."""
         self.times: dict[str, float] = {}
 
     @contextmanager
     def __call__(self, name):
+        """Measure the time of a step."""
         start = time.perf_counter()
         yield
         self.times[name] = time.perf_counter() - start
@@ -37,6 +39,7 @@ class Timer:
 
 @pytest.fixture
 def timer():
+    """A timer of named steps."""
     return Timer()
 
 
@@ -44,11 +47,13 @@ WAIT = 600  # seconds between looks at the rate limit, like the check of the dis
 
 
 def points_left(token: str) -> int:
+    """The points the token has left at GitHub."""
     from asgiref.sync import async_to_sync
 
     from community_insights import github
 
     async def ask():
+        """Ask GitHub for the rate limit of the token."""
         client = github.Client(token)
         try:
             return (await client.graphql("query { rateLimit { remaining } }"))["rateLimit"]

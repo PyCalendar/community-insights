@@ -12,6 +12,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_reviews_on_more_pages(db):
+    """Reviews on more pages."""
     pr = item(
         1,
         "a",
@@ -27,6 +28,7 @@ def test_reviews_on_more_pages(db):
 
 
 def test_more_people_than_one_batch(db):
+    """More people than one batch."""
     commenters = [node(f"p{i}", "2026-01-02T00:00:00Z") for i in range(35)]
     client = FakeClient(
         issues=[item(1, "a", "2026-01-01T00:00:00Z", comments=commenters)],
@@ -40,6 +42,7 @@ def test_more_people_than_one_batch(db):
 
 
 def test_an_organisation_with_hundreds_of_repositories(user):  # noqa: F811
+    """An organisation with hundreds of repositories."""
     client = FakeClient(repositories=[repo(f"big/r{i}", i) for i in range(250)])
     project = run(add_project, user, client, "big")
     assert project.repositories.count() == 250
@@ -53,6 +56,7 @@ def test_an_organisation_with_hundreds_of_repositories(user):  # noqa: F811
 
 
 def test_two_workers_cannot_take_the_same_job(user):  # noqa: F811
+    """Two workers cannot take the same job."""
     job = FetchJob.objects.create(user=user, repository=store_repository(repo("o/r")))
     first = pipeline.claim_next()
     assert first.pk == job.pk and first.status == FetchJob.RUNNING
@@ -62,6 +66,7 @@ def test_two_workers_cannot_take_the_same_job(user):  # noqa: F811
 
 
 def test_several_jobs_at_the_same_time(user, settings):  # noqa: F811
+    """Several jobs at the same time."""
     from community_insights.models import AccessToken
 
     AccessToken.objects.create(user=user, token="t", login="x")

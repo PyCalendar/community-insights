@@ -1,0 +1,1 @@
+Share the statistics: **Share** copies the address of a statistics page, and **Share this chart** gives the code of a chart for Markdown, reStructuredText, HTML or as a link, linked to the page it comes from. The badge builder gives the same four formats, and the left side of a badge can be chosen with ``label``.

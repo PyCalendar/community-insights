@@ -25,7 +25,10 @@ DARK = {**LIGHT, **block(':root[data-theme="dark"]')}
 
 
 def luminance(color: str) -> float:
+    """The relative luminance of a colour, as WCAG defines it."""
+
     def channel(value: int) -> float:
+        """One channel of the colour, linearised."""
         c = value / 255
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
 
@@ -34,6 +37,7 @@ def luminance(color: str) -> float:
 
 
 def contrast(a: str, b: str) -> float:
+    """The contrast ratio of two colours, as WCAG defines it."""
     high, low = sorted((luminance(a), luminance(b)), reverse=True)
     return (high + 0.05) / (low + 0.05)
 
@@ -56,18 +60,21 @@ PAIRS = [
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize(("text", "background"), PAIRS)
 def test_contrast(theme, text, background):
+    """Contrast."""
     colors = LIGHT if theme == "light" else DARK
     ratio = contrast(colors[text], colors[background])
     assert ratio >= AA, f"{theme}: {text} on {background} is {ratio:.2f}"
 
 
 def test_the_dark_theme_is_the_same_for_the_switch_and_the_system():
+    """The dark theme is the same for the switch and the system."""
     media = CSS[CSS.index("@media (prefers-color-scheme: dark)") :]
     system = dict(re.findall(r"(--[a-z-]+):\s*(#[0-9a-fA-F]{6})", media[: media.index("}")]))
     assert system == block(':root[data-theme="dark"]')
 
 
 def test_chart_text_contrast():
+    """Chart text contrast."""
     from community_insights import charts
 
     assert contrast(charts.INK["light"], LIGHT["--surface"]) >= AA

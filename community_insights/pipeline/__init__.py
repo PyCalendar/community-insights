@@ -19,6 +19,13 @@ def estimate_for(user, repositories) -> tuple[list[Estimate], list, int]:
 
     Estimate with the tokens of a user, from synchronous code: the estimates, the tokens in
     their order and the points the estimate cost.
+
+    Args:
+        user: The user, or an anonymous one, who uses the donated tokens.
+        repositories: The repositories.
+
+    Returns:
+        The estimates, the tokens in their order, and the points the estimate cost.
     """
     from asgiref.sync import sync_to_async
 

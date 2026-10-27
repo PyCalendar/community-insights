@@ -24,7 +24,14 @@ class ItemTable(tables.Table):
         attrs = {"class": "table table-sm table-hover align-middle"}
 
     def render_number(self, record):
-        """owner/name#number, linked to GitHub, with its kind."""
+        """owner/name#number, linked to GitHub, with its kind.
+
+        Args:
+            record: The item.
+
+        Returns:
+            The link and the badge of its kind.
+        """
         path = "pull" if record.kind == Item.PR else "issues"
         label = "PR" if record.kind == Item.PR else "issue"
         return format_html(
@@ -37,11 +44,26 @@ class ItemTable(tables.Table):
         )
 
     def render_state(self, record):
-        """merged, open or closed."""
+        """merged, open or closed.
+
+        Args:
+            record: The item.
+
+        Returns:
+            The state.
+        """
         return "merged" if record.merged else record.state
 
     def render_response(self, record, value):
-        """The time until the first response, or how long it waits."""
+        """The time until the first response, or how long it waits.
+
+        Args:
+            record: The item.
+            value: The time until its first response, None without one.
+
+        Returns:
+            The duration, or how long it waits.
+        """
         if value is not None:
             return format_duration(value.total_seconds())
         end = record.closed_at or timezone.now()

@@ -2,4 +2,7 @@
 
 from .client import DemoClient
 
-__all__ = ["DemoClient"]
+# the made up repository: never on GitHub, so it is not tested or explored like the others
+DEMO = "demo/community"
+
+__all__ = ["DEMO", "DemoClient"]

@@ -1,0 +1,8 @@
+{% extends "community/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Not allowed" %}{% endblock %}
+{% block content %}
+<h1 class="h3">{% translate "Not allowed" %}</h1>
+<p>{% translate "This page is not for your account." %}</p>
+<p><a href="{% url 'home' %}">{% translate "To the start page" %}</a></p>
+{% endblock %}

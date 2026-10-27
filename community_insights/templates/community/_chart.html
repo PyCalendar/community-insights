@@ -1,2 +1,3 @@
-{# A chart in the colours of the page: theme.js switches it with the page. #}
+{% load i18n community %}{# A chart in the colours of the page: theme.js switches it with the page. Below it, the link to share it. #}
 <img src="{{ src }}{% if '?' in src %}&amp;{% else %}?{% endif %}theme={{ theme_shown }}" data-chart-src="{{ src }}" alt="{{ alt }}" loading="lazy">
+{% chart_share_url src as share %}{% if share %}<div class="text-end"><a class="small" href="{{ share }}">{% translate "Share this chart" %}</a></div>{% endif %}

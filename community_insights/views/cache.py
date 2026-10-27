@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache as django_cache
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -19,11 +20,23 @@ from ..models import (
 
 @login_required
 def cache(request):
-    """The page Cache: what was read, and deleting it.
+    """The page Cache: what was read, and deleting it; for the administrators only.
 
     The page Cache: what was read, from the oldest use, the size of the database, and deleting.
+    It concerns everybody's data, so only staff may see it.
+
+    Args:
+        request: The request; a POST deletes a repository or what was not used for days.
+
+    Returns:
+        The page, or a redirect to it after a change.
+
+    Raises:
+        PermissionDenied: If the user is no administrator.
     """
     user = request.user
+    if not user.is_staff:
+        raise PermissionDenied("Only the administrators may see the cache.")
     repositories = (
         Repository.objects.all()
         if user.is_staff

@@ -25,6 +25,11 @@ class AnonymousClient:
     """
 
     def __init__(self, api: str | None = None):
+        """Read public data of GitHub without a token.
+
+        Args:
+            api: The address of the API, ``GITHUB_API`` if None.
+        """
         self.api = (api or settings.GITHUB_API).rstrip("/")
         self.session = niquests.AsyncSession(
             hooks=niquests.AsyncLeakyBucketLimiter(rate=limits.POINTS_PER_SECOND)
@@ -39,6 +44,20 @@ class AnonymousClient:
 
         A REST answer as JSON, without a token; the quota of the server is noted and
         respected.
+
+        Args:
+            path: The path, such as ``/repos/o/r``.
+            **params: The parameters of the request.
+
+        Returns:
+            The JSON of the answer.
+
+        Raises:
+            AllTokensUsedUp: If the requests without a token are used up; it says until when.
+            RateLimitExceeded: If GitHub says so.
+            RepositoryNotFound: If GitHub does not know the path, or it is not public.
+            GitHubUnreachable: If GitHub cannot be reached or answers with a server error.
+            GitHubRequestRejected: If GitHub refuses the request.
         """
         if self.rate.remaining == 0 and self.rate.reset_at:
             again = f"{self.rate.reset_at:%H:%M} UTC"
@@ -71,7 +90,15 @@ class AnonymousClient:
         return response.json()
 
     async def all_pages(self, path: str, **params) -> list[dict]:
-        """All pages of a REST list, 100 at a time."""
+        """All pages of a REST list, 100 at a time.
+
+        Args:
+            path: The path of the list, such as ``/repos/o/r/issues``.
+            **params: The parameters of the request.
+
+        Returns:
+            The entries of all pages.
+        """
         found, page = [], 1
         while True:
             answer = await self.get(path, per_page=PER_PAGE, page=page, **params)
@@ -88,7 +115,14 @@ class AnonymousClient:
 
     @staticmethod
     def shape(repo: dict) -> dict:
-        """A repository of the REST API in the shape of the GraphQL answers."""
+        """A repository of the REST API in the shape of the GraphQL answers.
+
+        Args:
+            repo: The repository, as the REST API answers it.
+
+        Returns:
+            The repository with name, description, stars and whether it is private or archived.
+        """
         return {
             "nameWithOwner": repo["full_name"],
             "description": repo.get("description") or "",
@@ -98,16 +132,41 @@ class AnonymousClient:
         }
 
     async def repository(self, full_name: str) -> dict:
-        """A public repository, in the shape of the GraphQL answers."""
+        """A public repository, in the shape of the GraphQL answers.
+
+        Args:
+            full_name: The repository as ``owner/name``.
+
+        Returns:
+            The repository.
+        """
         return self.shape(await self.get(f"/repos/{full_name}"))
 
     async def repositories(self, owner: str, limit: int = 300) -> list[dict]:
-        """The public repositories of an owner, most stars first."""
+        """The public repositories of an owner, most stars first.
+
+        Args:
+            owner: The organisation or user.
+            limit: How many to return at most.
+
+        Returns:
+            The repositories, in the shape of the GraphQL answers.
+        """
         found = await self.all_pages(f"/users/{owner}/repos", sort="updated")
         return sorted((self.shape(r) for r in found), key=lambda r: -r["stargazerCount"])[:limit]
 
     async def totals(self, full_names: list[str]) -> dict[str, tuple[int, int] | None]:
-        """Pull requests and issues of each repository, with the search."""
+        """Pull requests and issues of each repository, with the search.
+
+        Args:
+            full_names: The repositories as ``owner/name``.
+
+        Returns:
+            The pull requests and issues of each, None for those not found.
+
+        Raises:
+            GitHubRequestRejected: If GitHub refuses the search, but not for an unknown repository.
+        """
         found = {}
         for name in full_names:
             try:

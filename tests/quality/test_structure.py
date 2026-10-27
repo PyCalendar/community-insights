@@ -18,6 +18,7 @@ MODULES = [
 
 @pytest.mark.parametrize("path", MODULES, ids=lambda p: str(p.relative_to(ROOT)))
 def test_one_class_per_module(path):
+    """One class per module."""
     if path.parent.name == "errors":
         return  # grouped by topic
     tree = ast.parse(path.read_text())

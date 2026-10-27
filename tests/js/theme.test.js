@@ -26,13 +26,17 @@ test("chartUrl sets the theme and keeps other parameters", () => {
   assert.equal(theme.chartUrl("/c.svg?login=bob&theme=light", "light"), "/c.svg?login=bob&theme=light");
 });
 
-function fakeDocument(images, buttons) {
+function fakeDocument(images, buttons, icons = []) {
   const attributes = {};
   return {
     cookie: "",
     documentElement: { setAttribute: (n, v) => { attributes[n] = v; } },
     attributes,
-    querySelectorAll: (selector) => (selector.startsWith("img") ? images : buttons),
+    querySelectorAll: (selector) => {
+      if (selector.startsWith("img")) return images;
+      if (selector === "[data-theme-icon]") return icons;
+      return buttons;
+    },
   };
 }
 
@@ -60,6 +64,18 @@ test("apply sets the page and switches every chart", () => {
   assert.equal(dark.attrs["aria-pressed"], "true");
   assert.equal(auto.attrs["aria-pressed"], "false");
   assert.ok(dark.classes.has("active"));
+});
+
+test("apply shows the icon of the choice on the button of the switch", () => {
+  const icon = { textContent: "" };
+  const doc = fakeDocument([], [], [icon]);
+  theme.apply(doc, "dark", false);
+  assert.equal(icon.textContent, theme.ICONS.dark);
+  theme.apply(doc, "light", true);
+  assert.equal(icon.textContent, theme.ICONS.light);
+  theme.apply(doc, "auto", true);
+  assert.equal(icon.textContent, theme.ICONS.auto, "auto keeps its icon, also when the page is dark");
+  assert.notEqual(theme.ICONS.light, theme.ICONS.dark);
 });
 
 test("setup follows the system in auto and stores a choice", () => {

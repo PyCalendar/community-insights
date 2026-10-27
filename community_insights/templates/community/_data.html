@@ -31,7 +31,7 @@
       <ul class="small mb-2">
         {% for table, label in export_tables %}<li>{{ label }}: <a href="{% url 'export' scope.text table|add:'.ods' %}{{ scope.query }}">ODS</a>, <a href="{% url 'export' scope.text table|add:'.csv' %}{{ scope.query }}">CSV</a>{% if table == 'responses' %}, <a href="{% url 'export' scope.text 'responses.json' %}{{ scope.query }}">JSON</a>{% endif %}</li>{% endfor %}
       </ul>
-      <p class="small mb-2"><a href="{{ links.documentation }}en/latest/how-to/verify.html">{% translate "How to check the numbers with scipy" %}</a>.</p>
+      <p class="small mb-2"><a href="{{ links.documentation }}how-to/verify.html">{% translate "How to check the numbers with scipy" %}</a>.</p>
       <h2 class="h6 mt-3">{% translate "Sources shown" %}</h2>
       <div class="d-flex flex-wrap gap-2 mb-2">
         {% for project, shown, toggled in toggles %}

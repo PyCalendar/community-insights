@@ -11,10 +11,22 @@ class HourAllowance:
     """
 
     def __init__(self, profile: Profile | None):
+        """The points a user allowed above the limits of their tokens in this hour.
+
+        Args:
+            profile: The profile of the user, None for visitors, who allow none.
+        """
         self.profile = profile
 
     def left(self, now: datetime) -> int:
-        """Points still allowed above the maximum in this hour."""
+        """Points still allowed above the maximum in this hour.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points.
+        """
         return self.profile.extra_left(now) if self.profile else 0
 
     def spend(self) -> None:

@@ -24,6 +24,14 @@ async def work_async(once: bool = False, make_client=None) -> int:
 
     Run jobs, highest priority first, up to FETCH_CONCURRENCY at the same time; with once, until
     the queue is empty. The number of jobs run.
+
+    Args:
+        once: True to stop when the queue is empty, False to wait for more jobs.
+        make_client: Makes the GitHub client of a token, ``github.Client`` if None; tests give a
+            fake one.
+
+    Returns:
+        How many jobs ran.
     """
     concurrency = max(1, getattr(settings, "FETCH_CONCURRENCY", 4))
     running: set[asyncio.Task] = set()
@@ -50,12 +58,30 @@ async def work_async(once: bool = False, make_client=None) -> int:
 
 
 def work(once: bool = False, make_client=None) -> int:
-    """work_async from synchronous code."""
+    """work_async from synchronous code.
+
+    Args:
+        once: True to stop when the queue is empty.
+        make_client: Makes the GitHub client of a token, ``github.Client`` if None; tests give a
+            fake one.
+
+    Returns:
+        How many jobs ran.
+    """
     return async_to_sync(work_async)(once, make_client)
 
 
 def run(job, make_client=None):
-    """Run one claimed job now, from synchronous code."""
+    """Run one claimed job now, from synchronous code.
+
+    Args:
+        job: The claimed job.
+        make_client: Makes the GitHub client of a token, ``github.Client`` if None; tests give a
+            fake one.
+
+    Returns:
+        The job, ended or queued again.
+    """
     return async_to_sync(JobRunner(job, make_client).run)()
 
 

@@ -19,6 +19,12 @@ Badges
    * - ``class``
      - any
      - the name of a class of people; without it the first response of anyone counts
+   * - ``model``
+     - ``measured``
+     - ``measured``, ``normal``, ``exponential`` or ``kaplan-meier``: how the percentile is computed, see :doc:`../explanation/response-times`. *Kaplan-Meier* also counts the items without a response and says *not reached* when that share never got one.
+   * - ``label``
+     - made from the others
+     - the text of the left side, such as ``response time``; at most 60 characters
 
 Example, the 95th percentile of the first response of collaborators to pull requests:
 
@@ -27,3 +33,16 @@ Example, the 95th percentile of the first response of collaborators to pull requ
     ![PR response](https://community.example.org/badge/TOKEN.svg?kind=pr&percentile=95&class=collaborator%20or%20higher)
 
 Without data the badge says *no data*. An unknown class gives a 404.
+
+The badge builder on the overview of a project shows the code of the badge for **Markdown**, **reStructuredText**, **HTML** and the plain **Link**, each with a **Copy** button. The code links the badge to the overview, so people who open it see where the number comes from:
+
+.. code-block:: rst
+
+    .. image:: https://community.example.org/badge/TOKEN.svg?kind=pr&percentile=95
+       :alt: pull request response time
+       :target: https://community.example.org/s/plone~volto/
+
+Share a chart
+=============
+
+Every chart has **Share this chart** under it. The page that opens shows the chart with its code in the same four formats, linked to the page the chart was on, with its time range and query. A chart reads the database only, like a badge. The charts of your own projects need a sign in: only you see them. Charts of public repositories work for everybody. **Share** at the top of a statistics page copies the address of the page.

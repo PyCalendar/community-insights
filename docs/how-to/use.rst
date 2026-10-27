@@ -33,7 +33,29 @@ Response times are split by class of people. Open **Classes** to add your own, f
 Badges
 ======
 
-The overview has a badge builder. Choose pull requests or issues, the percentile and optionally a class and copy the Markdown. See :doc:`../reference/badges`.
+The overview has a badge builder. Choose pull requests or issues, the percentile, optionally a class and the text of the left side, and copy the code for Markdown, reStructuredText, HTML or the link. See :doc:`../reference/badges`.
+
+Share
+=====
+
+**Share** at the top of a statistics page copies its address, with the time range and the query. **Share this chart** under a chart gives the code to show it elsewhere, linked to its page.
+
+The response times on the overview are shown for one statistic at a time: **Statistic** chooses *measured*, *normal*, *exponential* or *Kaplan-Meier*. The one with the lowest standard error is chosen at first. Its *n* counts the items with a response of the class; for *Kaplan-Meier* it counts all items, because those without a response count as waiting.
+
+Colours
+=======
+
+The button with the half circle in the menu chooses the colours of the page: *Auto* follows the system, *Light* and *Dark* stay. The charts change with the page.
+
+Download files and read messages
+================================
+
+CSV and JSON files are downloaded at once. An ODS file has more sheets and can take a while: the link opens a page with a progress bar, and **Download** appears when the file is ready. You can leave the page; the file waits there for a week. With an account, a message tells you when it is ready: **Messages** in the menu shows the number of unread ones, and opening a message leads to the file. **Mark all as read** clears them. Visitors find their file on the page of the download, in the same browser.
+
+Sort and name the columns
+=========================
+
+On the **Contributors** page, a click on the name of a column sorts the table by it, the biggest numbers or the text from A first; a second click sorts the other way. The **?** next to it explains the variable in the documentation. **Column names in words** shows what the columns mean instead of the names of the variables; the browser keeps the choice.
 
 Clean the cache
 ===============

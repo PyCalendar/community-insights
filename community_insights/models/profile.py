@@ -28,11 +28,23 @@ class Profile(models.Model):
         return cls.objects.get_or_create(user=user)[0]
 
     def extra_left(self, now: datetime) -> int:
-        """Points still allowed above the maximum of the own tokens in this hour."""
+        """Points still allowed above the maximum of the own tokens in this hour.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points; 0 an hour after they were allowed.
+        """
         if self.extra_from is None or now - self.extra_from >= HOUR:
             return 0
         return max(0, self.extra_points - self.extra_used)
 
     def allow_extra(self, points: int, now: datetime) -> None:
-        """Allow more points of the own tokens until an hour from now."""
+        """Allow more points of the own tokens until an hour from now.
+
+        Args:
+            points: How many points.
+            now: The time now.
+        """
         self.extra_points, self.extra_used, self.extra_from = points, 0, now

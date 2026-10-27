@@ -27,6 +27,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Check the superusers when PRODUCTION is on.
 
+        Args:
+            *args: The positional arguments Django passes.
+            **options: The other options of the command.
+
         Raises:
             CommandError: If a superuser has a default password in production.
         """

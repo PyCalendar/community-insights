@@ -16,3 +16,4 @@ __pycache__/
 /.coverage
 /docs/.vale/styles/Microsoft/
 /dist/
+/.claude/settings.local.json

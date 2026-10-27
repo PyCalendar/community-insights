@@ -6,10 +6,12 @@ pytestmark = pytest.mark.django_db
 
 
 def rows(response) -> str:
+    """The page as text."""
     return response.content.decode()
 
 
 def test_items_filtered_and_sorted(world, signed_in):  # noqa: F811
+    """Items filtered and sorted."""
     pk = world["project"].pk
     page = rows(signed_in.get(f"/s/{pk}/items/"))
     assert "o/r#1" in page and "o/r#3" in page

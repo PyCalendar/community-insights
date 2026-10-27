@@ -10,6 +10,14 @@ def items_with_responses(repositories, since=None, until=None):
 
     The pull requests and issues of the time range with the time of their first response: a
     comment or review by somebody else than the author.
+
+    Args:
+        repositories: The repositories.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The items as a query, each with the time of its first response.
     """
     first = (
         Event.objects.filter(item=OuterRef("pk"))

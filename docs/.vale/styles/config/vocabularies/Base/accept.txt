@@ -1,15 +1,18 @@
 allauth
 async
 behave
+bool
 Bootstrap
 cachalot
 Caddy
 CSV
+Dein
+Dir
 Django
 Docker('s)?
 Dockerfile
 docstrings?
-du
+Du
 geonamescache
 gettext
 github-oauth
@@ -32,3 +35,4 @@ SQLite
 towncrier
 uv
 uvx
+[a-z]+(_[a-z]+)+

@@ -10,7 +10,17 @@ from .selection import events_in
 def activity_of(
     repositories, login: str, since: datetime | None = None, until: datetime | None = None
 ) -> list[tuple[datetime, str]]:
-    """Time and kind of everything one person did in the repositories."""
+    """Time and kind of everything one person did in the repositories.
+
+    Args:
+        repositories: The repositories.
+        login: The handle, in any case.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        Pairs of a time and a kind, such as ``comment``.
+    """
     events = events_in(
         Event.objects.filter(item__repository__in=repositories, actor__iexact=login),
         since,
@@ -33,7 +43,15 @@ def activity_of(
 
 
 def by_hour_and_weekday(times: list[datetime], tz) -> list[list[int]]:
-    """A 7 x 24 grid (Monday first) of the number of times in the timezone."""
+    """A 7 x 24 grid (Monday first) of the number of times in the timezone.
+
+    Args:
+        times: The times.
+        tz: The time zone.
+
+    Returns:
+        The grid.
+    """
     grid = [[0] * 24 for _ in range(7)]
     for time in times:
         local = time.astimezone(tz)
@@ -44,7 +62,15 @@ def by_hour_and_weekday(times: list[datetime], tz) -> list[list[int]]:
 def by_month_and_kind(
     activity: list[tuple[datetime, str]], tz
 ) -> dict[tuple[int, int], dict[str, int]]:
-    """How many activities of each kind each month had, in the time zone."""
+    """How many activities of each kind each month had, in the time zone.
+
+    Args:
+        activity: Pairs of a time and a kind.
+        tz: The time zone.
+
+    Returns:
+        The number of each kind by (year, month).
+    """
     months: dict[tuple[int, int], dict[str, int]] = defaultdict(lambda: defaultdict(int))
     for time, kind in activity:
         local = time.astimezone(tz)
@@ -59,6 +85,16 @@ def responses_by_month(
 
     The seconds until the first response of a person on each item of others, by the month (in
     the time zone) of the response.
+
+    Args:
+        repositories: The repositories.
+        login: The handle of the person.
+        tz: The time zone of the months.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The seconds by (year, month).
     """
     events = events_in(
         Event.objects.filter(item__repository__in=repositories, actor__iexact=login).exclude(

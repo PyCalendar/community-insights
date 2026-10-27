@@ -15,6 +15,7 @@ T0 = "2026-01-05T10:00:00Z"  # a Monday
 
 
 def test_sync_stores_items_events_and_people(synced):
+    """Sync stores items events and people."""
     assert Item.objects.filter(kind="pr").count() == 2
     assert Item.objects.get(kind="pr", number=1).merged
     assert Event.objects.filter(item__kind="pr", item__number=1).count() == 4
@@ -24,6 +25,7 @@ def test_sync_stores_items_events_and_people(synced):
 
 
 def test_second_sync_reads_only_changes(synced, user):
+    """Second sync reads only changes."""
     client = FakeClient(prs=[item(1, "bob", T0, reviews=[], updated="2026-01-05T12:00:00Z")])
     read_repository(client, synced)
     # nothing is newer than the stored time: the existing events stay
@@ -63,6 +65,7 @@ def test_fetch_updates_the_database(user, signed_in, monkeypatch):
 
 
 def test_items_of_deleted_users(user):  # noqa: F811
+    """Items of deleted users."""
     ghost = item(1, "x", "2026-01-01T00:00:00Z", reviews=[])
     ghost["author"] = None
     ghost["comments"]["nodes"] = [

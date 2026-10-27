@@ -16,7 +16,15 @@ PEOPLE_MAX_AGE = timedelta(days=30)
 
 
 def store_repository(data: dict) -> Repository:
-    """Store or update a repository of a GraphQL answer."""
+    """Store or update a repository of a GraphQL answer.
+
+    Args:
+        data: The repository as GitHub answered it: ``nameWithOwner``, description, stars,
+            whether it is private or archived.
+
+    Returns:
+        The repository.
+    """
     owner = data["nameWithOwner"].split("/")[0]
     repository, _ = Repository.objects.update_or_create(
         full_name=data["nameWithOwner"],
@@ -40,6 +48,13 @@ def save_item(
 
     An item with its events: replacing those stored, or added to them (without the ones stored
     already) when only new events were read.
+
+    Args:
+        repository: The repository.
+        kind: ``pr`` or ``issue``.
+        data: The item as GitHub answered it.
+        events: Its openings, comments and reviews, not saved yet.
+        replace: True to replace the events stored, False to add the new ones.
     """
     author = data.get("author") or {}
     item, _ = Item.objects.update_or_create(
@@ -72,7 +87,15 @@ def save_item(
 
 
 def save_progress(repository: Repository, kind: str, cursor: str, stop, newest) -> None:
-    """After a page: a fetch that stops continues after it the next time."""
+    """After a page: a fetch that stops continues after it the next time.
+
+    Args:
+        repository: The repository.
+        kind: ``pr``, ``issue`` or ``commit``.
+        cursor: The cursor after the page read.
+        stop: The change to stop at, None to read everything.
+        newest: The newest change read, None for none yet.
+    """
     repository.resume[kind] = {
         "cursor": cursor,
         "stop": stop.isoformat() if stop else None,
@@ -82,7 +105,15 @@ def save_progress(repository: Repository, kind: str, cursor: str, stop, newest) 
 
 
 def progress_of(repository: Repository, kind: str) -> tuple:
-    """(cursor, stop, newest) of a stopped fetch, or (None, None, None)."""
+    """(cursor, stop, newest) of a stopped fetch, or (None, None, None).
+
+    Args:
+        repository: The repository.
+        kind: ``pr``, ``issue`` or ``commit``.
+
+    Returns:
+        The cursor of the next page, the change to stop at and the newest change read.
+    """
     found = repository.resume.get(kind)
     if not found:
         return None, None, None
@@ -95,14 +126,26 @@ def progress_of(repository: Repository, kind: str) -> tuple:
 
 @transaction.atomic
 def save_items(repository: Repository, kind: str, found: list[tuple], replace: bool) -> None:
-    """The items of a page with their events, in one transaction."""
+    """The items of a page with their events, in one transaction.
+
+    Args:
+        repository: The repository.
+        kind: ``pr`` or ``issue``.
+        found: Pairs of an item as GitHub answered it and its events.
+        replace: True to replace the events stored, False to add the new ones.
+    """
     for data, events in found:
         save_item(repository, kind, data, events, replace)
 
 
 @transaction.atomic
 def save_commits(repository: Repository, nodes: list[dict]) -> None:
-    """Commits of a page; those stored already stay."""
+    """Commits of a page; those stored already stay.
+
+    Args:
+        repository: The repository.
+        nodes: The commits: sha, login, name and time.
+    """
     Commit.objects.bulk_create(
         [
             Commit(
@@ -119,7 +162,13 @@ def save_commits(repository: Repository, nodes: list[dict]) -> None:
 
 
 def finish_commits(repository: Repository, newest, total: int | None) -> None:
-    """Remember up to when the commits were read, and how many there are."""
+    """Remember up to when the commits were read, and how many there are.
+
+    Args:
+        repository: The repository.
+        newest: The time of the newest commit read, None for now.
+        total: How many commits GitHub has, None if not known.
+    """
     repository.commits_synced_until = newest or timezone.now()
     if total is not None:
         repository.commits_total = total
@@ -130,6 +179,12 @@ def finish_kind(repository: Repository, kind: str, newest, total: int | None) ->
     """Remember up to which change the kind was read, and how many there are.
 
     Nothing there yet: it was read completely now.
+
+    Args:
+        repository: The repository.
+        kind: ``pr`` or ``issue``.
+        newest: The newest change read, None for now.
+        total: How many there are on GitHub, None if not known.
     """
     repository.resume.pop(kind, None)
     if kind == Item.PR:
@@ -146,6 +201,12 @@ def people_to_read(repository: Repository) -> list[str]:
     """The actors whose name and location are unknown or old.
 
     Bots are stored as bots and not read.
+
+    Args:
+        repository: The repository whose actors are looked at.
+
+    Returns:
+        The logins to read.
     """
     logins = set(Event.objects.filter(item__repository=repository).values_list("actor", flat=True))
     known = {p.login: p for p in Person.objects.filter(login__in=logins)}
@@ -166,7 +227,11 @@ def people_to_read(repository: Repository) -> list[str]:
 
 
 def save_people(found: dict[str, dict | None]) -> None:
-    """Store the names, locations and avatars read."""
+    """Store the names, locations and avatars read.
+
+    Args:
+        found: The profile of each login, None for those GitHub does not know.
+    """
     for login, data in found.items():
         Person.objects.update_or_create(
             login=login,

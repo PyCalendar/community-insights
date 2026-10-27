@@ -33,7 +33,7 @@ Change or add a text
 
 The tests in ``tests/i18n/`` fail if a text has no translation, if a translation lost a placeholder such as ``%(name)s`` or an HTML tag, or if the compiled ``.mo`` files are older than the ``.po`` files. The CI runs ``make test-translations``.
 
-The German texts address people informally (German: *du*).
+The German texts address people informally, with a capital letter as in a letter: *Du*, *Dir*, *Dein*.
 
 Add a language
 ==============

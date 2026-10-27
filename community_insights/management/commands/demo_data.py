@@ -2,11 +2,9 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
 from community_insights.classify import ensure_default_classes
-from community_insights.demo import DemoClient
+from community_insights.demo import DEMO, DemoClient
 from community_insights.models import Project
 from community_insights.sync import read_repository, store_repository
-
-DEMO = "demo/community"
 
 
 class Command(BaseCommand):
@@ -15,11 +13,24 @@ class Command(BaseCommand):
     help = f"Add the made up project {DEMO} to a user, to try the site without GitHub."
 
     def add_arguments(self, parser):
-        """The user who gets the project, admin by default."""
+        """The user who gets the project, admin by default.
+
+        Args:
+            parser: The parser of the arguments of the command.
+        """
         parser.add_argument("username", nargs="?", default="admin")
 
     def handle(self, *args, username, **options):
-        """Add the project and read its made up data, once."""
+        """Add the project and read its made up data, once.
+
+        Args:
+            *args: The positional arguments Django passes.
+            **options: The other options of the command.
+            username: Who gets the project.
+
+        Raises:
+            CommandError: If there is no such user.
+        """
         user = get_user_model().objects.filter(username=username).first()
         if user is None:
             raise CommandError(f"There is no user {username}.")

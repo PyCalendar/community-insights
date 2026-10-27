@@ -13,16 +13,19 @@ SOURCE_MAP = re.compile(r"sourceMappingURL=(\S+?)\s*(?:\*/)?\s*$", re.MULTILINE)
 
 
 def name(path: Path) -> str:
+    """The name of a static file in the test report."""
     return str(path.relative_to(STATIC))
 
 
 def test_there_are_static_files():
+    """There are static files."""
     assert any(path.suffix == ".css" for path in FILES)
     assert any(path.suffix == ".js" for path in FILES)
 
 
 @pytest.mark.parametrize("path", FILES, ids=name)
 def test_file_is_small_enough_for_the_repository(path):
+    """File is small enough for the repository."""
     assert path.stat().st_size <= MAX_BYTES
 
 

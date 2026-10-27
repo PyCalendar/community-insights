@@ -20,31 +20,37 @@ NOT_NEEDED_FOR_PUSH = {"changelog", "linkcheck", "push"}
 
 
 def test_test_all_lists_the_checks():
+    """Test all lists the checks."""
     assert {"docs", "vale", "linkcheck", "test", "lint"} <= set(CHECKS)
 
 
 @pytest.mark.parametrize("check", CHECKS)
 def test_check_is_a_target(check):
+    """Check is a target."""
     assert check in TARGETS
 
 
 @pytest.mark.parametrize("check", CHECKS)
 def test_check_runs_in_the_ci(check):
+    """Check runs in the ci."""
     assert check in RUN_IN_CI, f"add a job with 'run: make {check}' to tests.yml"
 
 
 @pytest.mark.parametrize("target", ["livehtml", "linkcheck", "vale", "docs"])
 def test_documentation_targets(target):
+    """Documentation targets."""
     assert target in TARGETS
 
 
 def test_vale_fails_on_errors():
+    """Vale fails on errors."""
     vale = re.search(r"^vale:.*?\n\n", MAKEFILE, re.MULTILINE | re.DOTALL)
     assert vale
     assert "--no-exit" not in vale.group(0)
 
 
 def test_docs_fail_on_warnings_and_broken_references():
+    """Docs fail on warnings and broken references."""
     docs = re.search(r"^docs:.*?\n\n", MAKEFILE, re.MULTILINE | re.DOTALL)
     assert docs
     assert " -W " in docs.group(0)
@@ -52,6 +58,14 @@ def test_docs_fail_on_warnings_and_broken_references():
 
 
 def test_the_image_is_pushed_only_after_the_tests():
+    """The image is pushed only after the tests."""
     assert NEEDED_FOR_PUSH
     needed = {job.strip() for job in NEEDED_FOR_PUSH.group(1).split(",")}
     assert needed == set(JOBS) - NOT_NEEDED_FOR_PUSH
+
+
+def test_every_step_has_a_name():
+    """The steps of the jobs are listed by their names on GitHub."""
+    steps = re.findall(r"^ {6}- (\w+):", WORKFLOW, re.MULTILINE)
+    assert steps
+    assert set(steps) == {"name"}

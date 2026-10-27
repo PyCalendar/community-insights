@@ -11,7 +11,15 @@ GITHUB_POINTS = 5000  # per hour, until GitHub tells the limit of the token
 
 
 def percent_of(points: int, percent: int) -> int:
-    """A percentage of points, rounded to whole points."""
+    """A percentage of points, rounded to whole points.
+
+    Args:
+        points: The points.
+        percent: The percentage, 0 to 100.
+
+    Returns:
+        The points.
+    """
     return round(points * percent / 100)
 
 
@@ -76,30 +84,63 @@ class AccessToken(OrderedModel):
         return percent_of(self.max_points, self.shared_percent)
 
     def new_hour(self, now: datetime) -> bool:
-        """Whether the hour of the counters is over."""
+        """Whether the hour of the counters is over.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            True if the counters start again.
+        """
         return self.hour_started is None or now - self.hour_started >= HOUR
 
     def left_at_github(self, now: datetime) -> int | None:
-        """Points this site may still use, after the reserve; None if unknown."""
+        """Points this site may still use, after the reserve; None if unknown.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points, or None.
+        """
         renewed = self.rate_reset_at and self.rate_reset_at <= now
         if self.rate_remaining is None or renewed:
             return None
         return max(0, self.rate_remaining - self.reserve)
 
     def owner_left(self, now: datetime) -> int:
-        """Points the owner may still use this hour, within the reserve."""
+        """Points the owner may still use this hour, within the reserve.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points.
+        """
         used = 0 if self.new_hour(now) else self.used_in_hour
         left = max(0, self.max_points - used)
         github = self.left_at_github(now)
         return left if github is None else min(left, github)
 
     def others_left(self, now: datetime) -> int:
-        """Points others may still use this hour, within the reserve."""
+        """Points others may still use this hour, within the reserve.
+
+        Args:
+            now: The time now.
+
+        Returns:
+            The points.
+        """
         used = 0 if self.new_hour(now) else self.used_by_others_in_hour
         return min(max(0, self.shared_points - used), self.owner_left(now))
 
     def count(self, now: datetime, by_others: bool) -> None:
-        """One point used, by the owner or by somebody else."""
+        """One point used, by the owner or by somebody else.
+
+        Args:
+            now: The time now.
+            by_others: True if somebody else used the shared points.
+        """
         if self.new_hour(now):
             self.hour_started, self.used_in_hour, self.used_by_others_in_hour = now, 0, 0
         self.used_in_hour += 1

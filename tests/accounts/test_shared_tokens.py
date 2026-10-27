@@ -7,6 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_shared_tokens_of_the_site(db, monkeypatch):
+    """Shared tokens of the site."""
     from django.core.management import CommandError, call_command
 
     from community_insights.models import AccessToken

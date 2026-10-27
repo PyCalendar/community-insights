@@ -7,7 +7,15 @@ from .scope import scope_of, scope_view, stats_page
 
 @scope_view
 def compare(request, scope):
-    """One row per repository, to compare them, e.g. in an organisation."""
+    """One row per repository, to compare them, e.g. in an organisation.
+
+    Args:
+        request: The request, with ``sort``.
+        scope: The text of the scope.
+
+    Returns:
+        The page.
+    """
     scope = scope_of(request, scope)
     classifier = scope.classifier()
     rows = []

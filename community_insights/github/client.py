@@ -17,6 +17,12 @@ class Client:
     """
 
     def __init__(self, token: str, api: str | None = None):
+        """Read GitHub with one token.
+
+        Args:
+            token: The token.
+            api: The address of the API, ``GITHUB_API`` if None.
+        """
         self.token = token
         self.api = (api or settings.GITHUB_API).rstrip("/")
         # an even pace below the points per minute of GitHub
@@ -34,6 +40,18 @@ class Client:
 
         When GitHub asks to slow down, wait as long as it asks and try again; longer waits
         are left to the caller.
+
+        Args:
+            query: The GraphQL query.
+            **variables: Its variables.
+
+        Returns:
+            The data of the answer.
+
+        Raises:
+            SecondaryRateLimitExceeded: If GitHub asks to wait longer than ``limits.MAX_WAIT``, or
+                still after ``limits.RETRIES`` tries.
+            AssertionError: Never: the loop returns or raises before.
         """
         for attempt in range(limits.RETRIES + 1):
             try:
@@ -46,7 +64,20 @@ class Client:
         raise AssertionError("not reached")
 
     async def send(self, query: str, variables: dict) -> dict:
-        """Send one query: within the limits of the token and the server, noting the rate limit."""
+        """Send one query: within the limits of the token and the server, noting the rate limit.
+
+        Args:
+            query: The GraphQL query.
+            variables: Its variables.
+
+        Returns:
+            The data of the answer.
+
+        Raises:
+            GitHubUnreachable: If GitHub cannot be reached.
+            TokenError: If GitHub refuses the token (see ``answers.check``).
+            GitHubError: If GitHub answers with another error.
+        """
         if self.slots is None:
             self.slots = asyncio.Semaphore(limits.PER_TOKEN)
         async with limits.server_slots(), self.slots:
@@ -80,29 +111,73 @@ class Client:
         await self.session.close()
 
     async def viewer(self):
-        """The login of the owner of the token (reads.viewer)."""
+        """The login of the owner of the token (reads.viewer).
+
+        Returns:
+            The login.
+        """
         return await reads.viewer(self.graphql)
 
     async def repositories(self, owner=None, limit=300):
-        """Repositories most stars first (reads.repositories)."""
+        """Repositories most stars first (reads.repositories).
+
+        Args:
+            owner: An organisation or user; None for the owner of the token.
+            limit: How many to read at most.
+
+        Returns:
+            The repositories as GitHub answers them.
+        """
         return await reads.repositories(self.graphql, owner, limit)
 
     async def repository(self, full_name):
-        """One repository (reads.repository)."""
+        """One repository (reads.repository).
+
+        Args:
+            full_name: The repository as ``owner/name``.
+
+        Returns:
+            The repository as GitHub answers it.
+        """
         return await reads.repository(self.graphql, full_name)
 
     async def suggestions(self):
-        """Repositories and organisations to offer (reads.suggestions)."""
+        """Repositories and organisations to offer (reads.suggestions).
+
+        Returns:
+            The suggestions, each with a name, a kind and the stars.
+        """
         return await reads.suggestions(self.graphql)
 
     async def visible(self, full_names):
-        """Whether the token can read each repository (reads.visible)."""
+        """Whether the token can read each repository (reads.visible).
+
+        Args:
+            full_names: The repositories as ``owner/name``.
+
+        Returns:
+            True or False for each repository by its name.
+        """
         return await reads.visible(self.graphql, full_names)
 
     async def totals(self, full_names):
-        """Pull requests and issues of each repository (reads.totals)."""
+        """Pull requests and issues of each repository (reads.totals).
+
+        Args:
+            full_names: The repositories as ``owner/name``.
+
+        Returns:
+            The pull requests and issues of each repository, None for those not seen.
+        """
         return await reads.totals(self.graphql, full_names)
 
     async def people(self, logins):
-        """Name, location and avatar of people (reads.people)."""
+        """Name, location and avatar of people (reads.people).
+
+        Args:
+            logins: The logins.
+
+        Returns:
+            The profile of each login, None for those GitHub does not know.
+        """
         return await reads.people(self.graphql, logins)

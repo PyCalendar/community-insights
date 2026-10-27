@@ -9,7 +9,11 @@ from .input import InvalidInput
 
 
 def all_errors() -> dict[str, type[CommunityError]]:
-    """Every error class by its name."""
+    """Every error class by its name.
+
+    Returns:
+        The classes by their names.
+    """
     found, todo = {}, [CommunityError]
     while todo:
         cls = todo.pop()
@@ -19,12 +23,26 @@ def all_errors() -> dict[str, type[CommunityError]]:
 
 
 def by_code(code: str) -> type[CommunityError] | None:
-    """The class of an error by its name, as stored with jobs and tokens; None if unknown."""
+    """The class of an error by its name, as stored with jobs and tokens; None if unknown.
+
+    Args:
+        code: The name of the class.
+
+    Returns:
+        The class.
+    """
     return all_errors().get(code or "")
 
 
 def translate(error: BaseException) -> CommunityError:
-    """The error to show for any exception: the translation table."""
+    """The error to show for any exception: the translation table.
+
+    Args:
+        error: Any exception.
+
+    Returns:
+        The error of errors/: the same one, the one it means, or ``UnexpectedError``.
+    """
     if isinstance(error, CommunityError):
         return error
     unreachable = (

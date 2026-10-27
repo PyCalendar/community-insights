@@ -2,10 +2,12 @@ from community_insights.github import RateLimit
 
 
 def user(login, kind="User"):
+    """A user as the REST API answers it."""
     return {"login": login, "type": kind}
 
 
 def rest_issue(number, author, created, updated=None, pull=False, merged=False, state="open"):
+    """An issue or pull request as the REST API answers it."""
     issue = {
         "node_id": f"n{number}",
         "number": number,
@@ -23,6 +25,7 @@ def rest_issue(number, author, created, updated=None, pull=False, merged=False, 
 
 
 def rest_comment(number, login, at, review=False, kind="User", association="MEMBER"):
+    """A comment or review comment as the REST API answers it."""
     url = f"https://api.github.com/repos/o/r/{'pulls' if review else 'issues'}/{number}"
     return {
         ("pull_request_url" if review else "issue_url"): url,
@@ -37,6 +40,7 @@ class FakeREST:
     requests, issue comments and review comments; `since` is obeyed."""
 
     def __init__(self, issues=(), comments=(), reviews=(), commits=()):
+        """The data to answer with."""
         self.issues, self.comments, self.reviews = list(issues), list(comments), list(reviews)
         self.commits = list(commits)  # REST commits
         self.requests = 0
@@ -44,6 +48,7 @@ class FakeREST:
         self.asked: list[tuple[str, dict]] = []
 
     async def all_pages(self, path, **params):
+        """All entries of a list, changed since the parameter since."""
         self.requests += 1
         self.asked.append((path, params))
         since = params.get("since", "")
@@ -58,4 +63,5 @@ class FakeREST:
         return found
 
     async def close(self):
+        """Nothing to close."""
         pass

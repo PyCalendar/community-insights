@@ -12,6 +12,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_other_users_projects_are_not_visible(synced, signed_in):
+    """Other users projects are not visible."""
     other = get_user_model().objects.create_user("mallory")
     signed_in.force_login(other)
     assert signed_in.get(f"/s/{Project.objects.get().pk}/").status_code == 404
@@ -19,10 +20,12 @@ def test_other_users_projects_are_not_visible(synced, signed_in):
 
 @pytest.mark.parametrize("scope", ["abc", "1-x", "999", "-", ""])
 def test_unknown_scopes_are_404(world, signed_in, scope):  # noqa: F811
+    """Unknown scopes are 404."""
     assert signed_in.get(f"/s/{scope}/").status_code == 404
 
 
 def test_other_users_see_nothing(world, client):  # noqa: F811
+    """Other users see nothing."""
     mallory = get_user_model().objects.create_user("mallory", "m@example.org", "pw")
     client.force_login(mallory)
     pk = world["project"].pk
@@ -36,6 +39,7 @@ def test_other_users_see_nothing(world, client):  # noqa: F811
 
 
 def test_scope_mixing_own_and_foreign_projects_shows_only_own(world, signed_in):  # noqa: F811
+    """Scope mixing own and foreign projects shows only own."""
     other = get_user_model().objects.create_user("o", "o@example.org", "pw")
     foreign = Project.objects.create(user=other, target="x/y")
     response = signed_in.get(f"/s/{world['project'].pk}-{foreign.pk}/")

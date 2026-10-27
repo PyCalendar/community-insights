@@ -1,0 +1,1 @@
+Visitors without an account may add and read only some repositories per address and hour (``VISITOR_SUBMITS_PER_HOUR``, ``VISITOR_FETCHES_PER_HOUR``), so nobody uses up the donated tokens alone. ``TRUSTED_PROXIES`` tells the site how many proxies are in front of it.

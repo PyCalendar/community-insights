@@ -7,8 +7,10 @@ from .data import signed_in, synced, user, world  # noqa: F401  (shared fixtures
 
 
 @pytest.fixture(autouse=True)
-def _settings(settings):
-    settings.FETCH_WORKER = "inline"  # fetches run in the request
+def _settings(settings, tmp_path):
+    """The settings of all tests: work in the request, files in a temporary folder."""
+    settings.FETCH_WORKER = "inline"  # fetches and documents run in the request
+    settings.DATA_DIR = tmp_path  # the documents made
     settings.STORAGES = {
         **settings.STORAGES,
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
@@ -31,6 +33,7 @@ def _no_network(request, monkeypatch):
         return
 
     def refuse(*args, **kwargs):
+        """Fail: the tests do not use the network."""
         raise AssertionError("the tests must not use the network")
 
     monkeypatch.setattr(socket.socket, "connect", refuse)

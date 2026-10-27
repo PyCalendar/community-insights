@@ -3,8 +3,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
-"Report-Msgid-Bugs-To: https://github.com/PyCalendar/community-insights/issues\n"
-"POT-Creation-Date: 2026-10-27 09:47+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-27 18:06+0000\n"
 "PO-Revision-Date: 2026-10-27 10:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: German\n"
@@ -13,6 +13,33 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Add a column"
+msgstr "Eine Spalte hinzufügen"
+
+msgid "Move %(name)s left"
+msgstr "%(name)s nach links verschieben"
+
+msgid "Move %(name)s right"
+msgstr "%(name)s nach rechts verschieben"
+
+msgid "Remove %(name)s"
+msgstr "%(name)s entfernen"
+
+msgid "+ add a column"
+msgstr "+ Spalte hinzufügen"
+
+msgid "Copied"
+msgstr "Kopiert"
+
+msgid "The file is ready."
+msgstr "Die Datei ist bereit."
+
+msgid "The file could not be made."
+msgstr "Die Datei konnte nicht erstellt werden."
+
+msgid "The file is being made from the data on this site."
+msgstr "Die Datei wird aus den Daten dieser Seite erstellt."
 
 msgid "%(percent)s% of the data"
 msgstr "%(percent)s% der Daten"

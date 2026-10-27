@@ -1,0 +1,16 @@
+{% extends "community/base.html" %}
+{% load static i18n community %}
+{% block title %}{{ document.filename }}{% endblock %}
+{% block content %}
+<h1 class="h3">{{ document.filename }}</h1>
+<div class="card"><div class="card-body" data-document-progress="{% url 'document_progress' document.pk %}">
+  <p class="mb-2" data-document-state>{% if document.status == "done" %}{% translate "The file is ready." %}{% elif document.status == "failed" %}{% translate "The file could not be made." %}{% else %}{% translate "The file is being made from the data on this site. You can leave this page; the file waits here for a week." %}{% if user.is_authenticated %} {% translate "A message tells you when it is ready." %}{% endif %}{% endif %}</p>
+  <div class="progress mb-3" role="progressbar" aria-label="{% translate "Progress of the file" %}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ document.progress }}" data-document-bar>
+    <div class="progress-bar" style="width: {{ document.progress }}%">{{ document.progress }} %</div>
+  </div>
+  <p class="text-danger" data-document-error{% if document.status != "failed" %} hidden{% endif %}>{{ document.message }}{% if document.error_code %} {{ document.error_code|error_help }}{% endif %}</p>
+  <a class="btn btn-primary" href="{% url 'document_download' document.pk %}" data-document-download{% if document.status != "done" %} hidden{% endif %}>{% translate "Download" %}</a>
+</div></div>
+{% if user.is_authenticated %}<p class="mt-3"><a href="{% url 'messages' %}">{% translate "Your messages" %}</a></p>{% endif %}
+<script src="{% static 'js/document-progress.js' %}" defer></script>
+{% endblock %}

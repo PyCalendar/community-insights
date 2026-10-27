@@ -1,0 +1,1 @@
+The charts are easier to read: the bars of the classes stand side by side, the response times per month show durations such as 6h or 1d from 0, the times of the day and the counts have units, and the heat map goes from dark to the full green without white.

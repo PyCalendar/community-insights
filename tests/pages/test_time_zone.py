@@ -10,6 +10,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_heatmap_uses_timezone():
+    """Heatmap uses timezone."""
     import zoneinfo
 
     times = [datetime(2026, 1, 5, 23, 30, tzinfo=UTC)]  # Monday 23:30 UTC

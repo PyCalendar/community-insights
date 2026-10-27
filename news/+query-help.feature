@@ -1,0 +1,1 @@
+The contributors page helps with queries: the names of the variables are completed while typing, Enter runs the query, the columns are moved by drag and drop or arrows and added from a list, and a link leads to the documentation of queries, as do the errors of queries.

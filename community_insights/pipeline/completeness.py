@@ -12,7 +12,15 @@ ITEMS_PER_SECOND = 20.0  # until measured
 
 @dataclass
 class Source:
-    """A repository of a page with its items read and on GitHub."""
+    """A repository of a page with its items read and on GitHub.
+
+    Attributes:
+        repository: The repository.
+        prs: Its pull requests read.
+        issues: Its issues read.
+        prs_total: Its pull requests on GitHub, None if not known.
+        issues_total: Its issues on GitHub, None if not known.
+    """
 
     repository: Repository
     prs: int
@@ -39,7 +47,14 @@ class Source:
 
 
 def sources(repositories) -> list[Source]:
-    """The sources of a page, with the items read of each."""
+    """The sources of a page, with the items read of each.
+
+    Args:
+        repositories: The repositories.
+
+    Returns:
+        One source per repository.
+    """
     cached = cached_counts(repositories)
     return [
         Source(
@@ -58,6 +73,13 @@ def completeness(repositories) -> dict:
 
     How complete the data of the repositories is, the active jobs and the estimated seconds
     until all is read.
+
+    Args:
+        repositories: The repositories.
+
+    Returns:
+        The percent, the items read and on GitHub, the active jobs, the seconds left and the
+        sources.
     """
     found = sources(repositories)
     have = sum(s.prs + s.issues for s in found)
@@ -85,7 +107,14 @@ def completeness(repositories) -> dict:
 
 
 def items_per_second(jobs) -> float:
-    """How fast items are read now, from a running job, else as measured before."""
+    """How fast items are read now, from a running job, else as measured before.
+
+    Args:
+        jobs: The active jobs.
+
+    Returns:
+        The items per second.
+    """
     for job in jobs:
         if job.status == FetchJob.RUNNING and job.started and job.items_done >= 50:
             elapsed = (timezone.now() - job.started).total_seconds()
@@ -95,7 +124,14 @@ def items_per_second(jobs) -> float:
 
 
 def seconds_left(jobs) -> float | None:
-    """Until the active jobs are done; None without active jobs."""
+    """Until the active jobs are done; None without active jobs.
+
+    Args:
+        jobs: The active jobs.
+
+    Returns:
+        The seconds, or None.
+    """
     if not jobs:
         return None
     rate = items_per_second(jobs)

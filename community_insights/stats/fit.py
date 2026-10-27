@@ -11,7 +11,18 @@ from .survival import quantile, survival
 
 @dataclass
 class FitRow:
-    """A row of the table of the response times: a class, a fit and its numbers as text."""
+    """A row of the table of the response times: a class, a fit and its numbers as text.
+
+    Attributes:
+        name: The class of people.
+        n: How many items are counted.
+        fit: ``measured``, ``normal``, ``exponential`` or ``Kaplan-Meier``.
+        average: The average, as text.
+        std_error: The standard error of the average, as text.
+        median: The median, as text.
+        p95: The 95th percentile, as text.
+        error_seconds: The standard error in seconds, None without one.
+    """
 
     name: str
     n: int
@@ -20,6 +31,7 @@ class FitRow:
     std_error: str
     median: str
     p95: str
+    error_seconds: float | None = None  # the standard error as a number, None without one
 
 
 def summary(
@@ -45,6 +57,13 @@ def summary(
     `scipy.stats.CensoredData`, "-" if not reached. The count is of all items.
 
 
+    Args:
+        entries: The seconds until the first response of each class, one dictionary per item.
+        names: The classes, in their order.
+        observed: How long each item was observed, for Kaplan-Meier; None leaves it out.
+
+    Returns:
+        The rows.
     """
 
     def show(seconds) -> str:
@@ -56,7 +75,8 @@ def summary(
         if not len(x):
             continue
         n = len(x)
-        error = show(scipy.stats.sem(x)) if n > 1 else "-"
+        sem = float(scipy.stats.sem(x)) if n > 1 else None
+        error = show(sem) if sem is not None else "-"
         rows.append(
             FitRow(
                 name,
@@ -66,6 +86,7 @@ def summary(
                 error,
                 show(numpy.median(x)),
                 show(numpy.percentile(x, 95)),
+                sem,
             )
         )
         mu, sigma = scipy.stats.norm.fit(x)
@@ -78,6 +99,7 @@ def summary(
                 show(sigma / math.sqrt(n)) if n > 1 else "-",
                 show(mu),
                 show(scipy.stats.norm.ppf(0.95, mu, sigma)) if n > 1 else "-",
+                float(sigma / math.sqrt(n)) if n > 1 else None,
             )
         )
         _, scale = scipy.stats.expon.fit(x, floc=0)
@@ -90,6 +112,7 @@ def summary(
                 show(scale / math.sqrt(n)),
                 show(scipy.stats.expon.median(scale=scale)),
                 show(scipy.stats.expon.ppf(0.95, scale=scale)),
+                float(scale / math.sqrt(n)),
             )
         )
         if observed is not None:
@@ -107,3 +130,28 @@ def summary(
                 )
             )
     return rows
+
+
+def best_fit(rows: list[FitRow]) -> str:
+    """The fit with the lowest standard error, summed over the classes that have one.
+
+    Args:
+        rows: The rows of `summary`.
+
+    Returns:
+        The name of the fit, "measured" when no fit has a standard error.
+
+    Examples:
+        >>> rows = [FitRow("bot", 3, "measured", "", "", "", "", 40.0),
+        ...         FitRow("bot", 3, "normal", "", "", "", "", 30.0),
+        ...         FitRow("bot", 3, "Kaplan-Meier", "", "", "", "")]
+        >>> best_fit(rows)
+        'normal'
+        >>> best_fit([])
+        'measured'
+    """
+    errors: dict[str, float] = {}
+    for row in rows:
+        if row.error_seconds is not None:
+            errors[row.fit] = errors.get(row.fit, 0.0) + row.error_seconds
+    return min(errors, key=lambda fit: errors[fit]) if errors else "measured"
