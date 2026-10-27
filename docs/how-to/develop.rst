@@ -69,6 +69,11 @@ The documentation is in ``docs/``, written in reStructuredText and built with Sp
 
 ``make vale`` installs Vale with uvx; nothing else is needed. Words of the project that Vale does not know, such as names of tools, go into ``docs/.vale/styles/config/vocabularies/Base/accept.txt``. Write examples that people type, such as a location, as literals, such as ``Berlin, Germany``, so that their punctuation stays as it is. ``make linkcheck`` skips the files of this repository on GitHub, because a new file is there only after its pull request is merged.
 
+Changes of the database
+=======================
+
+A change of a model needs a new migration: ``uv run python manage.py makemigrations``. Never change a migration that may already be applied somewhere, also not ``0001_initial``. A database that applied the earlier version keeps its old tables, and the site then fails with errors such as ``no such column``. ``make test`` checks that no migration is missing.
+
 Structure of the code
 =====================
 

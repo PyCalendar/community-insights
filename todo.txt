@@ -301,3 +301,58 @@ Approved: all Django packages may be used where they replace code or enable requ
 ### Documentation
 - [x] `vale` (PyPI, daniperez/vale-python-package): installs the Vale binary, so `make vale` runs it with uvx like reuse and zizmor
 - [x] Sphinx's own `linkcheck` builder for `make linkcheck`, `sphinx-autobuild` for `make livehtml`
+###
+
+- [ ] badges: the left side needs to be possible to override
+- [ ] also add rst and html and link tabs for the output, not just markdown
+- [ ] auto light and dark should be an icon with a dropdown like in sphinx
+- [ ] s/demo~community/ the statistics need to be not stacked bar diagrams but the bars must be next to each other
+- [ ] How fast they respond to others, per month this is always positive and not 10^0 and 10^1 but the numbers
+- [ ] across the dat and across week and day needs the units also. The heat graph should only go from dark to full color - white is confusing
+- [ ] Columns should be a field with drag and drop to change the order. Also a drop-down to add new/remove current columns, not a text field
+- [ ]  Who (a query, empty for everybody)  must refer to the documentation page on how to create a query
+- [ ] add a share button to the statistics page that copies the url
+- [ ] sign up page has no style
+- [ ] Suggested limit of API points when a fetch needs more than 5000  This is not clear what does this mean - needs a documentation link, too
+- [ ] Create a fine-grained token with an expiration date. Public repositories need no permissions. For now only public repositories are read. should be above the token heading
+- [ ] also create a documentation page for that on how to do that, preferably with a whole walk through and an example token
+- [ ] 1. GitHub account -> Link GitHub Account
+- [ ] token of niccokunzmann cannot read 1 of 1 repositories: demo/community This is not my project - it should always be excluded
+- [ ] http://127.0.0.1:5000/s/niccokunzmann~open-web-calendar/ The re should be a drop down to select which statistic to show. Otherwise it is very confusing. measured, normal, exponential/ ... and the one with the lowest std error is selected by default
+- [ ] unclear why 	923	Kaplan-Meier	always has the total number
+- [ ] demo/community should disappear when there are other projects one can explore
+- [ ] the page should have a share link
+- [ ] each graphic should have a share link. When you click that, you get to the page and similarly to the badge, you can share it in different formats. Also it always is shared with a link to the page that generated it.
+- [ ] coveralls should be registered as a bot
+- [ ] if a response is mostly given under 2 minutes for at least 10 issues/PRs suggest that as being a bot, so I can add that to the bots quite quickly
+- [ ]  Who (a query, empty for everybody) - this needs a link to the page with the documentation of how to formulate a query
+- [ ] below  Who (a query, empty for everybody) : the query field needs auto-completing for the variable names
+- [ ] all action steps must have names
+- [ ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------
+
+## Errors from the bottom of this file
+- [x] `IntegrityError at /s/niccokunzmann~open-web-calendar/fetch/`: NOT NULL constraint failed: community_fetchjob.user_id. The local database had an earlier `0001_initial`, where a fetch needed a user; the column now allows none, like the model (Django's schema editor, backup `data/db.sqlite3.before-repair-2-2026-10-27`); the whole schema is compared with one made by the migrations: identical
+- [x] Read the Docs: `pip install .[docs]` failed with "Multiple top-level packages discovered in a flat-layout". The package is built with hatchling, only `community_insights`; `make build` checks it in the CI; the docs were built like on Read the Docs, in a new environment
+- [x] Docs always refer to the latest version: links to https://community-insights.readthedocs.io/en/latest/ (README, `DOCS_URL`, `html_baseurl`), checked by `tests/quality/test_docs_links.py`
+- [x] Never change a migration that may be applied (AGENTS.md, docs/how-to/develop.rst)

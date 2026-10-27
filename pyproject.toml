@@ -29,6 +29,17 @@ dependencies = [
     "geonamescache>=2.0",
 ]
 
+[build-system]
+# pip install .[docs] on Read the Docs builds the package
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["community_insights"]
+
+[tool.uv]
+package = false  # uv sync installs the dependencies only; the code runs from the checkout
+
 [project.urls]
 Documentation = "https://community-insights.readthedocs.io/en/latest/"
 Source = "https://github.com/PyCalendar/community-insights"

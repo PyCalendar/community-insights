@@ -38,6 +38,9 @@ see also [Contribute](https://community-insights.readthedocs.io/en/latest/contri
   `Returns:`, `Raises:`, `Examples:`); `make lint` checks it.
 - Before writing something, look for a library that does it; Django packages are
   welcome. Record what was found in the library proposals of `todo.txt`.
+- Never change a migration that may be applied somewhere, also not the first one;
+  add a new migration with `manage.py makemigrations`. A changed migration leaves
+  databases with missing columns, such as `no such column`.
 - Pages and statistics never ask GitHub; only fetches do. The tests never use the
   network: GitHub is faked (`tests/fakes/`).
 - Small classes with one responsibility, low coupling: see `docs/how-to/develop.rst`.

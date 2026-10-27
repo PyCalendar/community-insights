@@ -199,7 +199,7 @@ GITHUB_API = env("GITHUB_API", default="https://api.github.com")
 PRIVATE_REPOSITORIES = env.bool("PRIVATE_REPOSITORIES", default=False)
 # where the code and the documentation of the version that runs are
 SOURCE_URL = env("SOURCE_URL", default="https://github.com/PyCalendar/community-insights")
-DOCS_URL = env("DOCS_URL", default="https://community-insights.readthedocs.io/")
+DOCS_URL = env("DOCS_URL", default="https://community-insights.readthedocs.io/en/latest/")
 # internal, external-http-container, external-separate-container, inline
 # (community_insights/pipeline/modes.py)
 FETCH_WORKER = env("FETCH_WORKER", default="internal")

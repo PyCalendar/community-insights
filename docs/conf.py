@@ -21,7 +21,7 @@ extensions = [
     "sphinxcontrib.mermaid",
 ]
 
-html_baseurl = "https://community-insights.readthedocs.io/"
+html_baseurl = "https://community-insights.readthedocs.io/en/latest/"
 issues_github_path = "PyCalendar/community-insights"
 
 html_theme = "pydata_sphinx_theme"

@@ -56,7 +56,7 @@ test-browser: .venv  ## Run the browser tests with Firefox (WINDOW=375x812 for a
 	@uv run python manage.py behave -D window="$(WINDOW)"
 
 .PHONY: test-all
-test-all: lint typecheck test test-js test-browser docs vale linkcheck reuse zizmor  ## Run all tests and checks
+test-all: lint typecheck test test-js test-browser build docs vale linkcheck reuse zizmor  ## Run all tests and checks
 
 .PHONY: worker
 worker: migrate  ## Run the fetch worker alone, as with FETCH_WORKER=external-separate-container
@@ -93,6 +93,10 @@ typecheck: .venv  ## Check the type hints with pyright (django-types)
 .PHONY: docs
 docs:  ## Build the documentation into docs/_build/html; warnings and broken references fail
 	@uv run --extra docs sphinx-build -W -n --keep-going -b html docs docs/_build/html
+
+.PHONY: build
+build:  ## Build the package into dist/, as pip install .[docs] does on Read the Docs
+	@uv build -o dist
 
 .PHONY: livehtml
 livehtml:  ## Show the documentation while editing it, rebuilt on every change

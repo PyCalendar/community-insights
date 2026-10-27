@@ -191,6 +191,18 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y gettext
       - run: make test-translations
 
+  build:
+    name: Build the package (make build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: false
+      - run: make build
+
   docs:
     name: Build docs (make docs)
     runs-on: ubuntu-latest
@@ -217,7 +229,7 @@ jobs:
     name: Push the Docker image to ghcr.io
     # every test; "changelog" only runs for pull requests; "linkcheck" depends on
     # other sites, so a site that is down does not stop the image
-    needs: [lint, typecheck, translations, test, javascript, browser, reuse, zizmor, docs, vale, docker]
+    needs: [lint, typecheck, translations, test, javascript, browser, reuse, zizmor, build, docs, vale, docker]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
