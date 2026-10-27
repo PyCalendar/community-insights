@@ -1,0 +1,2 @@
+{# A chart in the colours of the page: theme.js switches it with the page. #}
+<img src="{{ src }}{% if '?' in src %}&amp;{% else %}?{% endif %}theme={{ theme_shown }}" data-chart-src="{{ src }}" alt="{{ alt }}" loading="lazy">

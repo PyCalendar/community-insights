@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Bootstrap",
+    "version": "5.3.3",
+    "license": "MIT",
+    "url": "https://getbootstrap.com/",
+    "license_url": "vendor/bootstrap/LICENSE.txt",
+    "files": [
+      "vendor/bootstrap/bootstrap.min.css",
+      "vendor/bootstrap/bootstrap.bundle.min.js"
+    ]
+  },
+  {
+    "name": "Django JavaScript catalog (/jsi18n/)",
+    "python_package": "Django",
+    "license": "BSD-3-Clause",
+    "url": "https://docs.djangoproject.com/en/stable/topics/i18n/translation/#using-the-javascript-translation-catalog",
+    "license_url": "https://github.com/django/django/blob/main/LICENSE",
+    "files": []
+  },
+  {
+    "name": "Contributor Community Insights scripts",
+    "own": true,
+    "license": "AGPL-3.0-or-later",
+    "license_url": "LICENSE",
+    "files": [
+      "js/badge.js",
+      "js/confirm.js",
+      "js/progress.js",
+      "js/sources.js",
+      "js/theme.js",
+      "js/time-zone.js",
+      "js/token-sliders.js"
+    ]
+  }
+]

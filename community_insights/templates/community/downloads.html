@@ -1,0 +1,25 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% translate "Downloads" %}{% endblock %}
+{% block content %}
+{% if running or queued %}<meta http-equiv="refresh" content="10">{% endif %}
+<h1 class="h3">{% translate "Downloads" %}</h1>
+<p class="text-muted">{% translate "Data is read from GitHub in the background, the highest priority first; that order also decides which fetch gets the tokens first. Cancelling stops the fetch; what was read is kept." %}{% if seconds_left is not None %} {% blocktranslate with left=seconds_left|duration %}All done in about {{ left }}.{% endblocktranslate %}{% endif %}</p>
+
+<h2 class="h5">{% translate "Running" %}</h2>
+{% for job in running %}{% include "community/_job.html" %}{% empty %}<p class="text-muted">{% translate "Nothing runs." %}</p>{% endfor %}
+
+<h2 class="h5 mt-4">{% translate "Queued" %}</h2>
+{% for job in queued %}{% include "community/_job.html" with movable=True %}{% empty %}<p class="text-muted">{% translate "Nothing waits." %}</p>{% endfor %}
+
+<h2 class="h5 mt-4">{% translate "Finished" %}</h2>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>{% translate "Repository" %}</th><th>{% translate "Status" %}</th><th>{% translate "Started for" %}</th><th class="text-end">{% translate "Items" %}</th><th class="text-end">{% translate "Points" %}</th><th>{% translate "Finished" %}</th></tr></thead>
+  <tbody>{% for job in finished %}<tr>
+    <td>{{ job.repository.full_name }}</td><td>{{ job.get_status_display }}{% if job.message %}<div class="small text-muted">{{ job.message }} {{ job.error_code|error_help }}</div>{% endif %}</td>
+    <td>{% if job.reason_url %}<a href="{{ job.reason_url }}">{{ job.reason }}</a>{% else %}{{ job.reason }}{% endif %}</td>
+    <td class="text-end">{{ job.items_done }}</td><td class="text-end">{{ job.points_used }}</td>
+    <td>{% if job.finished %}{% blocktranslate with ago=job.finished|timesince %}{{ ago }} ago{% endblocktranslate %}{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="6" class="text-muted">{% translate "Nothing yet." %}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

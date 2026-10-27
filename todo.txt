@@ -1,0 +1,303 @@
+# Todo
+
+Every prompt of the user adds its requirements here. `- [x]` is done, `- [ ]` is open.
+The prompts are recorded in `.prompts/`; check that each one is covered here.
+
+## Order of work
+Features first, then bugs, then make the tests work. Test edge cases; errors propagate to the people using the site.
+
+## Goal
+
+Statistics beyond what GitHub shows, especially across a whole organisation:
+response times, who contributes how and when, verifiable numbers and badges.
+
+## Structure and deployment
+- [x] Move the old code (CLI, tests, README, Makefile, pyproject) into `old/`
+- [x] Django project, Python 3.13, managed with uv
+- [x] Project name: Contributor Community Insights (site, docs); distribution `community-insights`, Django project package `community_insights`
+- [x] The GitHub repository is https://github.com/PyCalendar/community-insights: the links of the code and the docs use it; the image stays ghcr.io/pycalendar/community-insights (lowercase, as ghcr.io needs)
+- [ ] The name "Contributor Community Insights" is for now; decide the final name before the first release
+- [x] Docker container based on gunicorn, like open-web-calendar (`Dockerfile`, `docker/start-service.sh`, `PORT`, `WORKERS`)
+- [x] nginx in front of gunicorn in the container, like myco-webshop: it serves the static files (`docker/nginx.conf`); gunicorn on 127.0.0.1:8000
+- [x] Build the image locally and run `make docker-test`: healthy through nginx; with a default password and PRODUCTION on it stops with the explained error
+- [x] The fetch worker runs as a process of its own in the container (`FETCH_WORKER=external`, started again if it stops); in thread mode the thread waits for jobs that wait for a rate limit
+- [x] `PRODUCTION` (default on, not DEBUG): the container does not start while a superuser has a default password (`manage.py check_production`); local tests use PRODUCTION=false; the admin is signed in to through allauth (limit of failed attempts)
+- [x] `.env.example`: descriptions as `##` lines before each setting, settings commented with one `#`
+- [x] Every table in the Django admin, to browse the database; the admin in the menu of superusers; secrets are not shown (`community_insights/admin.py`)
+- [x] `docker-compose.yml` example, included in the docs
+- [x] Hosting: log rotation (open-web-calendar only recommends it): Docker's json-file rotation in the compose file for every service, daemon-wide in the docs
+- [x] Build information in the image like myco-webshop (`docker/set-version.sh` -> `community_insights/version.json`, `make version`)
+- [x] Database configurable with `DATABASE_URL`, SQLite by default
+- [x] Configuration through environment variables, documented in `docs/reference/configuration.rst`
+- [x] `Makefile` with uv like icalendar: `make init|run|test|lint|migrate|clear-cache|version|docker-build|docker-run`
+- [x] `make` targets for the browser tests and the node tests
+- [x] `todo.txt` with markdown checkboxes, extended by every prompt
+- [x] `make run` runs the server and the fetch worker in the background
+- [x] Superuser for test sites: `admin` / `admin` (`make superuser`, `make run`, `DEFAULT_SUPERUSER=admin:admin` in `make docker-run`); "Admin" in the menu for staff
+- [x] `make run` and the test container (`make docker-run`) use the same database in `./data` (container runs as the user; SQLite waits for the other process, WAL)
+- [x] Tutorial in the docs: set up with Docker Compose, sign in, first statistics, then optional steps: GitHub OAuth, the three ways to sign in, mails, superuser, separate worker, PostgreSQL, public address
+- [x] PostgreSQL in the image (`psycopg[binary]`) and a compose example with a database service (in comments), documented in the tutorial
+- [ ] The disk is nearly full on the development machine (1.2 GB free): check before large downloads or builds; the Docker image with scipy was not rebuilt locally
+
+## Accounts and GitHub access
+- [x] `manage.py add_shared_token SUPERUSER TOKEN`: a token everyone on the site can use, owned by a superuser who must exist
+- [x] Sign up / in with a GitHub account (django-allauth)
+- [x] Sign up with email and password (django-allauth), then link GitHub (`/accounts/3rdparty/`) or add a personal access token (`/dashboard/github/`)
+- [x] allauth pages styled with Bootstrap (template overrides in `community_insights/templates/allauth/`)
+- [x] Use the user's GitHub token to query GitHub; the linked account first, then the personal token
+- [x] Several GitHub tokens per user (own, friends', other accounts), each with its own limit, used in the order given (reorder them) (`AccessToken`, `community_insights/tokens.py`, `access_views.py`)
+- [x] Per-token hourly limit of API points; skip a token whose limit or GitHub rate limit is used up and continue with the next (`TokenPool`)
+- [x] User profile: default limit of API points per fetch (`Profile.fetch_limit`)
+- [x] Token expiry: read `github-authentication-token-expiration`, show it, warn 14 days before; warn about tokens without expiry (organisations like Plone refuse them)
+- [x] Button "Test" per token: can it read every repository of my projects? List the ones it cannot
+- [x] The token page links to the docs on how to create and add tokens (docs page `how-to/tokens`)
+- [x] Encrypt the stored tokens
+- [x] The dashboard cards say how long until the data of a project is complete while it is read
+- [x] Ask for the `repo` scope only when wanted: sign in asks for `read:user`, "Allow reading private repositories" asks GitHub for `repo`
+- [x] Handle revoked / expired tokens with a clear message (InvalidAPIToken, ExpiredAPIToken with what to do)
+- [x] Mail settings for verification (`EMAIL_HOST`, ...) documented and tested (`tests/test_mail.py`)
+
+## Fetching from GitHub
+- [x] The fetch worker in clear modes, documented, the same in image, compose file, Makefile and docs: `internal` (a thread of the web process, default for development), `external-http-container` (a process in the web container, default of the image), `external-separate-container` (only the worker service of the compose file), `inline` (tests); no worker started twice; an unknown mode stops the start (`UnknownWorkerMode`, system check)
+- [x] Docs: how to set the superuser before the first start of the container (tutorial, .env.example)
+- [x] Share tokens: per token a slider for the maximum points per hour (0-100 % of its limit: "X of Y points per hour, stopping when Z are left") and a slider for the share given to everybody else on this site (0-100 % of the maximum, default 10 % = 500 of 5000), always within the maximum and moving with it (`static/js/token-sliders.js`, `AccessToken.max_points`, same numbers tested in both)
+- [x] Shared points of the tokens of others are used after the own tokens; counted separately per hour; the reserve stays with GitHub
+- [x] When the own limit is reached: the fetch page warns, says how many points are left, predicts the points for a full fetch and asks how many more are fine for this hour (`Profile.allow_extra`, `HourAllowance`)
+- [x] The linked GitHub account can be shared, too: it is mirrored as the first token with the same sliders
+- [x] Without a token: the default quota of GitHub (REST without authentication, 60 requests per hour per IP, shared by everybody on this server); same items through the repository-wide REST endpoints, only what changed (`community_insights/github/anonymous.py`, `community_insights/sync/sources/anonymous.py`); reviews without comments, names and locations are missing there (shown on the fetch page)
+- [x] Docs: reading without a token, sharing tokens, the limits
+- [x] Many repositories queried at the same time (organisations): totals and visibility in batches of 50 at the same time, several jobs at once, pull requests and issues of a repository at the same time
+- [x] Performance tests (`make test-performance`): statistics of 5000 made up items (all pages under 1 s), reading niccokunzmann/open-web-calendar with the real token: 1251 items with 31 requests in about 32 s, reading it again: 2 requests in 1.5 s; waits 10 minutes when the token has few points left
+- [x] Cancelling stops all concurrent reads at once; reaching a limit lets the requests in flight finish and be saved (`together()` in `sync/syncer.py`)
+- [x] All pages, statistics and badges read the database only; only "Read from GitHub" (sync) changes the data
+- [x] Tests never use the network (socket blocked in `tests/conftest.py`, fake client in `tests/fakes.py`)
+- [x] Pipeline: (1) get data with background jobs, (2) run the statistics on the data present (`community_insights/pipeline.py`)
+- [x] Before fetching: estimate the GitHub API points and the time, and ask the user to confirm (`/s/<scope>/fetch/`)
+- [x] More than 5000 points (one hour of one token): ask for a limit of points for this fetch; the default comes from the profile
+- [x] Background jobs in a database queue (`FetchJob`), run by a thread or `manage.py fetch_worker`
+- [x] Prioritise jobs (the order decides who gets the tokens first), re-order queued jobs, cancel queued or running jobs; downloaded data is kept
+- [x] Downloads page: running and queued jobs with the reason (the page they were started from), progress, finished jobs
+- [x] Show the rate limit left of each token
+
+## Dashboard and projects
+- [x] People do not need to sign in: Explore (the start page) with the public repositories and their numbers; all statistics pages for public scopes (`/s/owner~name/`, `/s/owner/`); they submit a repository, checked with the donated tokens; Read from GitHub says whether the donated tokens have the points and reads with them at low priority; badges of public scopes
+- [ ] Visitors: a limit of submissions and fetches per address (abuse of the donated tokens)
+- [x] For now only public repositories: private ones are refused with an explaining error (`PrivateRepositoryRefused`), the private repositories of organisations are skipped and not suggested, the button for private access is hidden (`PRIVATE_REPOSITORIES` = False)
+- [x] Landing page after sign in = dashboard: the repositories I want insight on as cards with simple numbers and a menu each (open its statistics, contributors, read from GitHub, remove)
+- [x] Dashboard tabs: added projects on top / in the first tab; my repositories (and organisations, contributions) in another tab
+- [x] Dashboard: add public or private projects (a repository `owner/name` or a whole organisation / user `owner`)
+- [x] List my own repositories, most stars first, and add them with one click (loaded with "Refresh")
+- [x] Explore a project: stats, response times, contributors
+- [x] View of several projects at once or a whole organisation (`/s/1-2-3/`, `/s/all/`)
+- [x] Remove a project
+- [x] Rename a project (and remove), in the menu of the dashboard card
+- [x] Add repositories of the organisations I am a member of to the list, not only my own (suggestions: own, organisations, contributed)
+- [x] Organisation overview: one row per repository with its numbers, to compare them ("Compare repositories")
+
+## Cache in the database
+- [x] Clean up by the size of the database: `DATABASE_MAX_MB` (default 1024 = 1 GB); after data was fetched and added (and no fetch runs) the size is checked; when it is bigger, the data used longest ago is deleted and the database compacted (`community_insights/cleanup.py`)
+- [x] `DATABASE_MIN_AGE_HOURS` (24): the latest fetched or used data is never deleted for space; if only such data is left, a warning in the log and on the cache page
+- [x] Little overhead: the check only runs when the queue is empty; the used size is measured without compacting; shrinking goes 10 % below the limit; one compaction at the end; when only young data is left, no new try until the first data is old enough
+- [x] The totals of the estimate are kept for 10 minutes: reloading the fetch page does not ask GitHub again
+- [x] Interrupted fetches continue where they stopped, so few requests are made again (`Repository.resume`, saved after each page)
+- [x] Models for repositories, pull requests, issues, events and people
+- [x] `created`, `fetched_at` and `last_used_at` on every cached object
+- [x] Cache page: a timeline, oldest use first, with delete buttons
+- [x] `manage.py clear_cache --days N [--dry-run]`
+- [x] Incremental sync (only items changed since the last sync)
+- [x] Automatic clean-up once a day of what was not used for `CACHE_KEEP_DAYS` (90) days (`community_insights/cleanup.py`)
+- [ ] Per-user cache limit
+- [x] Re-fetch people (location, name) when older than 30 days (`PEOPLE_MAX_AGE`)
+
+## Statistics
+- [x] Every download also as ODS; the ODS has more sheets than the CSV: the data the result was made from (items, events, commits), and a sheet about the export (repositories, time range, classes, query, version) (`community_insights/spreadsheet.py`, odfpy)
+- [x] Every statistics page (any page that summarises data) shows how complete the data is (progress bar, items of total), how long until 100%, the running fetches, and the data sources (repositories, counts, last read) (`_data.html`, `static/js/progress.js`)
+- [x] Choose the sources of a statistics page: one repository, several, or an organisation; switch them on and off; add new ones
+- [x] Source picker: a text field that filters; repositories of my organisations, my own and those I contributed to first; others added as `owner/name` or `owner` (`static/js/sources.js`)
+- [x] Download the tables behind the statistics (responses, items, events, contributors as CSV / JSON) (`community_insights/export.py`)
+- [x] Counts of pull requests (open, closed, merged) and issues (open, closed)
+- [x] Response time histogram (matplotlib) for pull requests and issues per class of people
+- [x] Table with measured / normal / exponential fit (ported from `old/`)
+- [x] Verifiable statistics: download all the data behind every number and chart as tables (CSV and JSON), ready for scipy / pandas
+- [x] Fit the models with scipy (`scipy.stats`), and show how to repeat the fit from the downloaded table (docs with code)
+- [x] Items without any response are censored data: Kaplan-Meier row with `scipy.stats.ecdf` (`community_insights/stats/survival.py`), documented with the scipy call
+- [x] Contributors table: PRs, issues, comments, reviews, response time, location
+- [x] Person page: when they are active across the day and across day and week (heat map)
+- [x] All times in the timezone of the browser (cookie from `Intl.DateTimeFormat`)
+- [x] Person page: contributions per month by kind (PR, issue, comment, review), first and last activity
+- [x] Contributors page: run queries (filter / sort / group expressions, like `result` in `old/`) and get tables and graphs from the result of the query (`community_insights/query.py`)
+- [x] Contributors page: save a query, export the table as CSV
+- [x] Commits as a kind of contribution (history of the default branch, GraphQL or REST; contributors, person page, charts, export, estimate)
+- [x] Response time per contributor over time (person page: median per month)
+- [x] Filter the views by date range (from / to, kept in links, charts and downloads)
+- [x] Show the pull requests and issues as a list with filters (kind, state, responded, author, sort; pages of 50)
+
+## Badges
+- [x] SVG badge for the response time of issues or pull requests, percentile configurable (50, 95, ...)
+- [x] Badge per class of people
+- [x] Badge URL with a secret token so private projects are not guessable; the badge never calls GitHub
+- [x] Overview shows the badge builder with Markdown snippet (`static/js/badge.js`)
+
+## Classes of people
+- [x] Create classes by name, pattern, status (association), bot, or location
+- [x] Defaults: bot, collaborator or higher, external
+- [x] Order of the classes decides which one an actor belongs to
+- [ ] Edit / reorder classes without the admin-style form (drag and drop)
+- [ ] Classes shared between users
+
+## Design and pages
+- [x] Profile checkbox: show a "Horizon Europe" tag next to the location of people in a country that takes part in Horizon Europe (EU and associated countries; locations matched with country names, codes and cities)
+- [x] Internationalization: every text of the site translatable (Django i18n: templates, Python, JavaScript), the language of the browser or chosen in the footer, a first translation (German, "du")
+- [ ] Internationalization, the rest: the details of the errors (f-strings in many places), the descriptions of the query variables, the texts in charts and exports, the allauth pages (allauth has its own translations), the badges stay English
+- [ ] German texts: checked by a person who speaks German (written by Claude); "du" or "Sie"?
+- [x] Bootstrap 5, mobile first, light and dark
+- [x] Green palette as CSS variables in `static/style.css` (#149414 #0e6b0e #649568 #9ccc9c #2b5329); white text only on #0e6b0e / #2b5329 (contrast >= 4.5), dark text on #9ccc9c
+- [x] Charts (matplotlib) in the colours of the website: green palette, series told apart by lightness with gaps between stacked bars, heat map from light to deep green (`community_insights/charts.py`)
+- [x] Light / dark / auto switch in the menu (`static/js/theme.js`, cookie `theme`); the server renders the chosen theme, "auto" follows the system
+- [x] Charts follow the theme: dark page -> dark charts (`?theme=dark`), switched live
+- [x] Contrast of every text / background pair in both themes >= 4.5 (`tests/test_contrast.py`), also the text of the charts
+- [x] Default classes of people in the palette
+- [x] Footer: About, Documentation, Changelog, Source code, Report a bug
+- [x] About page: what is stored, version and build (commit, date, CI run), licenses of all installed packages read at runtime (`community_insights/licenses.py`)
+- [x] About page: licenses of the JavaScript and CSS projects the pages load (Bootstrap, Django's JavaScript catalog, the own scripts) with links to their license texts, from `static/vendor/vendor.json`
+- [x] The repository is a setting (`SOURCE_URL`, `DOCS_URL`); the About page links to the code of the version that runs: the tag of a release, else the commit (`version.json` keeps the full commit and the tag; in a checkout the commit of git)
+- [x] Report a bug: a GitHub issue with page and version filled in; docs page `how-to/report-bug`
+- [x] Self-host Bootstrap instead of the CDN (`static/vendor/bootstrap/`, 5.3.3); the crawler fails if a page loads from another server
+
+## Code structure
+- [x] One Python package, not two: the app `community` is merged into `community_insights` (project and app in one); the app label stays `community`, so the tables, the migrations and the admin addresses of existing databases keep working
+- [x] Answer: why there were two packages (the Django project with the settings, and the app with the code)
+- [x] Rule: JavaScript never lives in templates, always in JS files (no inline scripts, no onclick=, no javascript: links); checked by tests/quality/test_templates.py, written in AGENTS.md
+- [x] The inline script of django-tz-detect replaced by static/js/time-zone.js; confirmations with data-confirm and static/js/confirm.js
+- [x] When ready for a review: play a sound on this computer
+- [x] Changing the password of the superuser: documented in the tutorial and in the error of the production check
+- [x] Agent documentation: the rules for AI contributions to this repository (`AGENTS.md`, `CLAUDE.md` imports it, section in docs/contribute.rst): prompts recorded, prompts become todos, constraints, no commits unless asked, confirmation before destructive actions, licenses, attribution
+Project constraints:
+- Errors are split up as finely as possible: one class per cause, so each has its own documentation and can be caught specifically (`community_insights/errors/`)
+- All classes and all functions have a docstring in Google style (ruff D, convention google)
+
+- [x] Check all error messages: split generic errors into specific ones (query, dates, limits, percentages, rules, tables, owners, public repositories, GitHub answers); status codes in the error, not in its text
+- [x] pyright like icalendar (`make typecheck`, CI): type hints, the Django types (django-types or django-stubs), a reasoned ignore where a hint makes no sense; what the errors say about the abstractions
+- [x] Docstrings for all classes and functions of the application, Google style (ruff D with the google convention, in `make lint`)
+- [x] icalendar's documentation tests, adapted and under their license (BSD-2-Clause, `REUSE.toml`): `tests/test_with_doctest.py` (doctest of modules and docs), `tests/test_docstrings.py` (Google headings)
+- [ ] Add the Args / Returns / Raises sections: 336 docstrings lack one (the xfails of tests/test_docstrings.py)
+- [ ] Docstrings for all test functions and classes
+- [x] Rename: the distribution community-insights, the Django project package community_insights; everything called gh-community is renamed (image, addresses, Makefile, compose service); the directory is renamed to community-insights by the user
+- [x] At the end: go through all files and remove old code that is not needed any more (vulture: `FetchJob.is_active`, django-tz-detect as an app, a mention of the old CLI; the rest it finds are Django hooks)
+- [x] Remove the old code (`old/`): the command line tool before the rewrite is in the git history (commit 239c258); no configuration ignores `old/` any more
+- [x] One class per module; modules with several classes became packages (models, github, tokens, sync, pipeline, stats, views, demo, tests/fakes); errors grouped by topic (`community_insights/errors/`); checked by `tests/test_structure.py`
+- [x] Low coupling, high cohesion, single responsibility, small reusable classes: e.g. `github/reads.py` works with any `graphql` function (client or token pool), `JobRunner` runs one job, `RateLimit` holds what GitHub said
+- [x] Async requests with niquests (`community_insights/github/client.py`), the sync and the token pool are async; database work through `sync_to_async`
+- [x] Several jobs at the same time (`FETCH_CONCURRENCY`, default 4) in one event loop, highest priority first; comments and people batches read concurrently
+- [x] Secondary rate limits: per token at most 10 requests at once and an even pace below 2000 points per minute (niquests leaky bucket), `retry-after` honoured with backoff, longer waits move to the next token, a cap for the server (`GITHUB_MAX_CONCURRENT`); `SecondaryRateLimitExceeded`
+- [x] `make run-prepare`: database, superuser admin/admin, demo project (`community_insights/demo/`); part of `make init` and `make run`
+
+## Errors
+- [x] Every error has a well-defined class with a title and a docstring that says what happened and how to solve it (`community_insights/errors.py`): InvalidAPIToken, ExpiredAPIToken, TokenLifetimeRefused, TokenNotAllowed, NoGitHubAccess, RateLimitExceeded, RepositoryNotFound, GitHubUnreachable, FetchLimitReached, AllTokensUsedUp, FetchCancelled, InvalidTarget, InvalidLimit, FetchLimitRequired, MissingToken, UnexpectedError
+- [x] Translation table: any exception becomes one of them (`errors.translate`), unknown ones as UnexpectedError ("report a bug")
+- [x] The website shows errors with their title, the details and a link to the API reference on Read the Docs (`docs/reference/errors.rst`, autodoc)
+- [x] Failed fetches and tokens store the error code and link to its description
+- [x] Errors in the browser (progress polling) shown with the same links: errors as JSON (`feedback.error_json`), `progress.js` shows them
+
+## Quality and tests
+- [x] `make run` failed with `no such column: community_repository.commits_synced_until`: the database in `data/` had applied an earlier `0001_initial`, which was made again later with more fields; the missing columns and the table of commits were added with Django's schema editor (backup `data/db.sqlite3.before-repair-2026-10-27`)
+- [x] pre-commit `check-added-large-files` failed on `bootstrap.min.css.map` (577 KB): the source maps of Bootstrap are removed with their `sourceMappingURL` lines; the whitespace hooks leave `static/vendor/` as it is published (`tests/quality/test_static.py`)
+- [x] Recreate the virtual environment: it was made before the directory was renamed, its scripts started the Python of the old path (`make clean-python .venv`)
+- [x] `make livehtml`: the documentation, rebuilt while editing it (sphinx-autobuild; was `make docs-live`)
+- [x] `make linkcheck`: the links of the documentation work; in the CI as a job of its own, not needed for pushing the image (other sites can be down)
+- [x] `make vale` runs Vale through uvx (PyPI package `vale`), no own installation; errors fail, also in the CI; the docs are fixed (vocabulary, literal examples, headings); "do not" stays written out (Microsoft.Contractions off); German *du* marked as German
+- [x] `make docs` is nitpicky: references that do not resolve fail
+- [x] Every check of `make test-all` is a job of the CI (`tests/quality/test_ci.py`)
+- [x] Split test files with unrelated tests into files of one topic each, sorted into subdirectories of tests/ (accounts, cache, errors, fetching, github, pages, projects, quality, statistics); shared fixtures in conftest.py
+- [x] All tests in the CI run the make commands, so each job can be repeated locally with the same command (`make lint`, `make test`, `make test-js`, `make test-browser`, `make docs`, `make reuse`, `make vale`, `make zizmor`, `make changelog`, `make docker-build`)
+- [x] The Docker image is built for linux/amd64 and linux/arm64 (`make docker-build-all` locally)
+- [x] zizmor (security of the GitHub Actions workflows) like icalendar and calendaring-sync, as a job of tests.yml and `make zizmor` (no findings); all actions pinned to commits
+- [x] Tests with a fake GitHub client; the real client tested with a mocked HTTP session
+- [x] Test edge cases: empty projects, deleted users, pagination of comments, closed unmerged PRs, items without responses, unknown classes and kinds, bad input in the forms, other users' data, rate limits, rejected tokens, cancel, limits (`tests/test_edge_cases.py`, `tests/test_pipeline.py`)
+- [x] More edge cases: reviews on more pages, people batches over 30, an organisation with 250 repositories, two workers claiming the same job, several jobs at once (`tests/test_scale.py`)
+- [x] JavaScript in `static/js/` with node tests (`npm test`, `tests/js/`)
+- [x] Browser tests with Firefox like open-web-calendar: behave + behave-django + selenium (`features/`), also at phone size (`-D window=375x812`)
+- [x] Fix: the menu click at phone size was flaky: the time zone reload of the first visit; the steps wait for it
+- [x] Crawler test: from the fixtures of the test database, visit every page and follow every internal link; no errors, no broken links, all images load
+- [x] CI: run the node tests and the browser tests (Firefox, desktop and phone size)
+- [x] One workflow: the Docker image is built and pushed only after all tests passed (no separate file)
+- [x] Tags `v1.2.3` publish `stable`, `1.2.3`, `1.2`; main publishes `latest`
+- [x] CI workflow (`.github/workflows/tests.yml`: news fragment, ruff, pytest, docs, docker build)
+- [x] Publish the Docker image to ghcr.io from `.github/workflows/tests.yml`, only after all tests passed: `latest` from main, `stable` and versions from tags, with build information
+- [ ] No `stable` image exists until the first tag: the compose file uses `:stable`
+- [x] pre-commit: ruff, yaml/toml checks, whitespace
+- [x] Documentation with Sphinx in `docs/` (Diataxis like calendaring-sync): setup, OAuth app, Docker, Compose, latest version, development setup, environment variables, classes, badges, bug reports
+- [x] Docs: email sign-up, tokens, browser and node tests, version information
+- [x] Changelog with towncrier (`news/`, fragments without `.rst`, `docs/changelog.rst`)
+- [x] Small README that only links to the docs
+- [ ] Read the Docs project community-insights and the first release tag
+- [x] Vale prose checks, REUSE licensing (`REUSE.toml`, `LICENSES/`), SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md like calendaring-sync, as jobs of tests.yml
+- [x] Coverage report (pytest-cov, Codecov upload in CI)
+
+## Library proposals
+
+For every part, a library that could replace or simplify what is written by hand.
+Mark the ones to use; nothing below is used yet unless it says so.
+
+### Statistics
+- [x] Every download also as ODS; the ODS has more sheets than the CSV: the data the result was made from (items, events, commits), and a sheet about the export (repositories, time range, classes, query, version) (`community_insights/spreadsheet.py`, odfpy)
+- [x] Every statistics page (any page that summarises data) shows how complete the data is (progress bar, items of total), how long until 100%, the running fetches, and the data sources (repositories, counts, last read) (`_data.html`, `static/js/progress.js`)
+- [x] Choose the sources of a statistics page: one repository, several, or an organisation; switch them on and off; add new ones
+- [x] Source picker: a text field that filters; repositories of my organisations, my own and those I contributed to first; others added as `owner/name` or `owner` (`static/js/sources.js`)
+- [x] Download the tables behind the statistics (responses, items, events, contributors as CSV / JSON) (`community_insights/export.py`)
+- [x] `scipy.stats` used for the fits (more distributions and goodness of fit still open): fit exponential, normal, log-normal, gamma, Weibull to the response times (`expon.fit`, `lognorm.fit`), goodness of fit (`kstest`), bootstrap confidence intervals (`scipy.stats.bootstrap`) - replaces `stats.summary` by hand
+- [x] `numpy`: percentiles (`np.percentile`) and histograms - replaces `stats.percentile` and `stats.histogram`
+- [ ] `pandas`: the tables for export (CSV, JSON, Parquet), group by month / weekday / hour - replaces the dict loops in `stats.py`
+- [ ] `lifelines`: Kaplan-Meier survival curves for response times with items that never got a response (censored data); median survival time - not needed: scipy.stats.ecdf does Kaplan-Meier
+- [ ] `statsmodels`: trends over time (are responses getting faster?)
+
+### GitHub data
+- [ ] `githubkit`: typed GitHub REST and GraphQL client with rate limit handling and retries - replaces `community_insights/github.py`
+- [ ] `gql`: GraphQL client with query validation against the GitHub schema
+- [ ] `PyGithub`: what `old/` used; REST only, many requests
+- [ ] CHAOSS GrimoireLab `perceval`: fetches GitHub issues and pull requests with resumable fetches and token rotation (several tokens!)
+- [ ] CHAOSS `augur`: a whole community health platform; compare features before building more
+- [ ] `github-to-sqlite` (Datasette): reads issues, pull requests, comments into SQLite; ideas for the schema
+
+### Django
+Approved: all Django packages may be used where they replace code or enable requested features.
+- [x] `django-allauth`: GitHub sign-in, email sign-up, linking accounts (used)
+- [x] `django-tables2` + `django-filter`: sortable, filterable contributors table with CSV export - replaces the hand-written sorting - used for the list of pull requests and issues (`community_insights/tables/`); the contributors keep the query language
+- [ ] `djangoql`: a query language with autocompletion for the contributors page ("run queries") - not yet: it queries models, the contributors are computed rows; could query the list of pull requests and issues
+- [x] `django-tz-detect`: sets the time zone from the browser - replaces `static/js/timezone.js` and the middleware - used, replaces `static/js/timezone.js` and the old middleware; a bad time zone of the browser is forgotten (`SafeTimezoneMiddleware`); its inline script is replaced by `static/js/time-zone.js`, so it is no installed app any more
+- [ ] `django-tasks` (Django 6 tasks) or `django-q2` / `huey` / `celery`: background fetches with progress - replaces the thread - not yet: no cancel, progress, waiting for the rate limit or concurrent jobs, which the own queue has
+- [x] `django-ordered-model`: ordering of classes and tokens (move up / down) - replaces the position code - used for tokens and classes
+- [x] `django-fernet-encrypted-fields`: encrypt the stored GitHub tokens - used: the tokens are encrypted (`SALT_KEY`)
+- [x] `django-environ`: settings from the environment - replaces `env_list` and friends - used for all settings, replaces dj-database-url
+- [x] `django-cachalot` or `django-cacheops`: cache the expensive statistic queries - django-cachalot used, with a file cache shared by all processes
+- [x] `django-health-check`: health endpoint for Docker and monitoring - used: `/health/`, the health check of the container
+- [x] `django-debug-toolbar`: find slow queries in development - used with DEBUG in development
+
+### UI components
+- [x] `django-bootstrap5` or `django-crispy-forms` + `crispy-bootstrap5`: Bootstrap forms - replaces the hand-written form markup and the allauth element overrides - django-bootstrap5 used for the filter form; the other forms are still written by hand
+- [ ] `django-allauth-ui`: styled allauth pages (Tailwind, so it would not match Bootstrap)
+- [ ] `htmx` (`django-htmx`): progress of a running fetch, live filtering without page reloads - option: would replace static/js/progress.js, which works and is tested
+- [ ] Chart.js or Apache ECharts in the browser: interactive charts with tooltips (keep matplotlib for the downloadable images)
+- [ ] `Sortable.js`: drag and drop to reorder classes and tokens
+- [ ] `pybadges` (Google) or `anybadge`: badge SVGs with correct text widths - replaces `community_insights/badges.py`
+
+### Licenses and versions
+- [ ] `pip-licenses`: the license list; the About page reads `importlib.metadata` directly (same data, no dependency)
+- [ ] `hatch-vcs` / `setuptools-scm`: the version from the git tag, like calendaring-sync
+- [ ] reuse licenses must also be included in the license page
+
+### Tests
+- [x] `behave-django` + `selenium`: browser tests with Firefox (used)
+- [x] `pytest-django` (used), node's built-in `node:test` (used, no dependencies)
+- [ ] `pytest-playwright`: browser tests in Python with automatic waiting (less flaky than selenium)
+- [ ] `jsdom`: a DOM for the node tests instead of the hand-made fakes
+- [ ] `responses` or `respx`: mock the HTTP of the GitHub client
+- [ ] `factory_boy`: test data (repositories, items, events) for the crawler and the edge cases
+- [ ] `linkchecker`: check all links of the running site
+
+###
+- always check the .prompts dir if everything is covered in here
+
+### Documentation
+- [x] `vale` (PyPI, daniperez/vale-python-package): installs the Vale binary, so `make vale` runs it with uvx like reuse and zizmor
+- [x] Sphinx's own `linkcheck` builder for `make linkcheck`, `sphinx-autobuild` for `make livehtml`

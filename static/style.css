@@ -1,0 +1,123 @@
+/* Palette. Contrast on white: --green-dark 6.7, --green-deepest 9.5, --green 4.0
+   (large text and decoration only); --green-light needs --green-deepest text (4.9).
+   The light and dark tokens are checked for contrast by tests/test_contrast.py.
+   The theme is chosen with the switch in the menu (static/js/theme.js): it sets
+   data-theme on <html>; without a choice the system decides. */
+:root {
+  --green: #149414;
+  --green-dark: #0e6b0e;
+  --green-muted: #649568;
+  --green-light: #9ccc9c;
+  --green-deepest: #2b5329;
+
+  --surface: #ffffff;
+  --surface-tint: #e9f4e9;
+  --text: #1b2a1b;
+  --text-muted: #4d5f4d;
+  --border: #c1d5c3;
+  --link: #0e6b0e;
+  --link-hover: #2b5329;
+  --nav-bg: #2b5329;
+  --nav-text: #ffffff;
+  --accent: #149414;
+  --button-bg: #0e6b0e;
+  --button-text: #ffffff;
+  --button-hover-bg: #2b5329;
+  --danger-text: #a3242f;
+
+  --bs-primary: var(--button-bg);
+  --bs-primary-rgb: 14, 107, 14;
+  --bs-link-color: var(--link);
+  --bs-link-color-rgb: 14, 107, 14;
+  --bs-link-hover-color: var(--link-hover);
+  --bs-body-bg: var(--surface);
+  --bs-body-color: var(--text);
+  --bs-secondary-color: var(--text-muted);
+  --bs-border-color: var(--border);
+  --bs-danger-text-emphasis: var(--danger-text);
+  color-scheme: light;
+}
+
+/* dark: chosen with the switch, or "auto" and the system is dark */
+:root[data-theme="dark"] {
+  --surface: #101a10;
+  --surface-tint: #1f391e;
+  --text: #e3efe3;
+  --text-muted: #a9bfa9;
+  --border: #36513a;
+  --link: #9ccc9c;
+  --link-hover: #ffffff;
+  --nav-bg: #0b140b;
+  --nav-text: #ffffff;
+  --accent: #9ccc9c;
+  --button-bg: #0e6b0e;
+  --button-text: #ffffff;
+  --button-hover-bg: #2b5329;
+  --danger-text: #f1aeb5;
+  --bs-link-color-rgb: 156, 204, 156;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --surface: #101a10;
+    --surface-tint: #1f391e;
+    --text: #e3efe3;
+    --text-muted: #a9bfa9;
+    --border: #36513a;
+    --link: #9ccc9c;
+    --link-hover: #ffffff;
+    --nav-bg: #0b140b;
+    --nav-text: #ffffff;
+    --accent: #9ccc9c;
+    --button-bg: #0e6b0e;
+    --button-text: #ffffff;
+    --button-hover-bg: #2b5329;
+    --danger-text: #f1aeb5;
+    --bs-link-color-rgb: 156, 204, 156;
+    color-scheme: dark;
+  }
+}
+
+body { background: var(--surface); color: var(--text); }
+a { color: var(--link); }
+.text-muted, .text-body-secondary { color: var(--text-muted) !important; }
+
+.navbar-gh { background: var(--nav-bg); }
+.navbar-gh .navbar-brand, .navbar-gh .nav-link { color: var(--nav-text); }
+.navbar-gh .nav-link:hover { color: var(--green-light); }
+.theme-switch .btn { --bs-btn-color: var(--nav-text); --bs-btn-border-color: rgba(255,255,255,.5); --bs-btn-active-bg: rgba(255,255,255,.2); --bs-btn-active-color: #fff; --bs-btn-hover-color: #fff; }
+.text-danger { color: var(--danger-text) !important; }
+
+.btn-primary {
+  --bs-btn-bg: var(--button-bg);
+  --bs-btn-border-color: var(--button-bg);
+  --bs-btn-hover-bg: var(--button-hover-bg);
+  --bs-btn-hover-border-color: var(--button-hover-bg);
+  --bs-btn-active-bg: var(--button-hover-bg);
+  --bs-btn-color: var(--button-text);
+  --bs-btn-hover-color: var(--button-text);
+  --bs-btn-disabled-bg: var(--button-bg);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--link);
+  --bs-btn-border-color: var(--green-muted);
+  --bs-btn-hover-bg: var(--green-dark);
+  --bs-btn-hover-border-color: var(--green-dark);
+  --bs-btn-hover-color: #fff;
+}
+
+.card { background: var(--surface); border-color: var(--border); }
+.card-header { background: var(--surface-tint); border-color: var(--border); }
+.stat { border-left: .35rem solid var(--accent); background: var(--surface-tint); }
+.stat .number { font-size: 1.75rem; font-weight: 600; line-height: 1.1; }
+.table { --bs-table-bg: transparent; --bs-table-color: var(--text); --bs-table-border-color: var(--border); }
+.table-hover > tbody > tr:hover > * { --bs-table-hover-bg: var(--surface-tint); }
+.chart img { width: 100%; height: auto; max-width: 760px; }
+.swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; vertical-align: -.05rem; }
+.hero { background: var(--green-deepest); color: #fff; }
+.hero .lead { color: var(--green-light); }
+.avatar { width: 2rem; height: 2rem; border-radius: 50%; background: var(--green-light); }
+.site-footer { background: var(--surface-tint); border-top: 1px solid var(--border); }
+code.snippet { word-break: break-all; }
+.allauth main { max-width: 34rem; }
+.allauth main ul.errorlist { color: #b02a37; padding-left: 1rem; }

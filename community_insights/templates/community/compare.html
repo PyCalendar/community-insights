@@ -1,0 +1,31 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Compare the repositories of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="compare" %}
+<p class="small text-muted">{% translate "One row per repository. The response times are of the first response of anybody but the author: the median and the 90th percentile." %}</p>
+<div class="table-responsive"><table class="table table-sm table-hover align-middle">
+  <thead><tr>
+    <th><a href="?sort=name{{ scope.query_more }}">{% translate "Repository" %}</a></th>
+    <th class="text-end"><a href="?sort=prs{{ scope.query_more }}">{% translate "Pull requests" %}</a></th>
+    <th class="text-end">{% translate "open / merged" %}</th>
+    <th class="text-end"><a href="?sort=issues{{ scope.query_more }}">{% translate "Issues" %}</a></th>
+    <th class="text-end">{% translate "open" %}</th>
+    <th class="text-end"><a href="?sort=response{{ scope.query_more }}">{% translate "PR response" %}</a><div class="small fw-normal">{% translate "median / 90%" %}</div></th>
+    <th class="text-end">{% translate "Issue response" %}<div class="small fw-normal">{% translate "median / 90%" %}</div></th>
+    <th class="text-end"><a href="?sort=people{{ scope.query_more }}">{% translate "People" %}</a></th>
+    <th class="text-end">{% translate "Data" %}</th>
+  </tr></thead>
+  <tbody>{% for r in rows %}<tr>
+    <td><a href="{{ r.source.repository.url }}">{{ r.source.repository.full_name }}</a></td>
+    <td class="text-end">{{ r.counts.prs.total }}</td>
+    <td class="text-end">{{ r.counts.prs.open }} / {{ r.counts.prs.merged }}</td>
+    <td class="text-end">{{ r.counts.issues.total }}</td>
+    <td class="text-end">{{ r.counts.issues.open }}</td>
+    <td class="text-end">{% if r.median_pr is not None %}{{ r.median_pr|duration }} / {{ r.p90_pr|duration }}{% else %}-{% endif %}</td>
+    <td class="text-end">{% if r.median_issue is not None %}{{ r.median_issue|duration }} / {{ r.p90_issue|duration }}{% else %}-{% endif %}</td>
+    <td class="text-end">{{ r.people }}</td>
+    <td class="text-end">{{ r.source.percent }}%</td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

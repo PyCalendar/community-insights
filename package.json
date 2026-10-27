@@ -1,0 +1,9 @@
+{
+  "name": "community-insights",
+  "private": true,
+  "description": "Tests of the JavaScript of the website",
+  "scripts": {
+    "test": "node --test \"tests/js/*.test.js\""
+  },
+  "license": "AGPL-3.0-or-later"
+}

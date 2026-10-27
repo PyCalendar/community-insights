@@ -5,3 +5,13 @@ __pycache__/
 /.ruff_cache/
 /uv.lock
 /config.yaml
+/data/
+/staticfiles/
+/.env
+/calendaring-sync/
+/docs/_build/
+/community_insights/version.json
+/node_modules/
+/coverage.xml
+/.coverage
+/docs/.vale/styles/Microsoft/

@@ -1,0 +1,1 @@
+``make run`` runs the fetch worker, too, and creates the superuser admin; ``make run`` and ``make docker-run`` share the database.

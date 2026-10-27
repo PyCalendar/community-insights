@@ -1,0 +1,76 @@
+{% load static tz i18n %}<!doctype html>{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}"{% if theme_choice != "auto" %} data-theme="{{ theme_choice }}" data-bs-theme="{{ theme_choice }}"{% endif %} data-theme-choice="{{ theme_choice }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Contributor Community Insights{% endblock %}</title>
+<meta name="color-scheme" content="light dark">
+<script src="{% static 'js/theme.js' %}"></script>
+<link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'style.css' %}" rel="stylesheet">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<nav class="navbar navbar-expand-md navbar-gh navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}">Contributor Community Insights</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="{% translate "Menu" %}"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="menu">
+    <div class="btn-group btn-group-sm theme-switch ms-md-2 my-2 my-md-0 order-md-last" role="group" aria-label="{% translate "Colours of the page" %}">
+      <button type="button" class="btn btn-outline-light{% if theme_choice == 'auto' %} active{% endif %}" data-theme-set="auto" aria-pressed="{% if theme_choice == 'auto' %}true{% else %}false{% endif %}" title="{% translate "As the system" %}">{% translate "Auto" %}</button>
+      <button type="button" class="btn btn-outline-light{% if theme_choice == 'light' %} active{% endif %}" data-theme-set="light" aria-pressed="{% if theme_choice == 'light' %}true{% else %}false{% endif %}" title="{% translate "Light" %}">{% translate "Light" %}</button>
+      <button type="button" class="btn btn-outline-light{% if theme_choice == 'dark' %} active{% endif %}" data-theme-set="dark" aria-pressed="{% if theme_choice == 'dark' %}true{% else %}false{% endif %}" title="{% translate "Dark" %}">{% translate "Dark" %}</button>
+    </div>
+
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'explore' %}">{% translate "Explore" %}</a></li>
+      {% if user.is_authenticated %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">{% translate "Dashboard" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'downloads' %}">{% translate "Downloads" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'classes' %}">{% translate "Classes" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'cache' %}">{% translate "Cache" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'github_access' %}">{% translate "GitHub access" %}</a></li>
+        {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">{% translate "Admin" %}</a></li>{% endif %}
+      {% endif %}
+      </ul>
+      {% if user.is_authenticated %}
+      <form method="post" action="{% url 'account_logout' %}" class="d-flex">{% csrf_token %}
+        <button class="btn btn-sm btn-outline-light">{% blocktranslate with name=user.email|default:user.username %}Sign out {{ name }}{% endblocktranslate %}</button></form>
+      {% else %}
+      <div class="ms-auto d-flex gap-2">
+        <a class="btn btn-sm btn-outline-light" href="{% url 'account_login' %}">{% translate "Sign in" %}</a>
+        <a class="btn btn-sm btn-light" href="{% url 'account_signup' %}">{% translate "Sign up" %}</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+<main class="container py-3 py-md-4">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.level_tag == 'error' %}danger{% else %}{{ message.level_tag }}{% endif %}" role="alert">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="site-footer mt-4 py-4">
+  <div class="container d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <nav aria-label="{% translate "Footer" %}"><ul class="list-inline mb-0">
+      <li class="list-inline-item"><a href="{% url 'about' %}">{% translate "About" %}</a></li>
+      <li class="list-inline-item"><a href="{{ links.documentation }}">{% translate "Documentation" %}</a></li>
+      <li class="list-inline-item"><a href="{{ links.changelog }}">{% translate "Changelog" %}</a></li>
+      <li class="list-inline-item"><a href="{{ links.source }}">{% translate "Source code" %}</a></li>
+      <li class="list-inline-item"><a href="{{ bug_report_url }}">{% translate "Report a bug" %}</a></li>
+    </ul></nav>
+    <form action="{% url 'set_language' %}" method="post" class="d-flex gap-1 align-items-center" aria-label="{% translate "Language" %}">{% csrf_token %}
+      <input name="next" type="hidden" value="{{ request.get_full_path }}">
+      {% get_available_languages as languages %}{% get_language_info_list for languages as infos %}{% for language in infos %}
+      <button class="btn btn-sm btn-link p-0 px-1{% if language.code == LANGUAGE_CODE %} fw-bold{% endif %}" name="language" value="{{ language.code }}" lang="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} aria-current="true"{% endif %}>{{ language.name_local }}</button>{% endfor %}
+    </form>
+    <small class="text-muted">{% get_current_timezone as shown_zone %}<span class="me-2" data-time-zone="{{ shown_zone }}">{% blocktranslate %}Times in {{ shown_zone }}{% endblocktranslate %}</span>
+      <a href="{% url 'about' %}#version">{% blocktranslate with version=build.version %}Version {{ version }}{% endblocktranslate %}{% if build.commit %} ({{ build.commit }}){% endif %}</a> · AGPL-3.0-or-later</small>
+  </div>
+</footer>
+<script src="{% url 'javascript-catalog' %}"></script>
+<script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/confirm.js' %}" defer></script>
+{% if not request.timezone_active %}<script src="{% static 'js/time-zone.js' %}" data-endpoint="{% url 'tz_detect__set' %}" data-csrf-token="{{ csrf_token }}" data-csrf-header="X-CSRFToken" defer></script>{% endif %}
+</body>
+</html>

@@ -1,0 +1,82 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Contributors of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="contributors" %}
+
+<form method="get" class="card card-body mb-3 query-form" aria-label="{% translate "Query" %}">
+  {% for name, value in scope.range.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <div class="row g-2">
+    <div class="col-12">
+      <label class="form-label small mb-0" for="where">{% translate "Who (a query, empty for everybody)" %}</label>
+      <input class="form-control form-control-sm font-monospace" id="where" name="where" value="{{ parameters.where }}" placeholder='prs_merged >= 2 and days_last < 90 and not bot' autocomplete="off">
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-0" for="sort">{% translate "Sort by" %}</label>
+      <input class="form-control form-control-sm font-monospace" id="sort" name="sort" value="{{ parameters.sort }}" placeholder="-activity" list="variables">
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-0" for="group">{% translate "Group by" %}</label>
+      <select class="form-select form-select-sm" id="group" name="group"><option value="">{% translate "nobody" %}</option>{% for g in groups %}<option {% if g == parameters.group %}selected{% endif %}>{{ g }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-0" for="chart">{% translate "Chart of" %}</label>
+      <select class="form-select form-select-sm" id="chart" name="chart">{% for n in numbers %}<option {% if n == chart %}selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small mb-0" for="columns">{% translate "Columns" %}</label>
+      <input class="form-control form-control-sm font-monospace" id="columns" name="columns" value="{{ parameters.columns }}" placeholder="{% translate "default" %}">
+    </div>
+  </div>
+  <datalist id="variables">{% for name in variables %}<option value="-{{ name }}"><option value="{{ name }}">{% endfor %}</datalist>
+  <div class="d-flex flex-wrap gap-2 mt-2">
+    <button class="btn btn-sm btn-primary">{% translate "Run the query" %}</button>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}{{ scope.query }}">{% translate "Reset" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'contributors_download' scope.text 'csv' %}?{{ encoded }}{{ scope.query_more }}">{% translate "Download as CSV" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'contributors_download' scope.text 'ods' %}?{{ encoded }}{{ scope.query_more }}" title="{% translate "With the data the result was counted from" %}">{% translate "Download as ODS" %}</a>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#query-help" aria-expanded="false" aria-controls="query-help">{% translate "Variables" %}</button>
+  </div>
+  <div class="collapse small mt-2" id="query-help">
+    <p class="mb-1">{% translate 'Compare variables with numbers or "text" (any case) and combine them with <code>and</code>, <code>or</code>, <code>not</code> and parentheses: <code>"berlin" in location or class == "maintainers"</code>. Sort with <code>-name</code> for the biggest first. Columns are names separated by spaces.' %}</p>
+    <dl class="row mb-0">{% for name, about in variables.items %}<dt class="col-sm-4 font-monospace fw-normal">{{ name }}</dt><dd class="col-sm-8 mb-0">{{ about.0 }}</dd>{% endfor %}</dl>
+  </div>
+</form>
+
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  {% if saved %}<span class="small text-muted">{% translate "Saved:" %}</span>{% endif %}
+  {% for q in saved %}
+    <span class="btn-group btn-group-sm"><a class="btn btn-outline-primary" href="{{ request.path }}?{{ q.parameters }}{{ scope.query_more }}">{{ q.name }}</a>
+    <form method="post">{% csrf_token %}<input type="hidden" name="id" value="{{ q.pk }}"><button class="btn btn-sm btn-outline-secondary" name="action" value="delete" aria-label="{% blocktranslate with name=q.name %}Delete the query {{ name }}{% endblocktranslate %}">&times;</button></form></span>
+  {% endfor %}
+  {% if can_save %}<form method="post" class="d-flex gap-1 ms-auto">{% csrf_token %}
+    {% for name, value in parameters.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    <input class="form-control form-control-sm" name="name" placeholder="{% translate "Name of this query" %}" aria-label="{% translate "Name of this query" %}" required>
+    <button class="btn btn-sm btn-outline-primary" name="action" value="save">{% translate "Save" %}</button>
+  </form>{% endif %}
+</div>
+
+{% if result %}
+<div class="chart mb-3">{% url 'chart' scope.text 'query' as base %}{% translate "Chart of the query" as alt %}{% with src=base|add:'?'|add:encoded|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
+
+{% if result.groups %}
+<h2 class="h6">{% translate "Groups" %}</h2>
+<div class="table-responsive"><table class="table table-sm table-hover">
+  <thead><tr><th>{{ parameters.group }}</th><th class="text-end">{% translate "people" %}</th>{% for n in numbers %}<th class="text-end">{{ n }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for label, people, sums in result.groups %}<tr><td>{{ label }}</td><td class="text-end">{{ people }}</td>{% for n in numbers %}<td class="text-end">{{ sums|get:n|floatformat:"-1" }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+
+<p class="small text-muted">{% blocktranslate with shown=result.contributors|length total=result.total %}{{ shown }} of {{ total }} people. Times are in your time zone ({{ timezone }}).{% endblocktranslate %}</p>
+<div class="table-responsive"><table class="table table-sm table-hover align-middle">
+  <thead><tr>{% for c in result.columns %}<th{% if c in numbers %} class="text-end"{% endif %}>{{ c }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for person, row in result.contributors|zip:result.rows %}<tr>
+    {% for c, cell in result.columns|zip:row %}
+      {% if c == "login" %}<td><a href="{% url 'person' scope.text person.login %}{{ scope.query }}">{{ cell }}</a>{% if person.name %}<div class="small text-muted">{{ person.name }}</div>{% endif %}</td>
+      {% elif c in numbers %}<td class="text-end">{{ cell|number }}</td>
+      {% elif c == "location" %}<td>{{ cell|default:"-" }}{% if show_horizon_europe %}{% include "community/_horizon_europe.html" with location=cell %}{% endif %}</td>
+      {% else %}<td>{{ cell|default:"-" }}</td>{% endif %}
+    {% endfor %}
+  </tr>{% empty %}<tr><td colspan="{{ result.columns|length }}" class="text-muted">{% translate "Nobody matches." %}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+{% endblock %}

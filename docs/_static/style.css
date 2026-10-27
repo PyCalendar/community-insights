@@ -1,0 +1,18 @@
+/* Same green palette as the site (static/style.css). */
+:root {
+  --green: #149414;
+  --green-dark: #0e6b0e;
+  --green-muted: #649568;
+  --green-light: #9ccc9c;
+  --green-deepest: #2b5329;
+}
+html[data-theme="light"] {
+  --pst-color-primary: var(--green-dark);
+  --pst-color-link: var(--green-dark);
+  --pst-color-link-hover: var(--green-deepest);
+}
+html[data-theme="dark"] {
+  --pst-color-primary: var(--green-light);
+  --pst-color-link: var(--green-light);
+  --pst-color-link-hover: #fff;
+}

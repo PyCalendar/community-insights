@@ -1,0 +1,25 @@
+version = 1
+
+# Everything of the project
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Contributor Community Insights contributors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Bootstrap, bundled so the pages load nothing from other servers
+[[annotations]]
+path = "static/vendor/bootstrap/**"
+precedence = "override"
+SPDX-FileCopyrightText = "2011-2024 The Bootstrap Authors"
+SPDX-License-Identifier = "MIT"
+
+# Adapted from icalendar, which is under the BSD-2-Clause license
+[[annotations]]
+path = ["tests/quality/test_with_doctest.py", "tests/quality/test_docstrings.py"]
+precedence = "override"
+SPDX-FileCopyrightText = [
+    "2012-2013 Plone Foundation and the icalendar contributors",
+    "2026 Contributor Community Insights contributors",
+]
+SPDX-License-Identifier = "BSD-2-Clause"

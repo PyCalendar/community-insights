@@ -1,0 +1,41 @@
+{% extends "community/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "About" %}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8">
+<h1 class="h3">{% translate "About Contributor Community Insights" %}</h1>
+<p>{% translate "Contributor Community Insights shows how the community of a GitHub project is doing: how long issues and pull requests wait for a first response, who contributes in which way, and when." %}</p>
+<h2 class="h5 mt-4">{% translate "What is stored" %}</h2>
+<ul>
+  <li>{% translate "Your email address and, if you link it, your GitHub account and its token, or the personal access token you add." %}</li>
+  <li>{% translate "What is read from GitHub for your projects: repositories, issues, pull requests, the times and authors of comments and reviews, and the public name and location of the people involved." %}</li>
+  <li>{% translate "Your projects and classes of people." %}</li>
+</ul>
+<p>{% translate "Data read from GitHub is a cache. It is deleted when nobody used it for a while, and read again when needed." %}</p>
+<h2 class="h5 mt-4">{% translate "Time zone and language" %}</h2>
+<p>{% translate "Your browser tells the site its time zone in a cookie, so times and charts use your local time. The language is the one of your browser, or the one you choose at the bottom of the page." %}</p>
+<h2 class="h5 mt-4">{% translate "Free software" %}</h2>
+<p>{% blocktranslate with source=links.source docs=links.documentation %}The <a href="{{ source }}">source code</a> is under the GNU Affero General Public License 3.0 or later. Read the <a href="{{ docs }}">documentation</a> to run your own installation.{% endblocktranslate %}</p>
+<h2 class="h5 mt-4" id="bugs">{% translate "Report a bug" %}</h2>
+<p>{% blocktranslate with docs=links.documentation %}Something wrong or missing? <a href="{{ bug_report_url }}">Open an issue on GitHub</a>; the version is filled in for you. Please do not post tokens or private data. Security problems go to the maintainers privately, see <a href="{{ docs }}en/latest/how-to/report-bug.html">the documentation</a>.{% endblocktranslate %}</p>
+<h2 class="h5 mt-4" id="version">{% translate "Version" %}</h2>
+<table class="table table-sm w-auto">
+  <tr><th>{% translate "Version" %}</th><td>{{ build.version }}</td></tr>
+  {% if build.built_at %}<tr><th>{% translate "Built" %}</th><td>{{ build.built_at|date:"Y-m-d H:i T" }}</td></tr>{% endif %}
+  <tr><th>{% translate "Code" %}</th><td><a href="{{ build.this_version_url }}">{% if build.tag %}{{ build.tag }}{% elif build.commit %}{% blocktranslate with commit=build.commit %}the code of {{ commit }}{% endblocktranslate %}{% else %}{{ links.source }}{% endif %}</a></td></tr>
+  {% if build.commit %}<tr><th>{% translate "Commit" %}</th><td><a href="{{ build.commit_url }}">{{ build.commit }}</a></td></tr>{% endif %}
+  {% if build.build_url %}<tr><th>{% translate "Build" %}</th><td><a href="{{ build.build_url }}">{% translate "GitHub Actions run" %}</a></td></tr>{% endif %}
+</table>
+<h2 class="h5 mt-4" id="scripts">{% translate "JavaScript and styles in the pages" %}</h2>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>{% translate "Project" %}</th><th>{% translate "Version" %}</th><th>{% translate "License" %}</th></tr></thead>
+  <tbody>{% for p in scripts %}<tr><td><a href="{{ p.url }}">{{ p.name }}</a></td><td>{{ p.version }}</td><td><a href="{{ p.license_url }}">{{ p.license }}</a></td></tr>{% endfor %}</tbody>
+</table></div>
+<h2 class="h5 mt-4" id="licenses">{% translate "Python packages on the server" %}</h2>
+<p class="text-muted small">{% translate "Read from the packages installed on this server." %}</p>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>{% translate "Package" %}</th><th>{% translate "Version" %}</th><th>{% translate "License" %}</th></tr></thead>
+  <tbody>{% for p in packages %}<tr><td><a href="{{ p.url }}">{{ p.name }}</a></td><td>{{ p.version }}</td><td>{{ p.license }}</td></tr>{% endfor %}</tbody>
+</table></div>
+</div></div>
+{% endblock %}

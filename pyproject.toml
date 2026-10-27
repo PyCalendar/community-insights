@@ -1,33 +1,132 @@
 [project]
-name = "gh-community"
-version = "0.1.0"
-description = "Contributor analysis for GitHub repositories"
+name = "community-insights"
+version = "0.2.0"
+description = "Contributor Community Insights: response times, contributors and badges for GitHub projects"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
 requires-python = ">=3.13"
 dependencies = [
-    "PyGithub>=2.5",
-    "PyYAML>=6",
-    "typer>=0.12",
+    "Django>=5.2,<6",
+    "django-allauth[socialaccount]>=65",
+    "gunicorn>=23",
+    "matplotlib>=3.9",
+    "requests>=2.32",
+    "whitenoise>=6.9",
+    "scipy>=1.18.1",
+    "niquests>=3.21.2",
+    "django-environ>=0.14.0",
+    "django-health-check>=4.8.0",
+    "django-fernet-encrypted-fields>=0.4.0",
+    "django-ordered-model>=3.7.4",
+    "django-tables2>=3.0.1",
+    "django-filter>=26.2",
+    "django-tz-detect>=0.5.0",
+    "django-cachalot>=2.9.1",
+    "django-bootstrap5>=26.4",
+    "psycopg[binary]>=3.3.6",
+    "odfpy>=1.4.1",
+    "geonamescache>=2.0",
 ]
 
-[project.scripts]
-gh-community = "gh_community.cli:main"
+[project.urls]
+Documentation = "https://community-insights.readthedocs.io/en/latest/"
+Source = "https://github.com/PyCalendar/community-insights"
+Changelog = "https://community-insights.readthedocs.io/en/latest/changelog.html"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx==9.1.0",
+    "pydata-sphinx-theme==0.23.0",
+    "sphinx-autobuild==2025.8.25",
+    "sphinx-copybutton==0.5.2",
+    "sphinx-design==0.7.0",
+    "sphinx-issues==6.0.0",
+    "sphinx-last-updated-by-git==0.3.8",
+    "sphinx-notfound-page==1.1.0",
+    "sphinxcontrib-mermaid==2.1.1",
+    "towncrier==26.9.0",
+]
 
 [dependency-groups]
 dev = [
+    "behave-django",
+    "django-debug-toolbar>=8.0.0",
+    "django-types>=0.24.0",
+    "polib>=1.2.0",
     "pre-commit",
+    "pyright>=1.1.414",
     "pytest",
+    "pytest-cov",
+    "pytest-django",
     "ruff==0.16.10",
+    "selenium",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "community_insights.settings"
+pythonpath = ["."]
+testpaths = ["tests"]
+filterwarnings = ["ignore:No directory at:UserWarning"]  # staticfiles/ is made by collectstatic
+markers = [
+    "performance: measures speed; run with make test-performance",
+    "network: may use the network (reads GitHub with a real token)",
+]
+addopts = "-m 'not performance'"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/gh_community"]
+[tool.ruff]
+line-length = 100
+extend-exclude = [".claude", "community_insights/migrations", "static/vendor", "calendaring-sync", "docs/_build"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP"]
+# D: every class and function has a docstring, in Google style
+select = ["E", "F", "I", "UP", "D"]
+ignore = ["D100", "D104", "D105", "D106", "D107"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.towncrier]
+directory = "news/"
+filename = "docs/changelog.rst"
+issue_format = "`#{issue} <https://github.com/PyCalendar/community-insights/issues/{issue}>`_"
+start_string = ".. towncrier release notes start\n"
+title_format = "{version} ({project_date})"
+underlines = ["-", "~", "`"]
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "New features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "documentation"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Maintenance"
+showcontent = true
+
+[tool.ruff.lint.per-file-ignores]
+"community_insights/badges.py" = ["E501"]  # the SVG template
+"tests/**" = ["D"]  # docstrings of the tests: see todo.txt
+
+[tool.pyright]
+# type checking like icalendar: `make typecheck`; Django's types from django-types
+include = ["community_insights"]
+exclude = ["**/migrations", "**/__pycache__"]
+typeCheckingMode = "standard"
+pythonVersion = "3.13"
+reportMissingTypeStubs = false

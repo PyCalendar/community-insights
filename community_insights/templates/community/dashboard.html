@@ -1,0 +1,71 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% translate "Dashboard" %}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">{% translate "Dashboard" %}</h1>
+  {% if projects|length > 1 %}<a class="btn btn-sm btn-outline-primary" href="{% url 'overview' 'all' %}">{% translate "All together" %}</a>{% endif %}
+</div>
+{% if not login %}
+<div class="alert alert-info">{% url 'github_access' as access_url %}{% blocktranslate %}To read GitHub, <a href="{{ access_url }}">link your GitHub account or add a personal access token</a>.{% endblocktranslate %}</div>
+{% endif %}
+<ul class="nav nav-tabs mb-3" role="tablist">
+  <li class="nav-item" role="presentation"><button class="nav-link active" id="tab-projects" data-bs-toggle="tab" data-bs-target="#pane-projects" type="button" role="tab" aria-controls="pane-projects" aria-selected="true">{% blocktranslate with count=cards|length %}Projects ({{ count }}){% endblocktranslate %}</button></li>
+  <li class="nav-item" role="presentation"><button class="nav-link" id="tab-mine" data-bs-toggle="tab" data-bs-target="#pane-mine" type="button" role="tab" aria-controls="pane-mine" aria-selected="false">{% translate "Add repositories" %}</button></li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="pane-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="0">
+    <div class="row g-3">
+      {% for card in cards %}{% with project=card.project %}
+      <div class="col-12 col-md-6 col-xl-4"><div class="card h-100 project-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="text-truncate">
+              <a class="fw-semibold stretched-link-none" href="{% url 'overview' project.pk %}">{{ project.label }}</a>
+              <div class="small text-muted">{% if project.name %}{{ project.target }}, {% endif %}{% if project.is_owner %}{% translate "organisation" %}, {% endif %}{% blocktranslate count count=card.repositories %}{{ count }} repository{% plural %}{{ count }} repositories{% endblocktranslate %}</div>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% blocktranslate with name=project.target %}Menu of {{ name }}{% endblocktranslate %}">&#8942;</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'overview' project.pk %}">{% translate "Statistics" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'contributors' project.pk %}">{% translate "Contributors" %}</a></li>
+                <li><a class="dropdown-item" href="{% url 'fetch' project.pk %}?next={% url 'dashboard' %}">{% translate "Read from GitHub" %}</a></li>
+                <li><button class="dropdown-item" type="button" data-bs-toggle="collapse" data-bs-target="#rename-{{ project.pk }}" aria-expanded="false" aria-controls="rename-{{ project.pk }}">{% translate "Rename" %}</button></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><form method="post" action="{% url 'project_delete' project.pk %}" data-confirm="{% blocktranslate with name=project.target %}Remove {{ name }}? The downloaded data stays until the cache is cleared.{% endblocktranslate %}">{% csrf_token %}<button class="dropdown-item">{% translate "Remove" %}</button></form></li>
+              </ul>
+            </div>
+          </div>
+          <form method="post" action="{% url 'project_rename' project.pk %}" class="collapse mt-2" id="rename-{{ project.pk }}">{% csrf_token %}
+            <div class="input-group input-group-sm">
+              <input class="form-control" name="name" value="{{ project.name }}" placeholder="{{ project.target }}" aria-label="{% blocktranslate with name=project.target %}Name of {{ name }}{% endblocktranslate %}">
+              <button class="btn btn-primary">{% translate "Rename" %}</button>
+            </div>
+          </form>
+          <dl class="row small mt-2 mb-2">
+            <dt class="col-7 fw-normal text-muted">{% translate "Open pull requests" %}</dt><dd class="col-5 text-end mb-0">{{ card.counts.prs.open }}</dd>
+            <dt class="col-7 fw-normal text-muted">{% translate "Open issues" %}</dt><dd class="col-5 text-end mb-0">{{ card.counts.issues.open }}</dd>
+            <dt class="col-7 fw-normal text-muted">{% translate "Median first response" %}</dt><dd class="col-5 text-end mb-0">{% if card.median is not None %}{{ card.median|duration }}{% else %}-{% endif %}</dd>
+          </dl>
+          <div class="progress" role="progressbar" aria-label="{% blocktranslate with name=project.target %}Data of {{ name }}{% endblocktranslate %}" aria-valuenow="{{ card.data.percent }}" aria-valuemin="0" aria-valuemax="100" style="height: .4rem">
+            <div class="progress-bar" style="width: {{ card.data.percent }}%"></div>
+          </div>
+          <small class="text-muted">{% blocktranslate with percent=card.data.percent %}{{ percent }}% of the data{% endblocktranslate %}{% if card.data.jobs %}{% blocktranslate with left=card.data.seconds_left|duration %}, complete in about {{ left }}{% endblocktranslate %}{% endif %}</small>
+        </div>
+      </div></div>
+      {% endwith %}{% empty %}
+      <div class="col-12"><p class="text-muted">{% translate "Nothing yet. Add repositories or organisations in the next tab." %}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="tab-pane fade" id="pane-mine" role="tabpanel" aria-labelledby="tab-mine" tabindex="0">
+    <div class="card"><div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <p class="mb-0 small text-muted">{% translate "Your repositories, those of your organisations and those you contributed to." %}{% if profile.suggestions_fetched_at %} {% blocktranslate with ago=profile.suggestions_fetched_at|timesince %}Read {{ ago }} ago.{% endblocktranslate %}{% endif %}</p>
+        <form method="post">{% csrf_token %}<button class="btn btn-sm btn-outline-primary" name="refresh" value="1">{% translate "Refresh from GitHub" %}</button></form>
+      </div>
+      {% include "community/_sources.html" with action_url="" page_name="dashboard" %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

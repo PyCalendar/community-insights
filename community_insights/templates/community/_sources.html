@@ -1,0 +1,12 @@
+{% load static i18n %}{# The source picker: filter the projects and suggestions, or add owner/name. #}
+<form method="post" action="{% if action_url %}{% url 'add_source' action_url %}{% else %}{% url 'dashboard' %}{% endif %}" data-sources="picker" class="source-picker">
+  {% csrf_token %}
+  <input type="hidden" name="page" value="{{ page_name|default:'overview' }}">
+  <input type="hidden" name="target" value="" data-sources="target">
+  <label class="form-label small" for="source-filter">{% translate "Add a repository or organisation" %}</label>
+  <input class="form-control form-control-sm" id="source-filter" data-sources="input" autocomplete="off" placeholder="{% translate "Filter, or type owner/name or owner" %}">
+  <div class="list-group list-group-flush source-list" data-sources="list"></div>
+  <noscript><input class="form-control form-control-sm mt-1" name="target" placeholder="owner/name"><button class="btn btn-sm btn-primary mt-1">{% translate "Add" %}</button></noscript>
+  {{ choices|json_script:"source-choices" }}
+</form>
+<script src="{% static 'js/sources.js' %}" defer></script>

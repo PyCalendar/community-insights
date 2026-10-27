@@ -1,0 +1,27 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}{{ login }} in {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}">{{ scope.title }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'contributors' scope.text %}">{% translate "Contributors" %}</a></li>
+  <li class="breadcrumb-item active">{{ login }}</li></ol></nav>
+<div class="d-flex align-items-center gap-3 mb-3">
+  {% if person.avatar_url %}<img class="avatar" src="{{ person.avatar_url }}" alt="">{% endif %}
+  <div><h1 class="h3 mb-0"><a href="https://github.com/{{ person.login }}">{{ person.login }}</a></h1>
+  <div class="text-muted">{{ person.name }}{% if person.name and person.location %} · {% endif %}{{ person.location }}{% if show_horizon_europe %}{% include "community/_horizon_europe.html" with location=person.location %}{% endif %}</div></div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{{ person.prs_opened }}</div><small class="text-muted">{% blocktranslate with merged=person.prs_merged open=person.prs_open %}pull requests ({{ merged }} merged, {{ open }} open){% endblocktranslate %}</small></div></div>
+  <div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{{ person.issues_opened }}</div><small class="text-muted">{% blocktranslate with closed=person.issues_closed open=person.issues_open %}issues ({{ closed }} closed, {{ open }} open){% endblocktranslate %}</small></div></div>
+  <div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{{ person.comments }} / {{ person.reviews }} / {{ person.commits }}</div><small class="text-muted">{% translate "comments / reviews / commits" %}</small></div></div>
+  <div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{% if person.median_response is not None %}{{ person.median_response|duration }}{% else %}-{% endif %}</div><small class="text-muted">{% translate "median response time" %}</small></div></div>
+</div>
+<p class="text-muted">{% blocktranslate with first=person.first|date:"Y-m-d" last=person.last|date:"Y-m-d" count months=person.active_months %}Active from {{ first }} to {{ last }} in {{ months }} month.{% plural %}Active from {{ first }} to {{ last }} in {{ months }} months.{% endblocktranslate %} {% blocktranslate %}Times in your time zone: {{ timezone }}.{% endblocktranslate %}</p>
+<div class="row g-4 chart">
+  <div class="col-12"><h2 class="h6">{% translate "Contributions per month" %}</h2>{% url 'chart' scope.text 'months' as base %}{% translate "Contributions per month by kind" as alt %}{% with src=base|add:'?login='|add:login_q|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
+  <div class="col-12"><h2 class="h6">{% translate "How fast they respond to others, per month" %}</h2>{% url 'chart' scope.text 'responses' as base %}{% translate "Median time until their first response per month" as alt %}{% with src=base|add:'?login='|add:login_q|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
+  <div class="col-12 col-lg-6"><h2 class="h6">{% translate "Across the day" %}</h2>{% url 'chart' scope.text 'hours' as base %}{% translate "Activity by hour of the day" as alt %}{% with src=base|add:'?login='|add:login_q|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
+  <div class="col-12 col-lg-6"><h2 class="h6">{% translate "Across the week and the day" %}</h2>{% url 'chart' scope.text 'heatmap' as base %}{% translate "Heat map of the weekday and hour" as alt %}{% with src=base|add:'?login='|add:login_q|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
+</div>
+{% endblock %}

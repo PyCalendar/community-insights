@@ -1,0 +1,21 @@
+{% load community i18n %}
+<div class="card mb-2"><div class="card-body py-2">
+  <div class="d-flex flex-wrap justify-content-between gap-2 align-items-center">
+    <div>
+      <strong>{{ job.repository.full_name }}</strong>
+      <span class="badge text-bg-secondary">{{ job.get_priority_display|default:job.priority }}</span>
+      <div class="small text-muted">{% translate "Started for:" %} {% if job.reason_url %}<a href="{{ job.reason_url }}">{{ job.reason }}</a>{% else %}{{ job.reason|default:"-" }}{% endif %}
+        · {% if job.point_limit %}{% blocktranslate with used=job.points_used limit=job.point_limit %}{{ used }} of {{ limit }} points{% endblocktranslate %}{% else %}{% blocktranslate with used=job.points_used %}{{ used }} points{% endblocktranslate %}{% endif %}{% if job.message %} · {{ job.message }} {{ job.error_code|error_help }}{% endif %}</div>
+    </div>
+    <form method="post" class="d-flex gap-1">{% csrf_token %}<input type="hidden" name="id" value="{{ job.pk }}">
+      {% if movable %}
+      <button class="btn btn-sm btn-outline-secondary" name="action" value="up" aria-label="{% translate "Earlier" %}">&uarr;</button>
+      <button class="btn btn-sm btn-outline-secondary" name="action" value="down" aria-label="{% translate "Later" %}">&darr;</button>
+      {% endif %}
+      <button class="btn btn-sm btn-outline-secondary" name="action" value="cancel">{% if job.cancel_requested %}{% translate "Stopping…" %}{% else %}{% translate "Cancel" %}{% endif %}</button>
+    </form>
+  </div>
+  <div class="progress mt-2" role="progressbar" aria-label="{{ job.repository.full_name }}" aria-valuenow="{{ job.percent }}" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar" style="width: {{ job.percent }}%">{{ job.percent }}%</div>
+  </div>
+</div></div>

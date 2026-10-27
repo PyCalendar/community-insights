@@ -1,0 +1,9 @@
+.git
+.venv
+old
+calendaring-sync
+data
+docs
+tests
+__pycache__
+.env

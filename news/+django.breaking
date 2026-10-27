@@ -1,0 +1,1 @@
+Rebuild the project as a Django web application: sign in with GitHub, dashboard, statistics, response time badges. The command line tool before the rewrite is removed; it is in the git history.

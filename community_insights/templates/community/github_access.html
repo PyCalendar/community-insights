@@ -1,0 +1,98 @@
+{% extends "community/base.html" %}
+{% load socialaccount community static i18n %}
+{% block title %}{% translate "GitHub access" %}{% endblock %}
+{% block content %}
+<h1 class="h3">{% translate "GitHub access" %}</h1>
+<p class="text-muted">{% translate "Data is read from GitHub with these accounts and tokens, in this order, then with the points others share on this site. Each GitHub account may use 5000 API points per hour; when one is used up, the next one is used. Friends can give you a token, too." %} <a href="{{ links.documentation }}en/latest/how-to/tokens.html">{% translate "How to create and add a token" %}</a>.</p>
+
+<div class="card mb-3"><div class="card-header"><strong>{% translate "1. GitHub account" %}</strong></div><div class="card-body">
+  {% if account %}
+    <p class="mb-2">{% blocktranslate with login=account.extra_data.login %}Linked: <strong>{{ login }}</strong>, used first; its limits are below with the tokens.{% endblocktranslate %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if private_repositories %}<form method="post" action="{% provider_login_url 'github' process='connect' scope='read:user,repo' %}">{% csrf_token %}
+        <button class="btn btn-sm btn-outline-primary">{% translate "Allow reading private repositories" %}</button></form>{% endif %}
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'socialaccount_connections' %}">{% translate "Manage linked accounts" %}</a>
+    </div>
+    {% if private_repositories %}<div class="form-text">{% translate "GitHub asks you to allow the <code>repo</code> permission; the site only reads." %}</div>{% endif %}
+  {% else %}
+    {% get_providers as providers %}
+    {% if providers %}
+      <form method="post" action="{% provider_login_url 'github' process='connect' %}">{% csrf_token %}
+        <button class="btn btn-sm btn-primary">{% translate "Link GitHub account" %}</button></form>
+    {% else %}
+      <p class="text-muted mb-0">{% translate "This installation has no GitHub OAuth app: add tokens below." %}</p>
+    {% endif %}
+  {% endif %}
+</div></div>
+
+<div class="card mb-3"><div class="card-header"><strong>{% translate "Tokens" %}</strong></div>
+  <ul class="list-group list-group-flush">
+  {% for t in tokens %}
+    <li class="list-group-item">
+      <div class="d-flex flex-wrap justify-content-between gap-2">
+        <div>
+          <strong>{{ forloop.counter|add:1 }}. {{ t }}</strong> <span class="text-muted">({{ t.login }})</span>
+          <div class="small">
+            {% if t.expired %}<span class="text-danger">{% blocktranslate with date=t.expires_at|date:"Y-m-d" %}Expired {{ date }}.{% endblocktranslate %}</span> {{ "ExpiredAPIToken"|error_help }}
+            {% elif t.expires_at %}<span class="{% if t.expires_soon %}text-warning-emphasis fw-semibold{% else %}text-muted{% endif %}">{% blocktranslate with date=t.expires_at|date:"Y-m-d" %}Expires {{ date }}.{% endblocktranslate %}</span>
+            {% else %}<span class="text-warning-emphasis">{% translate "Never expires or unknown: organisations such as Plone refuse such tokens." %}</span> {{ "TokenLifetimeRefused"|error_help }}{% endif %}
+            {% if t.rate_remaining is not None %}<span class="text-muted">{% if t.rate_limit %}{% blocktranslate with left=t.rate_remaining limit=t.rate_limit %}{{ left }} of {{ limit }} points left at GitHub.{% endblocktranslate %}{% else %}{% blocktranslate with left=t.rate_remaining %}{{ left }} points left at GitHub.{% endblocktranslate %}{% endif %}</span>{% endif %}
+            {% if t.last_test.checked %}<span class="text-muted">{% blocktranslate with ok=t.last_test.ok total=t.last_test.total %}Tested: reads {{ ok }} of {{ total }} repositories.{% endblocktranslate %}{% if t.last_test.missing %} {% blocktranslate with missing=t.last_test.missing|join:", " %}Not: {{ missing }}.{% endblocktranslate %}{% endif %}</span>{% endif %}
+            {% if t.last_error %}<span class="text-danger">{{ t.last_error }}</span> {{ t.last_error_code|error_help }}{% endif %}
+          </div>
+        </div>
+        <form method="post" class="d-flex flex-wrap gap-1 align-items-center">{% csrf_token %}<input type="hidden" name="id" value="{{ t.pk }}">
+          <button class="btn btn-sm btn-outline-secondary" name="action" value="up" aria-label="{% translate "Use earlier" %}">&uarr;</button>
+          <button class="btn btn-sm btn-outline-secondary" name="action" value="down" aria-label="{% translate "Use later" %}">&darr;</button>
+          <button class="btn btn-sm btn-outline-primary" name="action" value="test">{% translate "Test on my projects" %}</button>
+          {% if not t.linked %}<button class="btn btn-sm btn-outline-secondary" name="action" value="delete" data-confirm="{% translate "Delete this token?" %}">{% translate "Delete" %}</button>{% endif %}
+        </form>
+      </div>
+      <form method="post" class="mt-2 token-sliders" data-token-sliders data-limit="{{ t.points_per_hour }}">{% csrf_token %}
+        <input type="hidden" name="id" value="{{ t.pk }}"><input type="hidden" name="action" value="share">
+        <label class="form-label small mb-0" for="max-{{ t.pk }}">{% translate "Maximum points to use per hour" %}</label>
+        <input type="range" class="form-range" min="0" max="100" step="1" id="max-{{ t.pk }}" name="max_percent" value="{{ t.max_percent }}" data-slider="max">
+        <div class="small text-muted mb-1" data-slider-text="max">{% blocktranslate with max=t.max_points limit=t.points_per_hour reserve=t.reserve %}{{ max }} of {{ limit }} points per hour, stopping when {{ reserve }} are left{% endblocktranslate %}</div>
+        <label class="form-label small mb-0" for="shared-{{ t.pk }}">{% translate "Free for everybody else on this site" %}</label>
+        <input type="range" class="form-range" min="0" max="100" step="1" id="shared-{{ t.pk }}" name="shared_percent" value="{{ t.shared_percent }}" data-slider="shared">
+        <div class="small text-muted mb-1" data-slider-text="shared">{% blocktranslate with shared=t.shared_points max=t.max_points %}{{ shared }} of {{ max }} points per hour for others on this site{% endblocktranslate %}</div>
+        <button class="btn btn-sm btn-outline-primary">{% translate "Save" %}</button>
+        {% if t.used_in_hour %}<span class="small text-muted ms-2">{% blocktranslate with used=t.used_in_hour others=t.used_by_others_in_hour %}Used this hour: {{ used }}, by others {{ others }}.{% endblocktranslate %}</span>{% endif %}
+      </form>
+    </li>
+  {% empty %}
+    <li class="list-group-item text-muted">{% translate "No tokens yet." %}</li>
+  {% endfor %}
+  </ul>
+  <form method="post" class="card-body border-top">{% csrf_token %}<input type="hidden" name="action" value="add">
+    <div class="row g-2">
+      <div class="col-12 col-md-6"><label class="form-label" for="token">{% translate "Token" %}</label>
+        <input class="form-control" id="token" name="token" type="password" autocomplete="off" placeholder="github_pat_..." required></div>
+      <div class="col-6 col-md-3"><label class="form-label" for="label">{% translate "Name" %}</label>
+        <input class="form-control" id="label" name="label" placeholder="{% translate "from Kim" %}"></div>
+      <div class="col-12 token-sliders" data-token-sliders data-limit="5000">
+        <label class="form-label small mb-0" for="max-new">{% translate "Maximum points to use per hour" %}</label>
+        <input type="range" class="form-range" min="0" max="100" step="1" id="max-new" name="max_percent" value="100" data-slider="max">
+        <div class="small text-muted mb-1" data-slider-text="max">{% blocktranslate with max=5000 limit=5000 reserve=0 %}{{ max }} of {{ limit }} points per hour, stopping when {{ reserve }} are left{% endblocktranslate %}</div>
+        <label class="form-label small mb-0" for="shared-new">{% translate "Free for everybody else on this site" %}</label>
+        <input type="range" class="form-range" min="0" max="100" step="1" id="shared-new" name="shared_percent" value="10" data-slider="shared">
+        <div class="small text-muted mb-1" data-slider-text="shared">{% blocktranslate with shared=500 max=5000 %}{{ shared }} of {{ max }} points per hour for others on this site{% endblocktranslate %}</div>
+      </div>
+    </div>
+    <div class="form-text mb-2">{% translate 'Create a <a href="https://github.com/settings/personal-access-tokens/new">fine-grained token</a> with an expiration date. Public repositories need no permissions.' %} {% if private_repositories %}{% translate "Private ones need read access to <em>Pull requests</em>, <em>Issues</em> and <em>Metadata</em>." %}{% else %}{% translate "For now only public repositories are read." %}{% endif %}</div>
+    <button class="btn btn-primary">{% translate "Add the token" %}</button>
+  </form>
+</div>
+
+<div class="card"><div class="card-header"><strong>{% translate "Profile" %}</strong></div>
+  <form method="post" class="card-body row g-2 align-items-end">{% csrf_token %}<input type="hidden" name="action" value="profile">
+    <div class="col-12 col-md-6"><label class="form-label" for="fetch_limit">{% translate "Suggested limit of API points when a fetch needs more than 5000" %}</label>
+      <input class="form-control" id="fetch_limit" name="fetch_limit" type="number" min="1" value="{{ profile.fetch_limit }}"></div>
+    <div class="col-12"><div class="form-check">
+      <input class="form-check-input" type="checkbox" id="show_horizon_europe" name="show_horizon_europe" {% if profile.show_horizon_europe %}checked{% endif %}>
+      <label class="form-check-label" for="show_horizon_europe">{% blocktranslate with docs=links.documentation %}Show a <span class="badge text-bg-secondary">Horizon Europe</span> tag next to the locations in the countries of <a href="{{ docs }}en/latest/reference/locations.html">Horizon Europe</a>{% endblocktranslate %}</label></div></div>
+    <div class="col-12 col-md-3"><button class="btn btn-primary">{% translate "Save" %}</button></div>
+  </form>
+</div>
+<script src="{% static 'js/token-sliders.js' %}" defer></script>
+{% endblock %}

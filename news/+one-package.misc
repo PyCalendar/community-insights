@@ -1,0 +1,1 @@
+One Python package: the code of the app ``community`` is now in ``community_insights``, next to the settings. The tables and the migrations keep their names, so existing databases work as before.

@@ -1,0 +1,1 @@
+No JavaScript in the templates any more: confirmations use ``data-confirm`` and ``static/js/confirm.js``, and the time zone is sent by ``static/js/time-zone.js`` instead of the inline script of django-tz-detect. The page title of "GitHub access" no longer shows a script tag.

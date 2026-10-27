@@ -1,0 +1,17 @@
+#!/bin/sh
+# Create or update the database, then serve: nginx in front (static files,
+# port $PORT), gunicorn behind it on 127.0.0.1:8000, like myco-webshop. With
+# FETCH_WORKER=external-http-container (the default of the image) the fetch
+# worker runs here as a process of its own, started again if it stops; with
+# external-separate-container it runs in the worker service of the compose file.
+set -e
+python manage.py migrate --noinput
+python manage.py invalidate_cachalot -v0  # the cache of the statistics starts fresh
+python manage.py ensure_superuser  # only if DEFAULT_SUPERUSER is set
+python manage.py check_production  # stops the container if a default password is used
+if [ "$FETCH_WORKER" = "external-http-container" ]; then
+    (while true; do python manage.py fetch_worker || true; sleep 5; done) &
+fi
+sed "s/LISTEN_PORT/${PORT}/g" /app/docker/nginx.conf > /tmp/nginx.conf
+nginx -c /tmp/nginx.conf
+exec gunicorn community_insights.wsgi -w "$WORKERS" --threads "$THREADS" -b "127.0.0.1:8000" --access-logfile -

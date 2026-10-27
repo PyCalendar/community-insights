@@ -1,0 +1,1 @@
+The documentation has ``make livehtml`` to see it while editing, ``make linkcheck`` for its links, and ``make vale`` without an own installation of Vale. The CI checks the links and the prose; broken links of the documentation are fixed.

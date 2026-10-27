@@ -1,0 +1,51 @@
+# The setup of the tutorial: https://community-insights.readthedocs.io/en/latest/tutorial.html
+#   cp .env.example .env    # then edit .env
+#   docker compose up -d
+
+# The logs are rotated: at most 5 files of 10 MB per service.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  community-insights:
+    image: ghcr.io/pycalendar/community-insights:stable  # or :latest for the main branch
+    # build: .   # to use the local code instead
+    ports:
+      - "5000:5000"
+    env_file: .env
+    volumes:
+      - ./data:/app/data   # the SQLite database and the generated secret key
+    restart: unless-stopped
+    logging: *logging
+    # With PostgreSQL: remove the comments of the db service and of depends_on,
+    # and set DATABASE_URL=postgres://community:community@db/community in .env
+    # depends_on:
+    #   - db
+
+  # Optional: the fetch worker in a container of its own. Set
+  # FETCH_WORKER=external-separate-container in .env (then the web container
+  # starts no worker) and remove the comments. By default the image runs the
+  # worker in the web container (external-http-container).
+  # worker:
+  #   image: ghcr.io/pycalendar/community-insights:stable
+  #   entrypoint: ["python", "manage.py", "fetch_worker"]
+  #   env_file: .env
+  #   volumes:
+  #     - ./data:/app/data
+  #   restart: unless-stopped
+  #   logging: *logging
+
+  # Optional: PostgreSQL instead of SQLite, for many people.
+  # db:
+  #   image: postgres:17
+  #   environment:
+  #     POSTGRES_USER: community
+  #     POSTGRES_PASSWORD: community
+  #     POSTGRES_DB: community
+  #   volumes:
+  #     - ./data/postgres:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #   logging: *logging

@@ -1,0 +1,56 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% translate "Read from GitHub" %}{% endblock %}
+{% block content %}
+<h1 class="h3">{% blocktranslate with title=scope.title %}Read {{ title }} from GitHub{% endblocktranslate %}</h1>
+<p class="text-muted">{% blocktranslate count points=spent_on_estimate %}This estimate cost {{ points }} API point.{% plural %}This estimate cost {{ points }} API points.{% endblocktranslate %} {% translate "GitHub allows 5000 points per hour and token." %}</p>
+<div class="table-responsive"><table class="table table-sm">
+  <thead><tr><th>{% translate "Repository" %}</th><th class="text-end">{% translate "On GitHub" %}</th><th class="text-end">{% translate "Downloaded" %}</th><th class="text-end">{% translate "API points" %}</th></tr></thead>
+  <tbody>{% for e in estimates %}<tr>
+    <td>{{ e.repository.full_name }}</td>
+    <td class="text-end">{% if e.prs is None %}{% translate "not visible" %}{% else %}{{ e.items }}{% endif %}</td>
+    <td class="text-end">{{ e.cached }}</td>
+    <td class="text-end">{{ e.points }}</td>
+  </tr>{% endfor %}</tbody>
+  <tfoot><tr><th colspan="3">{% blocktranslate %}About {{ duration }}{% endblocktranslate %}</th><th class="text-end">{{ points }}</th></tr></tfoot>
+</table></div>
+<h2 class="h6">{% translate "Tokens, in this order" %}</h2>
+<ul class="small">{% for t in tokens %}<li>{{ t.label }}{% if t.stored %}: {% if t.shared %}{% blocktranslate with points=t.stored.shared_points %}up to {{ points }} points per hour{% endblocktranslate %}{% else %}{% blocktranslate with points=t.stored.max_points %}up to {{ points }} points per hour{% endblocktranslate %}{% endif %}{% endif %}{% if t.client.rate.remaining is not None %}, {% blocktranslate with left=t.client.rate.remaining %}{{ left }} left at GitHub{% endblocktranslate %}{% endif %}</li>{% endfor %}</ul>
+{% if anonymous %}
+<div class="alert alert-info" role="note">{% blocktranslate with left=left.total %}You have no token, so the requests without a token of this server are used: GitHub allows 60 per hour for everybody here together, {{ left }} are left. Reviews without a comment and the names and locations of people cannot be read without a token.{% endblocktranslate %} {% url 'github_access' as access_url %}{% blocktranslate %}<a href="{{ access_url }}">Add a token</a> to read faster and completely.{% endblocktranslate %}</div>
+{% else %}
+<p class="small">{% if left.unlimited %}{% translate "Points left this hour: as GitHub allows." %}{% else %}{% blocktranslate with total=left.total own=left.own shared=left.shared %}Points left this hour: {{ total }} ({{ own }} of your tokens, {{ shared }} shared by others).{% endblocktranslate %}{% endif %}{% if extra_left %} {% blocktranslate %}This includes {{ extra_left }} you allowed above your maximum.{% endblocktranslate %}{% endif %}</p>
+{% endif %}
+{% if visitor %}
+<div class="alert alert-info" role="note">{% translate "You are not signed in: the site reads with the tokens people donated to it." %}{% if anonymous %} {% translate "Without a token when there are none." %}{% endif %} {% if short %}{% translate "They do not have enough points left this hour for all of it: what can be read is read now, the rest later." %}{% else %}{% translate "Their points are enough for this." %}{% endif %} {% url 'account_signup' as signup_url %}{% blocktranslate %}<a href="{{ signup_url }}">Sign up</a> and add a token to read faster.{% endblocktranslate %}</div>
+{% endif %}
+{% if short and not anonymous and not visitor %}
+<div class="alert alert-warning" role="alert">
+  <strong>{% translate "The limit of your tokens for this hour is reached." %}</strong> {% blocktranslate with left=left.total %}A full fetch needs about {{ points }} points; {{ left }} are left this hour. What can be read is read now; the rest waits until the next hour.{% endblocktranslate %}
+  <form method="post" class="row g-2 align-items-end mt-1">{% csrf_token %}<input type="hidden" name="action" value="allow"><input type="hidden" name="next" value="{{ next }}">
+    <div class="col-auto"><label class="form-label small mb-0" for="extra">{% translate "More points of your tokens that are fine this hour" %}</label>
+      <input class="form-control form-control-sm" type="number" min="1" id="extra" name="extra" value="{{ missing_points }}"></div>
+    <div class="col-auto"><button class="btn btn-sm btn-primary">{% translate "Allow" %}</button></div>
+  </form>
+</div>
+{% endif %}
+{% if not visitor %}<p class="small"><a href="{% url 'github_access' %}">{% translate "Add tokens or change their order and limits" %}</a>. {% translate "More tokens read faster." %}</p>{% endif %}
+<form method="post" class="card card-body">{% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-5">
+      <label class="form-label" for="limit">{% if ask_limit %}{% blocktranslate %}Use at most this many API points (required: more than {{ ask_above }}){% endblocktranslate %}{% else %}{% translate "Use at most this many API points" %}{% endif %}</label>
+      <input class="form-control" type="number" min="1" id="limit" name="limit" {% if ask_limit %}required value="{{ default_limit }}"{% endif %} placeholder="{% translate "no limit" %}">
+    </div>
+    {% if not visitor %}<div class="col-6 col-md-3">
+      <label class="form-label" for="priority">{% translate "Priority" %}</label>
+      <select class="form-select" id="priority" name="priority">{% for value, label in priorities %}<option value="{{ value }}" {% if value == 0 %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    </div>{% endif %}
+    <div class="col-6 col-md-4 d-flex gap-2">
+      <button class="btn btn-primary">{% translate "Read from GitHub" %}</button>
+      <a class="btn btn-outline-secondary" href="{{ next }}">{% translate "Cancel" %}</a>
+    </div>
+  </div>
+  <div class="form-text">{% translate "The fetch runs in the background." %}{% if not visitor %} {% url 'downloads' as downloads_url %}{% blocktranslate %}See <a href="{{ downloads_url }}">Downloads</a>.{% endblocktranslate %}{% endif %} {% translate "When a limit is reached, what was read is kept." %}</div>
+</form>
+{% endblock %}
