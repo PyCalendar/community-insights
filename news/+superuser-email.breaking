@@ -1,0 +1,1 @@
+DEFAULT_SUPERUSER is an email address and a password, such as admin@example.com:a-long-password, applied each time the site starts; the form name:password stops the start.

@@ -1,6 +1,7 @@
 import asyncio
 
-import niquests
+import httpx
+from aiolimiter import AsyncLimiter
 from django.conf import settings
 
 from ..errors import GitHubUnreachable, SecondaryRateLimitExceeded
@@ -16,22 +17,26 @@ class Client:
     The reads of reads.py are its methods, too.
     """
 
-    def __init__(self, token: str, api: str | None = None):
+    def __init__(
+        self, token: str, api: str | None = None, transport: httpx.AsyncBaseTransport | None = None
+    ):
         """Read GitHub with one token.
 
         Args:
             token: The token.
             api: The address of the API, ``GITHUB_API`` if None.
+            transport: How the requests are sent, the network if None; tests answer with respx.
         """
         self.token = token
         self.api = (api or settings.GITHUB_API).rstrip("/")
-        # an even pace below the points per minute of GitHub
-        self.session = niquests.AsyncSession(
-            hooks=niquests.AsyncLeakyBucketLimiter(rate=limits.POINTS_PER_SECOND)
+        self.session = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {token}", "User-Agent": "community-insights"},
+            timeout=60,
+            transport=transport,
         )
+        # an even pace below the points per minute of GitHub
+        self.pace = AsyncLimiter(limits.POINTS_PER_SECOND, 1)
         self.slots: asyncio.Semaphore | None = None  # requests of this token at once
-        self.session.headers["Authorization"] = f"Bearer {token}"
-        self.session.headers["User-Agent"] = "community-insights"
         self.rate = RateLimit()
         self.requests = 0  # one API point each for the queries used here
 
@@ -80,19 +85,15 @@ class Client:
         """
         if self.slots is None:
             self.slots = asyncio.Semaphore(limits.PER_TOKEN)
-        async with limits.server_slots(), self.slots:
+        async with limits.server_slots(), self.slots, self.pace:
             self.requests += 1
             try:
                 response = await self.session.post(
-                    f"{self.api}/graphql",
-                    json={"query": query, "variables": variables},
-                    timeout=60,
+                    f"{self.api}/graphql", json={"query": query, "variables": variables}
                 )
-            except niquests.RequestException as error:
-                raise GitHubUnreachable(str(error)) from error
-        if response.status_code is None:
-            raise GitHubUnreachable("GitHub gave no answer.")
-        headers = response.headers or {}
+            except httpx.RequestError as error:
+                raise GitHubUnreachable(str(error) or type(error).__name__) from error
+        headers = response.headers
         self.rate.note(headers)
         try:
             body = response.json()
@@ -100,7 +101,7 @@ class Client:
             body = error
         return data_of(
             response.status_code,
-            response.text or "",
+            response.text,
             body,
             self.rate,
             header_int(headers, "retry-after"),
@@ -108,7 +109,7 @@ class Client:
 
     async def close(self) -> None:
         """Close the connections."""
-        await self.session.close()
+        await self.session.aclose()
 
     async def viewer(self):
         """The login of the owner of the token (reads.viewer).

@@ -9,21 +9,22 @@ from community_insights import errors
 from community_insights.github import RateLimited, TokenError
 from community_insights.models import AccessToken
 from community_insights.tokens import Entry, LimitReached, NoTokenLeft, TokenPool
+from tests.factories import AccessTokenFactory
 
 from ..fakes import Counting, run
 
 pytestmark = pytest.mark.django_db
 
 
-def stored(user, **fields):  # noqa: F811
-    """A stored token of a user."""
-    return AccessToken.objects.create(user=user, token="t", login="x", **fields)
-
-
 def test_pool_uses_tokens_in_order(user):  # noqa: F811
     """Pool uses tokens in order."""
     first, second = Counting("first"), Counting("second")
-    pool = TokenPool([Entry("a", first, stored(user)), Entry("b", second, stored(user))])
+    pool = TokenPool(
+        [
+            Entry("a", first, AccessTokenFactory(user=user)),
+            Entry("b", second, AccessTokenFactory(user=user)),
+        ]
+    )
     run(pool.graphql, "query { x }")
     assert first.requests == 1 and second.requests == 0 and pool.points == 1
 
@@ -33,8 +34,8 @@ def test_pool_skips_a_rate_limited_token(user):  # noqa: F811
     reset = timezone.now() + timedelta(minutes=30)
     first = Counting("first", fail=RateLimited("used up", reset))
     second = Counting("second")
-    a = stored(user)
-    pool = TokenPool([Entry("a", first, a), Entry("b", second, stored(user))])
+    a = AccessTokenFactory(user=user)
+    pool = TokenPool([Entry("a", first, a), Entry("b", second, AccessTokenFactory(user=user))])
     run(pool.graphql, "query { x }")
     assert second.requests == 1
     a.refresh_from_db()
@@ -46,8 +47,10 @@ def test_pool_skips_a_rate_limited_token(user):  # noqa: F811
 def test_pool_respects_the_maximum_per_hour(user):  # noqa: F811
     """Pool respects the maximum per hour."""
     first, second = Counting("first"), Counting("second")
-    limited = stored(user, rate_limit=100, max_percent=2)  # 2 points per hour
-    pool = TokenPool([Entry("a", first, limited), Entry("b", second, stored(user))])
+    limited = AccessTokenFactory(user=user, rate_limit=100, max_percent=2)  # 2 points per hour
+    pool = TokenPool(
+        [Entry("a", first, limited), Entry("b", second, AccessTokenFactory(user=user))]
+    )
     for _ in range(3):
         run(pool.graphql, "query { x }")
     assert (first.requests, second.requests) == (2, 1)
@@ -57,8 +60,8 @@ def test_pool_respects_the_maximum_per_hour(user):  # noqa: F811
 
 def test_hourly_limit_starts_again_after_an_hour(user):  # noqa: F811
     """Hourly limit starts again after an hour."""
-    limited = stored(
-        user,
+    limited = AccessTokenFactory(
+        user=user,
         rate_limit=100,
         max_percent=1,
         used_in_hour=1,
@@ -72,10 +75,17 @@ def test_pool_drops_rejected_tokens(user):  # noqa: F811
     """Pool drops rejected tokens."""
     bad = Counting("bad", fail=TokenError("revoked"))
     good = Counting("good")
-    pool = TokenPool([Entry("a", bad, stored(user)), Entry("b", good, stored(user))])
+    pool = TokenPool(
+        [
+            Entry("a", bad, AccessTokenFactory(user=user)),
+            Entry("b", good, AccessTokenFactory(user=user)),
+        ]
+    )
     run(pool.graphql, "query { x }")
     assert [e.label for e in pool.entries] == ["b"]
-    only_bad = TokenPool([Entry("a", Counting("bad", fail=TokenError("revoked")), stored(user))])
+    only_bad = TokenPool(
+        [Entry("a", Counting("bad", fail=TokenError("revoked")), AccessTokenFactory(user=user))]
+    )
     with pytest.raises(TokenError):
         run(only_bad.graphql, "query { x }")
 
@@ -83,7 +93,9 @@ def test_pool_drops_rejected_tokens(user):  # noqa: F811
 def test_no_token_left_tells_when_to_try_again(user):  # noqa: F811
     """No token left tells when to try again."""
     reset = timezone.now() + timedelta(minutes=10)
-    pool = TokenPool([Entry("a", Counting("a", fail=RateLimited("x", reset)), stored(user))])
+    pool = TokenPool(
+        [Entry("a", Counting("a", fail=RateLimited("x", reset)), AccessTokenFactory(user=user))]
+    )
     with pytest.raises(NoTokenLeft) as error:
         run(pool.graphql, "query { x }")
     assert error.value.reset_at == reset
@@ -91,7 +103,7 @@ def test_no_token_left_tells_when_to_try_again(user):  # noqa: F811
 
 def test_point_limit_of_a_fetch(user):  # noqa: F811
     """Point limit of a fetch."""
-    pool = TokenPool([Entry("a", Counting("a"), stored(user))], point_limit=1)
+    pool = TokenPool([Entry("a", Counting("a"), AccessTokenFactory(user=user))], point_limit=1)
     run(pool.graphql, "query { x }")
     with pytest.raises(LimitReached):
         run(pool.graphql, "query { x }")
@@ -109,7 +121,6 @@ def test_expired_stored_token_is_skipped(world):  # noqa: F811
 
     from django.utils import timezone
 
-    from community_insights.models import AccessToken
     from community_insights.tokens import Entry, TokenPool
 
     from ..fakes import FakeClient

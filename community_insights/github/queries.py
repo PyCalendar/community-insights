@@ -45,14 +45,18 @@ def repositories(owner: str | None) -> str:
         owner: The organisation or user, None for the owner of the token.
 
     Returns:
-        The query, with the variables ``login`` and ``after``.
+        The query, with the variable ``after``, and ``login`` for an owner.
     """
     if owner is None:
-        root, args = "viewer", "ownerAffiliations: OWNER, "
+        declared, root, args = "$after: String", "viewer", "ownerAffiliations: OWNER, "
     else:
-        root, args = "repositoryOwner(login: $login)", ""
+        declared, root, args = (
+            "$login: String!, $after: String",
+            "repositoryOwner(login: $login)",
+            "",
+        )
     return f"""
-    query($login: String!, $after: String) {{
+    query({declared}) {{
       {root} {{ repositories(first: 100, after: $after, {args}
             orderBy: {{field: STARGAZERS, direction: DESC}}) {{
         nodes {{ {REPOSITORY_FIELDS} }} pageInfo {{ hasNextPage endCursor }}

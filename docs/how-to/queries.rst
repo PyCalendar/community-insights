@@ -15,7 +15,7 @@ A query compares variables with numbers or text and combines the comparisons wit
     "berlin" in user_location or user_class == "maintainers"
     1 <= issues_opened < 10
 
-While you type a name, the field lists the variables that start with it: **Tab** takes the first one, the arrow keys choose another one and **Enter** takes it. Otherwise **Enter** runs the query.
+While you type a name, the field lists the variables that start with it: **Tab** takes the first one, the arrow keys choose another one and **Enter** takes it. Otherwise **Enter** runs the query. The result appears without loading the page again; the address of the page changes with it, so you can share it. Choosing another **Group by** or **Chart of** runs the query, too.
 
 Text is compared in any case with ``==``, ``!=``, ``in`` and ``not in``. **Variables** on the page lists all of them, such as ``prs_merged``, ``prs_reviewed``, ``commits_total``, ``hours_to_respond`` (the median hours until their first response on the items of others), ``days_last``, ``user_location``, ``user_country`` (such as ``"DE"``) and ``user_horizon_europe``. A wrong name is answered with the names that are close; an old name, with the one it has now.
 

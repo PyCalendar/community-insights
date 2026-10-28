@@ -1,6 +1,5 @@
 allauth
 async
-behave
 bool
 Bootstrap
 cachalot
@@ -22,7 +21,6 @@ icalendar
 Kaplan
 Meier
 nginx
-niquests
 OAuth
 percentile
 Plone
@@ -36,3 +34,13 @@ towncrier
 uv
 uvx
 [a-z]+(_[a-z]+)+
+httpx
+aiolimiter
+respx
+jsdom
+Playwright
+LinkChecker
+statsmodels
+pytest
+matplotlib
+htmx

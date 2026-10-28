@@ -13,6 +13,7 @@ Reference
    query-operators
    locations
    badges
+   downloads
    urls
    pages
    errors

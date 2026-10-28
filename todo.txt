@@ -247,13 +247,13 @@ Mark the ones to use; nothing below is used yet unless it says so.
 - [x] Download the tables behind the statistics (responses, items, events, contributors as CSV / JSON) (`community_insights/export.py`)
 - [x] `scipy.stats` used for the fits (more distributions and goodness of fit still open): fit exponential, normal, log-normal, gamma, Weibull to the response times (`expon.fit`, `lognorm.fit`), goodness of fit (`kstest`), bootstrap confidence intervals (`scipy.stats.bootstrap`) - replaces `stats.summary` by hand
 - [x] `numpy`: percentiles (`np.percentile`) and histograms - replaces `stats.percentile` and `stats.histogram`
-- [ ] To implement: `pandas`: the tables for export (CSV, JSON, Parquet), group by month / weekday / hour - replaces the dict loops in `stats.py`
-- [ ] To implement: `lifelines`: Kaplan-Meier survival curves for response times with items that never got a response (censored data); median survival time - not needed: scipy.stats.ecdf does Kaplan-Meier
-- [ ] To implement: `statsmodels`: trends over time (are responses getting faster?)
+- [x] Implemented: `pandas`: CSV and the new Parquet export (with `pyarrow`, the facts of the export in its metadata), the groups by month, weekday and hour of `stats/activity.py`
+- [x] Implemented: `lifelines`: Kaplan-Meier of the overview and the badges, and a survival curve with its confidence band per class on the overview (`survival-pr`, `survival-issue`)
+- [x] Implemented: `statsmodels`: the trend of the first responses per month on the overview (OLS of the logarithm, p-value and confidence interval)
 
 ### GitHub data
 - [x] Rejected: `githubkit`: typed GitHub REST and GraphQL client with rate limit handling and retries - replaces `community_insights/github.py`
-- [ ] To implement: `gql`: GraphQL client with query validation against the GitHub schema
+- [x] Implemented: `gql`: every query (`github/catalog.py`) is parsed by gql in the tests and validated against GitHub's published schema by `make check-graphql` and its CI job; it found an unused variable in the query of the viewer's repositories
 - [x] Rejected: `PyGithub`: what `old/` used; REST only, many requests
 - [x] Rejected: CHAOSS GrimoireLab `perceval`: fetches GitHub issues and pull requests with resumable fetches and token rotation (several tokens!)
 - [x] Rejected: CHAOSS `augur`: a whole community health platform; compare features before building more
@@ -276,30 +276,33 @@ Approved: all Django packages may be used where they replace code or enable requ
 ### UI components
 - [x] `django-bootstrap5` or `django-crispy-forms` + `crispy-bootstrap5`: Bootstrap forms - replaces the hand-written form markup and the allauth element overrides - django-bootstrap5 used for the filter form; the other forms are still written by hand
 - [x] Rejected: `django-allauth-ui`: styled allauth pages (Tailwind, so it would not match Bootstrap)
-- [ ] To implement: `htmx` (`django-htmx`): progress of a running fetch, live filtering without page reloads - option: would replace static/js/progress.js, which works and is tested
-- [ ] To implement: Chart.js or Apache ECharts in the browser: interactive charts with tooltips (keep matplotlib for the downloadable images)
-- [ ] To implement: `Sortable.js`: drag and drop to reorder classes and tokens - not used: the columns and the classes are moved with the drag and drop of the browser and arrow buttons (also for keyboards and phones), a few lines each
-- [ ] To implement: `pybadges` (Google) or `anybadge`: badge SVGs with correct text widths - replaces `community_insights/badges.py`
+- [x] Implemented: `htmx` (`django-htmx`): the progress of fetches and of files are parts of the page rendered by Django (progress.js and document-progress.js are gone); the query, the group, the chart and the sorting of the contributors page run without loading the page
+- [x] Implemented: Chart.js with chartjs-chart-matrix: the charts of the overview, the people and the query are drawn in the browser with tooltips from `chart/<name>.json`; matplotlib stays for the SVG to share, without JavaScript and for the Kaplan-Meier curves
+- [x] Implemented: `Sortable.js`: drag and drop (also by touch) for the classes, the tokens and the columns; the arrow buttons stay for keyboards
+- [x] Implemented: `anybadge` draws the badge SVGs with correct text widths (`pybadges` imports `imghdr`, removed in Python 3.14); our wrapper adds `role="img"`, `aria-label`, `<title>` and a stable mask id
+- [ ] Open an issue at https://github.com/jongracecox/anybadge proposing an accessible name for the SVGs (no existing issue found; text drafted, `gh` is not logged in)
 
 ### Licenses and versions
-- [ ] To implement: `pip-licenses`: the license list; the About page reads `importlib.metadata` directly (same data, no dependency)
-- [ ] To implement: `hatch-vcs` / `setuptools-scm`: the version from the git tag, like calendaring-sync
+- [x] Implemented: `pip-licenses` reads the Python packages of the About page; their licenses link to the texts at /about/licenses/<name>/
+- [x] Implemented: `hatch-vcs`: the version from the git tag (pyproject.toml, docker/set-version.sh, the push job fetches the history)
+- [ ] Tag the first release (such as v0.2.0, the version pyproject.toml had): until then the version is 0.0.1.devN
 - [x] reuse licenses must also be included in the license page (About: Code from other projects, from REUSE.toml)
 
 ### Tests
-- [x] `behave-django` + `selenium`: browser tests with Firefox (used)
+- [x] `behave-django` + `selenium`: browser tests with Firefox (used until pytest-playwright replaced them)
 - [x] `pytest-django` (used), node's built-in `node:test` (used, no dependencies)
-- [ ] To implement: `pytest-playwright`: browser tests in Python with automatic waiting (less flaky than selenium)
-- [ ] To implement: `jsdom`: a DOM for the node tests instead of the hand-made fakes
-- [ ] To implement: `responses` or `respx`: mock the HTTP of the GitHub client
-- [ ] To implement: `factory_boy`: test data (repositories, items, events) for the crawler and the edge cases
-- [ ] To implement: `linkchecker`: check all links of the running site
+- [x] Implemented: `pytest-playwright`: the browser tests are in `tests/browser/` (pytest, Firefox of Playwright, live server); behave, selenium and `features/` are gone; the CI installs Firefox with `make browsers PLAYWRIGHT_FLAGS=--with-deps`; they found that the Chart.js charts did not follow the theme
+- [x] Implemented: `jsdom`: the node tests of sortable-order, columns and fit-select build real pages; `make test-js` runs `npm ci` first (progress.js follows with htmx)
+- [x] Implemented: `httpx` instead of niquests for the GitHub clients, paced by `aiolimiter`; `respx` answers their requests in the tests (`transport` of the clients)
+- [x] Implemented: `factory_boy`: tests/factories/ (users, repositories, projects, tokens, fetch jobs), used by tests/data.py and the fetching tests
+- [x] Implemented: `linkchecker`: `make check-site-links` crawls the running site with the demo project, signed in, also in the CI
+- [x] `make check-vendor` and its CI job: static/vendor is what `make vendor` makes
 
 ###
 - always check the .prompts dir if everything is covered in here
 
 ### Visitors
-- [ ] To implement: `django-ratelimit`: limits per address - not used: its check asks for a shared cache backend in every setup, and the address behind proxies needs the own `TRUSTED_PROXIES` anyway; `community_insights/visitor_limit.py` is 50 lines
+- [x] Implemented: `django-ratelimit` counts the visitor limits; the key is the address behind `TRUSTED_PROXIES` (`client_address`)
 
 ### Documentation
 - [x] `vale` (PyPI, daniperez/vale-python-package): installs the Vale binary, so `make vale` runs it with uvx like reuse and zizmor
@@ -331,7 +334,13 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x]  Who (a query, empty for everybody) - this needs a link to the page with the documentation of how to formulate a query → the same link *How to write a query*
 - [x] below  Who (a query, empty for everybody) : the query field needs auto-completing for the variable names → a list of the variables that start with the word typed (`static/js/query-complete.js`)
 - [x] all action steps must have names → every step of `.github/workflows/tests.yml`, checked by `tests/quality/test_ci.py`
-- [ ]
+- [x] anybadge has no aria: the wrapper in `badges.py` adds role, aria-label and title, and a stable mask id
+- [ ] No sound when done: the Stop hook now starts the sound detached (`setsid -f pw-play`), so it is not ended with the hook; to be confirmed by hearing it
+- [x] Test all edge cases of the libraries added: empty data, zeros, missing values, made up addresses, wrong orders, unknown charts and scopes, quoting in CSV, Parquet without values, Kaplan-Meier with all or no responses, the trend at its limits, answers of GitHub without a token; the code of the documentation is tested against the site. Found and fixed: a heat map without activity was not empty, the Chart.js charts did not follow the theme
+- [x] Proofread the documentation by Diátaxis: the tutorial is one path (the optional steps are the how-to *Configure your installation*, the ways of access an explanation); the tables of the downloads are a reference page; develop.rst is tasks, its design notes are in the explanation; the steps of classes moved from the reference to *Use the application*; old texts fixed (superuser, docstring checks, OAuth app optional)
+- [x] the superuser in the env file must be an email address. The email address should be admin@example.com. → `DEFAULT_SUPERUSER=admin@example.com:password`; the name of the superuser is its email address; `InvalidDefaultSuperuser` for another form (also the old name:password)
+- [x] the superuser should be loaded - it present - each time the service starts - from the environment → each start creates it or sets its password, rights and verified email address again (`ensure_superuser`)
+- [x] user profile page where they can reset password, approve email, manage github link and github tokens → *Profile* in the menu (`/dashboard/profile/`): email addresses with *Send the confirmation again*, change, set or reset the password, the linked GitHub account, the tokens with their expiry; docs/how-to/profile.rst
 
 
 
@@ -391,3 +400,6 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] README: CHAOSS CollectOSS as related work
 - [x] All templates checked for the layout of the site and one heading: every page of allauth (tests/accounts/test_account_pages.py) and every page the crawler reaches; 403, 404 and 500 pages
 - [x] German: Du with a capital letter (Du, Dir, Dein), checked by tests/i18n/test_catalogs.py
+- [x] The Firefox of Playwright is installed with the setup (`make init` runs `make browsers`; `PLAYWRIGHT_FLAGS=--with-deps` in the CI)
+- [x] `make vendor`: the files of static/vendor from the npm packages of package.json, reproducible with package-lock.json, without source maps
+- [x] REUSE.toml: the entry of the project leaves out static/vendor/, so a file of another project there without its own entry fails `make reuse`; entries for Chart.js, chartjs-chart-matrix, Sortable (MIT) and htmx (0BSD, LICENSES/0BSD.txt)

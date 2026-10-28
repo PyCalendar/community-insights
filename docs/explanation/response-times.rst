@@ -60,6 +60,24 @@ It shows the median and the 95%. A ``-`` means that this share never got a respo
 
 Use it when many items wait or were closed without an answer: it honestly answers how long it takes until an item is answered.
 
+.. _kaplan-meier-curve:
+
+The curve of Kaplan-Meier
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Below the bars of the response times, the overview draws a curve for each class: the share of the items that are still waiting for a response of the class, over the time since they were opened. It starts at 100 % and steps down at each response. Where the curve is at 50 %, half of the items got a response: that is the median of the table. A curve that stays high never reaches that share; the table then shows ``-``.
+
+The light band around a curve is its 95 % confidence interval: with this data, the true curve lies within the band with a probability of 95 %. Few items give a wide band, so read the curve only where the band is narrow. The curves are computed with `lifelines <https://lifelines.readthedocs.io/>`_.
+
+.. _trend:
+
+Trend
+=====
+
+Below each table, the overview says whether the first responses get faster or slower. It draws a straight line through the logarithm of the time until the first response of anybody, over the day each item was opened, with the ordinary least squares of `statsmodels <https://www.statsmodels.org/>`_. On the logarithm, a straight line means that the times change by the same factor each month: *10 % faster per month* means that a response that took 10 hours takes 9 hours a month later.
+
+The p-value says how likely such a change, or a bigger one, would be if the times did not change at all. Below 0.05 the overview calls the trend clear and shows the change with its 95 % confidence interval. With fewer than 10 responses, it shows no trend. Items without a response are left out, as for *measured*: when many items wait, read the trend together with *Kaplan-Meier*.
+
 Which one to look at
 ====================
 

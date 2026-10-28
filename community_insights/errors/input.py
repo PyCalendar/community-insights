@@ -441,6 +441,20 @@ class InvalidClassOrder(InvalidInput):
     guide_title = _("Classes of people")
 
 
+class InvalidTokenOrder(InvalidInput):
+    """The new order of the tokens does not name each of your tokens once.
+
+    The page was probably changed in another window. Load the page *GitHub access*
+    again and move the token once more.
+
+    Tokens and the order they are used in: :doc:`/how-to/tokens`.
+    """
+
+    title = _("Invalid order of the tokens")
+    guide = "how-to/tokens.html"
+    guide_title = _("How to add GitHub tokens")
+
+
 class UnknownTable(InvalidInput):
     """There is no table of that name to download.
 

@@ -5,13 +5,14 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from community_insights import errors
-from community_insights.github.anonymous import SERVER_QUOTA, AnonymousClient
+from community_insights.github.anonymous import SERVER_QUOTA
 from community_insights.models import Event, FetchJob, Item
 from community_insights.sync import Syncer, store_repository
 from community_insights.sync.sources import AnonymousSource
 
 from ..fakes import Response, repo, run
 from ..fakes.rest import FakeREST, rest_comment, rest_issue
+from ..fakes.session import answering_rest
 
 pytestmark = pytest.mark.django_db
 
@@ -29,19 +30,6 @@ def rest_data():
         ],
         reviews=[rest_comment(1, "maint", "2026-01-05T12:00:00Z", review=True)],
     )
-
-
-def answering_rest(*responses):
-    """A client without a token that answers with the responses given."""
-    client = AnonymousClient()
-    answers = iter(responses)
-
-    async def get(url, params, timeout):
-        """The next prepared answer."""
-        return next(answers)
-
-    client.session.get = get
-    return client
 
 
 @pytest.fixture
@@ -166,3 +154,40 @@ def test_a_user_without_tokens_reads_without_a_token(world, signed_in, monkeypat
     job = FetchJob.objects.get(repository__full_name="o/empty", status="done")
     assert job.points_used == 4  # issues, comments, review comments, commits
     assert Event.objects.filter(item__repository__full_name="o/empty").exists()
+
+
+def test_without_a_token_the_rest_api_is_asked():
+    """The REST requests ask for the JSON of GitHub, with the parameters."""
+    sent: list = []
+    client = answering_rest(Response(body={"ok": True}), sent=sent)
+    assert run(client.get, "/repos/o/r", per_page=5) == {"ok": True}
+    assert sent[0][0] == "https://api.github.com/repos/o/r?per_page=5"
+
+
+def test_without_a_token_unreachable_github():
+    """A connection that fails is shown as GitHub being unreachable."""
+    import httpx
+
+    with pytest.raises(errors.GitHubUnreachable):
+        run(answering_rest(httpx.ConnectError("no route")).get, "/repos/o/r")
+
+
+def test_without_a_token_a_refused_request_says_why():
+    """Another answer of 4xx is shown with its text."""
+    with pytest.raises(errors.GitHubRequestRejected, match="422: bad parameter"):
+        run(answering_rest(Response(422, text="bad parameter")).get, "/repos/o/r")
+
+
+def test_without_a_token_the_text_rate_limit_counts_as_used_up(quota):
+    """A 403 that says rate limit is a used up quota, also with points left."""
+    slow = Response(403, text="API rate limit exceeded", headers={"x-ratelimit-remaining": "5"})
+    with pytest.raises(errors.RateLimitExceeded):
+        run(answering_rest(slow).get, "/repos/o/r")
+
+
+def test_the_search_has_a_quota_of_its_own(quota):
+    """An answer of the search does not change the quota of the server."""
+    quota.remaining = 50
+    used = Response(body={"items": []}, headers={"x-ratelimit-remaining": "1"})
+    run(answering_rest(used).get, "/search/issues", q="x")
+    assert quota.remaining == 50

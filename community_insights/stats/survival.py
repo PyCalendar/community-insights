@@ -1,21 +1,20 @@
 """Response times with the items that got no response yet.
 
 Response times with the items that got no response yet (censored data): Kaplan-Meier with
-scipy.stats.ecdf.
+lifelines.
 """
 
-import numpy
-import scipy.stats
+import math
+import warnings
+
+from lifelines import KaplanMeierFitter
+from lifelines.utils import qth_survival_time
 
 from .responses import Times
 
 
-def survival(entries: list[Times], observed: list[float], name: str | None):
-    """The Kaplan-Meier survival function of the time until a response.
-
-    The survival function of the time until the first response of a class (None: of anybody), or
-    None without any response. An item without such a response is censored at the time it was
-    observed.
+def waits(entries: list[Times], observed: list[float], name: str | None):
+    """The time of each item until a response of a class, and whether one came.
 
     Args:
         entries: The seconds until the first response of each class, one dictionary per item.
@@ -23,33 +22,61 @@ def survival(entries: list[Times], observed: list[float], name: str | None):
         name: The class, None for the first response of anybody.
 
     Returns:
-        The survival function of scipy, or None.
+        The seconds of each item, and for each whether it got a response; an item without
+        one counts with the time it was observed (censored).
+
+    Examples:
+        >>> waits([{"bot": 5.0}, {}], [10.0, 20.0], "bot")
+        ([5.0, 20.0], [True, False])
     """
-    responded, waited = [], []
+    durations, responded = [], []
     for entry, seconds in zip(entries, observed, strict=True):
         found = entry.get(name) if name else (min(entry.values()) if entry else None)
-        if found is None:
-            waited.append(seconds)
-        else:
-            responded.append(found)
-    if not responded:
-        return None
-    data = scipy.stats.CensoredData(uncensored=responded, right=waited)
-    return scipy.stats.ecdf(data).sf
+        durations.append(seconds if found is None else found)
+        responded.append(found is not None)
+    return durations, responded
 
 
-def quantile(sf, share: float) -> float | None:
-    """The time by which a share of the items got a response.
+def survival(entries: list[Times], observed: list[float], name: str | None):
+    """The Kaplan-Meier estimate of the time until a response.
 
-    The time by which `share` of the items got a response: the first time the survival function
-    is at or below 1 - share; None if it is never reached.
+    The share of the items still without a response of a class (None: of anybody) over time,
+    with its confidence interval; None without any response. An item without such a response
+    is censored at the time it was observed.
 
     Args:
-        sf: The survival function of ``survival``.
+        entries: The seconds until the first response of each class, one dictionary per item.
+        observed: How long each item was observed.
+        name: The class, None for the first response of anybody.
+
+    Returns:
+        The fitted ``lifelines.KaplanMeierFitter``, or None.
+    """
+    durations, responded = waits(entries, observed, name)
+    if not any(responded):
+        return None
+    with warnings.catch_warnings():  # lifelines warns about times of 0
+        warnings.simplefilter("ignore")
+        return KaplanMeierFitter(label=name or "").fit(durations, responded)
+
+
+def quantile(fitted, share: float) -> float | None:
+    """The time by which a share of the items got a response.
+
+    The time by which `share` of the items got a response: the first time the share without
+    a response is at or below 1 - share; None if it is never reached.
+
+    Args:
+        fitted: The estimate of ``survival``.
         share: The share, 0 to 1.
 
     Returns:
         The seconds, or None.
+
+    Examples:
+        >>> fitted = survival([{"a": 10.0}, {"a": 20.0}, {}], [10.0, 20.0, 30.0], "a")
+        >>> quantile(fitted, 0.5), quantile(fitted, 0.95)
+        (20.0, None)
     """
-    reached = numpy.nonzero(sf.probabilities <= 1 - share + 1e-12)[0]
-    return float(sf.quantiles[reached[0]]) if len(reached) else None
+    found = float(qth_survival_time(1 - share, fitted.survival_function_))
+    return None if math.isinf(found) else found

@@ -9,8 +9,9 @@ from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
+from django_htmx.http import HttpResponseClientRefresh
 
-from .. import pipeline, user_limit
+from .. import errors, pipeline, user_limit
 from ..errors import (
     FetchLimitRequired,
     InvalidExtraPoints,
@@ -256,17 +257,19 @@ def reorder(job: FetchJob, up: bool) -> None:
 @scope_view
 @never_cache
 def progress(request, scope):
-    """How complete the data of a scope is, as JSON.
+    """How complete the data of a scope is: the part of the page for htmx, else JSON.
 
-    How complete the data of a scope is, for the progress bar; an error as JSON with what to do
-    (static/js/progress.js shows it).
+    htmx asks for the progress bar while fetches run (``_progress.html``); when they ended,
+    the answer makes the browser load the page again, with the statistics of the new data.
+    An error is shown in the bar, with what to do. Without htmx, the numbers come as JSON,
+    an error as JSON with what to do.
 
     Args:
         request: The request.
         scope: The text of the scope.
 
     Returns:
-        The percent, the items, the running fetches and the sources as JSON.
+        The progress bar, a refresh of the page, or the numbers as JSON.
 
     Raises:
         Http404: If there is no such scope.
@@ -276,7 +279,30 @@ def progress(request, scope):
     except Http404:
         raise
     except Exception as error:
+        if request.htmx:
+            return render(
+                request,
+                "community/_progress.html",
+                {
+                    "scope": {"text": scope},
+                    "data": {"percent": 0, "total": None, "jobs": []},
+                    "error": errors.translate(error),
+                    "page_path": request.htmx.current_url_abs_path,
+                },
+            )
         return error_json(error)
+    if request.htmx:
+        if not data["jobs"]:  # the fetches ended: the statistics of the new data
+            return HttpResponseClientRefresh()
+        return render(
+            request,
+            "community/_progress.html",
+            {
+                "scope": {"text": scope},
+                "data": data,
+                "page_path": request.htmx.current_url_abs_path,
+            },
+        )
     return JsonResponse(
         {
             "percent": data["percent"],

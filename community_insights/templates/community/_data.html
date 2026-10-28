@@ -1,20 +1,8 @@
 {% load community static i18n %}
 {# How complete the data of a statistics page is, where it comes from, the fetches and the sources. #}
-<section class="data-panel card mb-3" aria-label="{% translate "Data" %}"
-         data-progress-url="{% url 'progress' scope.text %}"
-         data-progress-active="{% if data.jobs %}true{% else %}false{% endif %}">
+<section class="data-panel card mb-3" aria-label="{% translate "Data" %}">
   <div class="card-body py-2">
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <div class="flex-grow-1" style="min-width: 12rem">
-        <div class="progress" role="progressbar" aria-label="{% translate "Data read from GitHub" %}" aria-valuemin="0" aria-valuemax="100">
-          <div class="progress-bar{% if data.jobs %} progress-bar-striped progress-bar-animated{% endif %}" data-progress="bar" aria-valuenow="{{ data.percent }}" style="width: {{ data.percent }}%"></div>
-        </div>
-        <small class="text-muted" data-progress="text">{% if data.total is not None %}{% blocktranslate with percent=data.percent items=data.items total=data.total %}{{ percent }}% of the data ({{ items }} of {{ total }} items){% endblocktranslate %}{% else %}{% blocktranslate with percent=data.percent %}{{ percent }}% of the data{% endblocktranslate %}{% endif %}{% if data.jobs %}{% if data.seconds_left is not None %}{% blocktranslate with left=data.seconds_left|duration %}, complete in about {{ left }}{% endblocktranslate %}{% endif %}{% elif data.percent < 100 %}{% translate ", read from GitHub to complete it" %}{% endif %}</small>
-      </div>
-      <a class="btn btn-sm btn-primary" href="{% url 'fetch' scope.text %}?next={{ request.path|urlencode }}">{% translate "Read from GitHub" %}</a>
-      <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#data-details" aria-expanded="false" aria-controls="data-details">{% translate "Data and sources" %}</button>
-    </div>
-    <ul class="small mb-0 mt-1 ps-3" data-progress="jobs">{% for job in data.jobs %}<li>{{ job.repository }}: {{ job.status }} {{ job.percent }}%{% if job.message %} ({{ job.message }}){% endif %}</li>{% endfor %}</ul>
+    {% include "community/_progress.html" %}
     <div class="collapse" id="data-details">
       <h2 class="h6 mt-3">{% translate "Data sources" %}</h2>
       <div class="table-responsive"><table class="table table-sm mb-2">
@@ -29,7 +17,7 @@
       </table></div>
       <p class="small mb-1">{% translate "Download the data behind this page. The ODS spreadsheets also have the data each table was made from, and what the download is." %}</p>
       <ul class="small mb-2">
-        {% for table, label in export_tables %}<li>{{ label }}: <a href="{% url 'export' scope.text table|add:'.ods' %}{{ scope.query }}">ODS</a>, <a href="{% url 'export' scope.text table|add:'.csv' %}{{ scope.query }}">CSV</a>{% if table == 'responses' %}, <a href="{% url 'export' scope.text 'responses.json' %}{{ scope.query }}">JSON</a>{% endif %}</li>{% endfor %}
+        {% for table, label in export_tables %}<li>{{ label }}: <a href="{% url 'export' scope.text table|add:'.ods' %}{{ scope.query }}">ODS</a>, <a href="{% url 'export' scope.text table|add:'.csv' %}{{ scope.query }}">CSV</a>, <a href="{% url 'export' scope.text table|add:'.parquet' %}{{ scope.query }}">Parquet</a>{% if table == 'responses' %}, <a href="{% url 'export' scope.text 'responses.json' %}{{ scope.query }}">JSON</a>{% endif %}</li>{% endfor %}
       </ul>
       <p class="small mb-2"><a href="{{ links.documentation }}how-to/verify.html">{% translate "How to check the numbers with scipy" %}</a>.</p>
       <h2 class="h6 mt-3">{% translate "Sources shown" %}</h2>
@@ -43,4 +31,3 @@
     </div>
   </div>
 </section>
-<script src="{% static 'js/progress.js' %}" defer></script>

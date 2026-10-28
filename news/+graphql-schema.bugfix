@@ -1,0 +1,1 @@
+The GraphQL queries are validated against the schema GitHub publishes; the query of your own repositories no longer declares an unused variable.

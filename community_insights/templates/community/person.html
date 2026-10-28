@@ -25,4 +25,5 @@
   <div class="col-12 col-lg-6"><h2 class="h6">{% translate "Across the day" %}</h2>{% url 'chart' scope.text 'hours' as base %}{% translate "Activity by hour of the day" as alt %}{% with src=base|add:'?login='|add:login_q|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
   <div class="col-12 col-lg-6"><h2 class="h6">{% translate "Across the week and the day" %}</h2>{% url 'chart' scope.text 'heatmap' as base %}{% translate "Heat map of the weekday and hour" as alt %}{% with src=base|add:'?login='|add:login_q|add:scope.query_more %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
 </div>
+{% include "community/_chart_scripts.html" %}
 {% endblock %}

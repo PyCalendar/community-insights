@@ -17,12 +17,17 @@ from .responses import (
     histogram,
     percentile,
     response_entries,
+    response_rows,
     response_times,
 )
 from .selection import events_in, items_in
 from .survival import quantile, survival
+from .trend import Trend, trend
 
 __all__ = [
+    "Trend",
+    "response_rows",
+    "trend",
     "MODELS",
     "model_percentile",
     "times_of",

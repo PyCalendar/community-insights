@@ -15,22 +15,26 @@ URLs
      - contributors table; ``q``, ``class`` and ``sort`` filter it
    * - ``/s/<scope>/people/<login>/``
      - one person: contributions per month, hours of the day, weekday and hour heat map
+   * - ``/s/<scope>/chart/<chart>.svg``
+     - a chart as SVG; ``.json`` gives its data for Chart.js, ``theme`` is ``light`` or ``dark``
    * - ``/s/<scope>/share/<chart>/``
      - the code to share a chart; ``from`` is the page it links to
    * - ``/documents/<id>/``
-     - a file made in the background: its progress and its download (``download/``)
+     - a file made in the background: its progress (``progress.json``, the state of the page for htmx) and its download (``download/``)
    * - ``/messages/``
      - the messages of the account, such as that a file is ready
    * - ``/s/<scope>/fetch/``
      - estimate and start reading from GitHub
    * - ``/s/<scope>/data/<table>.csv``
-     - the data behind the statistics, see :doc:`../how-to/verify`
+     - the data behind the statistics, also ``.json``, ``.parquet`` and ``.ods``, see :doc:`../how-to/verify`
    * - ``/s/<scope>/progress.json``
-     - how complete the data is
+     - how complete the data is, as JSON; for htmx (the header ``HX-Request``) the progress bar of the page
    * - ``/dashboard/downloads/``
      - running and queued fetches
    * - ``/dashboard/github/``
-     - tokens and profile
+     - the linked GitHub account, the tokens and the settings of fetches
+   * - ``/dashboard/profile/``
+     - email addresses, password, the linked GitHub account and the tokens, see :doc:`../how-to/profile`
    * - ``/dashboard/classes/``
      - classes of people
    * - ``/dashboard/cache/``

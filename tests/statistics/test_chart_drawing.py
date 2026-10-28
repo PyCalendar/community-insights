@@ -89,3 +89,24 @@ def test_the_heat_map_goes_from_dark_to_the_full_green(theme):
     assert sum(darkest) / 3 < 0.25, "few is dark, not white"
     assert to_hex(fullest) == charts.GREEN
     assert all(sum(to_rgb(colors(x / 10))) / 3 < 0.6 for x in range(11)), "no white at all"
+
+
+def test_the_survival_chart_draws_a_step_curve_with_a_band_per_class(figures):
+    """Each class with a response gets a falling step curve and its confidence band."""
+    entries = [{"maintainer": 60.0}, {"maintainer": 3600.0, "bot": 5.0}, {}]
+    charts.survival_chart("Pull requests", entries, [60.0, 3600.0, 86400.0], CLASSES)
+    axes = figures[0].axes[0]
+    lines = axes.get_lines()
+    assert [line.get_label() for line in lines] == ["maintainer", "bot"]
+    assert [to_hex(line.get_color()) for line in lines] == ["#2b5329", "#9ccc9c"]
+    shares = lines[0].get_ydata()
+    assert shares[0] == 100 and min(shares) < 100, "from all waiting, down at each response"
+    assert len(axes.collections) == 2, "a confidence band per class"
+    assert axes.get_xscale() == "symlog"
+    assert axes.get_ylim() == (0, 100)
+
+
+def test_the_survival_chart_without_responses_says_so():
+    """No class got a response: the chart says so."""
+    svg = charts.survival_chart("Issues", [{}, {}], [10.0, 20.0], CLASSES).decode()
+    assert "Issues: no responses yet" in svg

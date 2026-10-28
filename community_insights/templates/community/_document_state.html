@@ -1,0 +1,10 @@
+{% load community i18n %}
+{# The state of a document made in the background; htmx asks again every second until it is ready or failed. #}
+<div class="card-body" id="document-state"{% if document.status == "queued" or document.status == "running" %} hx-get="{% url 'document_progress' document.pk %}" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+  <p class="mb-2" data-document-state aria-live="polite">{% if document.status == "done" %}{% translate "The file is ready." %}{% elif document.status == "failed" %}{% translate "The file could not be made." %}{% else %}{% translate "The file is being made from the data on this site. You can leave this page; the file waits here for a week." %}{% if user.is_authenticated %} {% translate "A message tells you when it is ready." %}{% endif %}{% endif %}</p>
+  <div class="progress mb-3" role="progressbar" aria-label="{% translate "Progress of the file" %}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ document.progress }}" data-document-bar>
+    <div class="progress-bar" style="width: {{ document.progress }}%">{{ document.progress }} %</div>
+  </div>
+  {% if document.status == "failed" %}<p class="text-danger" data-document-error>{{ document.message }}{% if document.error_code %} {{ document.error_code|error_help }}{% endif %}</p>{% endif %}
+  {% if document.status == "done" %}<a class="btn btn-primary" href="{% url 'document_download' document.pk %}" data-document-download>{% translate "Download" %}</a>{% endif %}
+</div>

@@ -43,16 +43,19 @@ def document(request, pk):
 
 @never_cache
 def document_progress(request, pk):
-    """How far a document is, as JSON, for static/js/document-progress.js.
+    """How far a document is: the part of its page for htmx, else JSON.
 
     Args:
         request: The request.
         pk: The id of the document.
 
     Returns:
-        The status, the percent, what went wrong and the address of the download.
+        The state with the progress bar and, when ready, the download; without htmx the
+        status, the percent, what went wrong and the address of the download as JSON.
     """
     found = own_document(request, pk)
+    if request.htmx:
+        return render(request, "community/_document_state.html", {"document": found})
     return JsonResponse(
         {
             "status": found.status,

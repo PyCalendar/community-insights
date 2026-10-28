@@ -1,6 +1,6 @@
 """The translation table: any exception becomes an error people understand."""
 
-import niquests
+import httpx
 import requests
 
 from .base import CommunityError, UnexpectedError
@@ -48,12 +48,11 @@ def translate(error: BaseException) -> CommunityError:
     unreachable = (
         requests.Timeout,
         requests.ConnectionError,
-        niquests.Timeout,
-        niquests.ConnectionError,
+        httpx.TransportError,
     )
     if isinstance(error, unreachable):
         return GitHubUnreachable(str(error))
-    if isinstance(error, requests.RequestException | niquests.RequestException):
+    if isinstance(error, requests.RequestException | httpx.HTTPError):
         return GitHubError(str(error))
     if isinstance(error, ValueError):
         return InvalidInput(str(error))

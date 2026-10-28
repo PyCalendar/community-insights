@@ -10,6 +10,6 @@ Every statistics page has a bar that shows how complete its data is, **Data and 
 
 **Downloads** shows the fetches that run, those that wait, why they were started, and what ran before.
 
-**GitHub access** holds your tokens, their order and limits, and your profile.
+**GitHub access** holds the linked GitHub account, your tokens, their order and limits, and the settings of fetches. **Profile** shows your email addresses, password, linked GitHub account and tokens, with the pages to change them. **Messages** lists what the site told you, such as that a file is ready. **Classes** holds your classes of people.
 
 The **About** page shows the version, the commit and the licenses of all software installed.

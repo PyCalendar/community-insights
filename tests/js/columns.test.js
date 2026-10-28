@@ -37,3 +37,34 @@ test("remove and add", () => {
   assert.deepEqual(columns.add(["a", "b"], "a"), ["a", "b"], "only once");
   assert.deepEqual(columns.add(["a"], ""), ["a"]);
 });
+
+test("setup draws the columns and moves them when Sortable.js drops one", () => {
+  const { JSDOM } = require("jsdom");
+  const doc = new JSDOM(
+    '<form><input data-columns-input data-columns-default="a b c" data-columns-names="a b c d" value=""></form>',
+  ).window.document;
+  const input = doc.querySelector("input");
+  const calls = [];
+  const Sortable = { create: (element, options) => calls.push({ element, options }) };
+  const editor = columns.setup(input, Sortable);
+  assert.equal(input.hidden, true);
+  assert.deepEqual(Array.from(editor.list.children, (li) => li.getAttribute("data-column")), ["a", "b", "c"]);
+  assert.equal(calls[0].element, editor.list);
+  assert.equal(calls[0].options.filter, "button", "the buttons stay clickable");
+  calls[0].options.onEnd({ oldIndex: 0, newIndex: 2 });
+  assert.equal(input.value, "b c a");
+  assert.deepEqual(Array.from(editor.list.children, (li) => li.getAttribute("data-column")), ["b", "c", "a"]);
+  calls[0].options.onEnd({ oldIndex: 1, newIndex: 1 });
+  assert.equal(input.value, "b c a", "a drop at the same place changes nothing");
+});
+
+test("setup works without Sortable.js: the arrow buttons still move", () => {
+  const { JSDOM } = require("jsdom");
+  const doc = new JSDOM(
+    '<form><input data-columns-input data-columns-default="a b" data-columns-names="a b" value=""></form>',
+  ).window.document;
+  const input = doc.querySelector("input");
+  const editor = columns.setup(input, undefined);
+  editor.list.querySelector('[data-column="a"] [data-column-action="right"]').click();
+  assert.equal(input.value, "b a");
+});

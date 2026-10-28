@@ -1,4 +1,5 @@
-import niquests
+import httpx
+from aiolimiter import AsyncLimiter
 from django.conf import settings
 
 from ..errors import (
@@ -24,18 +25,20 @@ class AnonymousClient:
     server's IP address, shared by everybody without a token.
     """
 
-    def __init__(self, api: str | None = None):
+    def __init__(self, api: str | None = None, transport: httpx.AsyncBaseTransport | None = None):
         """Read public data of GitHub without a token.
 
         Args:
             api: The address of the API, ``GITHUB_API`` if None.
+            transport: How the requests are sent, the network if None; tests answer with respx.
         """
         self.api = (api or settings.GITHUB_API).rstrip("/")
-        self.session = niquests.AsyncSession(
-            hooks=niquests.AsyncLeakyBucketLimiter(rate=limits.POINTS_PER_SECOND)
+        self.session = httpx.AsyncClient(
+            headers={"Accept": "application/vnd.github+json", "User-Agent": "community-insights"},
+            timeout=60,
+            transport=transport,
         )
-        self.session.headers["Accept"] = "application/vnd.github+json"
-        self.session.headers["User-Agent"] = "community-insights"
+        self.pace = AsyncLimiter(limits.POINTS_PER_SECOND, 1)
         self.rate = SERVER_QUOTA
         self.requests = 0
 
@@ -64,19 +67,17 @@ class AnonymousClient:
             raise AllTokensUsedUp(
                 f"The requests without a token can be made again at {again}.", self.rate.reset_at
             )
-        async with limits.server_slots():
+        async with limits.server_slots(), self.pace:
             self.requests += 1
             try:
-                response = await self.session.get(f"{self.api}{path}", params=params, timeout=60)
-            except niquests.RequestException as error:
-                raise GitHubUnreachable(str(error)) from error
+                response = await self.session.get(f"{self.api}{path}", params=params)
+            except httpx.RequestError as error:
+                raise GitHubUnreachable(str(error) or type(error).__name__) from error
         if "/search/" not in path:  # the search has a quota of its own
-            self.rate.note(response.headers or {})
+            self.rate.note(response.headers)
         status = response.status_code
-        if status is None:
-            raise GitHubUnreachable(f"GitHub gave no answer to {path}.")
         if status in (403, 429) and (
-            self.rate.remaining == 0 or "rate limit" in (response.text or "").lower()
+            self.rate.remaining == 0 or "rate limit" in response.text.lower()
         ):
             raise RateLimitExceeded("The requests without a token are used up.", self.rate.reset_at)
         if status == 404:
@@ -85,7 +86,7 @@ class AnonymousClient:
             raise GitHubUnreachable(f"GitHub answered {status}.")
         if status >= 400:
             raise GitHubRequestRejected(
-                f"GitHub answered {status}: {(response.text or '')[:200]}", status=status
+                f"GitHub answered {status}: {response.text[:200]}", status=status
             )
         return response.json()
 
@@ -109,7 +110,7 @@ class AnonymousClient:
 
     async def close(self) -> None:
         """Close the connections."""
-        await self.session.close()
+        await self.session.aclose()
 
     # the reads of reads.py that work without a token, in the same shape
 

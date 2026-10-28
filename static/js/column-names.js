@@ -1,6 +1,7 @@
 /* The switch between the names of the columns of the contributors table as
    variables and in words: <input data-column-names="#table"> sets data-names
-   of the table to "variables" or "words"; the choice is kept in the browser. */
+   of the table to "variables" or "words"; the choice is kept in the browser.
+   When htmx puts a new result into the page, its switch is set up, too. */
 (function () {
   "use strict";
 
@@ -30,7 +31,8 @@
 
   function setup(input, doc, storage) {
     var table = doc.querySelector(input.getAttribute("data-column-names"));
-    if (!table) return null;
+    if (!table || input.hasAttribute("data-column-names-ready")) return null;
+    input.setAttribute("data-column-names-ready", "");
     input.checked = kept(storage) === "words";
     table.setAttribute("data-names", namesFor(input.checked));
     input.addEventListener("change", function () {
@@ -41,14 +43,20 @@
     return table;
   }
 
-  var api = { namesFor: namesFor, kept: kept, keep: keep, setup: setup };
+  /* Set up each switch of the page that is not yet set up. */
+  function setupAll(doc, storage) {
+    doc.querySelectorAll("[data-column-names]").forEach(function (input) {
+      setup(input, doc, storage);
+    });
+  }
+
+  var api = { namesFor: namesFor, kept: kept, keep: keep, setup: setup, setupAll: setupAll };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   } else {
     var storage = null;
     try { storage = window.localStorage; } catch (error) { storage = null; }
-    document.querySelectorAll("[data-column-names]").forEach(function (input) {
-      setup(input, document, storage);
-    });
+    setupAll(document, storage);
+    document.addEventListener("htmx:afterSettle", function () { setupAll(document, storage); });
   }
 })();

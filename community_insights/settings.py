@@ -16,7 +16,7 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 DATA_DIR = Path(env("DATA_DIR", default=str(BASE_DIR / "data")))
-TESTING = "pytest" in sys.modules or "behave" in sys.argv
+TESTING = "pytest" in sys.modules
 
 
 def kept_secret(name: str) -> str:
@@ -73,18 +73,12 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.github",
     "cachalot",
     "django_bootstrap5",
+    "django_htmx",
     "django_filters",
     "django_tables2",
     "health_check",
     "ordered_model",
 ]
-try:  # development only: the browser tests (manage.py behave)
-    import behave_django  # noqa: F401
-
-    INSTALLED_APPS.append("behave_django")
-except ImportError:
-    pass
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -96,6 +90,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",  # request.htmx: a request of htmx
     "community_insights.middleware.SafeTimezoneMiddleware",  # django-tz-detect
 ]
 DEBUG_TOOLBAR = DEBUG and not TESTING

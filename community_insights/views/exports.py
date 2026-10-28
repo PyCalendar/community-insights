@@ -52,10 +52,10 @@ def download(content, content_type: str, filename: str) -> HttpResponse:
 @scope_view
 @never_cache
 def export_table(request, scope, name):
-    """A table behind the statistics as CSV, JSON or ODS.
+    """A table behind the statistics as CSV, JSON, Parquet or ODS.
 
-    A table behind the statistics: /data/responses.csv, .json or .ods; the ODS has the tables it
-    was made from as more sheets.
+    A table behind the statistics: /data/responses.csv, .json, .parquet or .ods; the ODS has the
+    tables it was made from as more sheets.
 
     Args:
         request: The request.
@@ -69,7 +69,7 @@ def export_table(request, scope, name):
         Http404: If there is no such table or extension.
     """
     table, _, extension = name.rpartition(".")
-    if table not in export.TABLES or extension not in ("csv", "json", "ods"):
+    if table not in export.TABLES or extension not in ("csv", "json", "parquet", "ods"):
         raise Http404("No such table")
     scope = scope_of(request, scope)
     names = [c.name for c in scope.classes()]
@@ -88,4 +88,6 @@ def export_table(request, scope, name):
         return download(export.to_csv(rows), "text/csv; charset=utf-8", filename)
     about = about_export(scope, table, names)
     about["classes"] = {name: export.column(name) for name in names}
+    if extension == "parquet":
+        return download(export.to_parquet(rows, about), "application/vnd.apache.parquet", filename)
     return download(export.to_json(rows, about), "application/json; charset=utf-8", filename)

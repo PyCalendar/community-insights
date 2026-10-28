@@ -4,7 +4,7 @@
 {% block content %}
 {% include "community/_scope_nav.html" with active="contributors" %}
 
-<form method="get" class="card card-body mb-3 query-form" aria-label="{% translate "Query" %}">
+<form method="get" class="card card-body mb-3 query-form" aria-label="{% translate "Query" %}" hx-get="{{ request.path }}" hx-trigger="submit, change from:#group, change from:#chart" hx-target="#query-result" hx-select="#query-result" hx-swap="outerHTML" hx-push-url="true" hx-select-oob="#messages">
   {% for name, value in scope.range.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% for name, value in scope.carried.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   <div class="row g-2">
@@ -34,8 +34,6 @@
   <div class="d-flex flex-wrap gap-2 mt-2">
     <button class="btn btn-sm btn-primary">{% translate "Run the query" %}</button>
     <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}{{ scope.query }}">{% translate "Reset" %}</a>
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'contributors_download' scope.text 'csv' %}?{{ encoded }}{{ scope.query_more }}">{% translate "Download as CSV" %}</a>
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'contributors_download' scope.text 'ods' %}?{{ encoded }}{{ scope.query_more }}" title="{% translate "With the data the result was counted from" %}">{% translate "Download as ODS" %}</a>
     <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#query-help" aria-expanded="false" aria-controls="query-help">{% translate "Variables" %}</button>
   </div>
   <div class="collapse small mt-2" id="query-help">
@@ -45,7 +43,10 @@
   </div>
 </form>
 
+<div id="query-result" hx-target="#query-result" hx-select="#query-result" hx-swap="outerHTML" hx-select-oob="#messages">
 <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'contributors_download' scope.text 'csv' %}?{{ encoded }}{{ scope.query_more }}">{% translate "Download as CSV" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'contributors_download' scope.text 'ods' %}?{{ encoded }}{{ scope.query_more }}" title="{% translate "With the data the result was counted from" %}">{% translate "Download as ODS" %}</a>
   {% if saved %}<span class="small text-muted">{% translate "Saved:" %}</span>{% endif %}
   {% for q in saved %}
     <span class="btn-group btn-group-sm"><a class="btn btn-outline-primary" href="{{ request.path }}?{{ q.parameters }}{% if not q.has_range %}{{ scope.query_more }}{% else %}{{ scope.carried_more }}{% endif %}">{{ q.name }}</a>
@@ -73,7 +74,7 @@
 <div class="form-check form-switch small mb-1"><input class="form-check-input" type="checkbox" role="switch" id="column-names" data-column-names="#contributors-table"><label class="form-check-label" for="column-names">{% translate "Column names in words" %}</label></div>
 <p class="small text-muted">{% blocktranslate with shown=result.contributors|length total=result.total %}{{ shown }} of {{ total }} people. Times are in your time zone ({{ timezone }}).{% endblocktranslate %}</p>
 <div class="table-responsive"><table class="table table-sm table-hover align-middle" id="contributors-table" data-names="variables">
-  <thead><tr>{% for c in result.columns %}{% with link=sorting|get:c %}<th{% if c in numbers %} class="text-end"{% endif %}{% if link.1 %} aria-sort="{% if link.1 == 'up' %}ascending{% else %}descending{% endif %}"{% endif %}><a href="{{ link.0 }}" title="{% blocktranslate with about=variables|get:c|first %}Sort by: {{ about }}{% endblocktranslate %}"><span class="name-variable">{{ c }}</span><span class="name-words">{{ variables|get:c|first }}</span>{% if link.1 == 'up' %} ▲{% elif link.1 == 'down' %} ▼{% endif %}</a> <a class="small" href="{{ links.documentation }}reference/query-variables.html#{{ c|anchor }}" target="_blank" rel="noopener" aria-label="{% blocktranslate %}What {{ c }} means{% endblocktranslate %}">?</a></th>{% endwith %}{% endfor %}</tr></thead>
+  <thead hx-boost="true" hx-push-url="true"><tr>{% for c in result.columns %}{% with link=sorting|get:c %}<th{% if c in numbers %} class="text-end"{% endif %}{% if link.1 %} aria-sort="{% if link.1 == 'up' %}ascending{% else %}descending{% endif %}"{% endif %}><a href="{{ link.0 }}" title="{% blocktranslate with about=variables|get:c|first %}Sort by: {{ about }}{% endblocktranslate %}"><span class="name-variable">{{ c }}</span><span class="name-words">{{ variables|get:c|first }}</span>{% if link.1 == 'up' %} ▲{% elif link.1 == 'down' %} ▼{% endif %}</a> <a class="small" href="{{ links.documentation }}reference/query-variables.html#{{ c|anchor }}" target="_blank" rel="noopener" aria-label="{% blocktranslate %}What {{ c }} means{% endblocktranslate %}">?</a></th>{% endwith %}{% endfor %}</tr></thead>
   <tbody>{% for person, row in result.contributors|zip:result.rows %}<tr>
     {% for c, cell in result.columns|zip:row %}
       {% if c == "user_handle" %}<td><a href="{% url 'person' scope.text person.login %}{{ scope.query }}">{{ cell }}</a>{% if person.name %}<div class="small text-muted">{{ person.name }}</div>{% endif %}</td>
@@ -84,7 +85,10 @@
   </tr>{% empty %}<tr><td colspan="{{ result.columns|length }}" class="text-muted">{% translate "Nobody matches." %}</td></tr>{% endfor %}</tbody>
 </table></div>
 {% endif %}
+</div>
+<script src="{% static 'vendor/sortable/Sortable.min.js' %}" defer></script>
 <script src="{% static 'js/columns.js' %}" defer></script>
 <script src="{% static 'js/query-complete.js' %}" defer></script>
 <script src="{% static 'js/column-names.js' %}" defer></script>
+{% include "community/_chart_scripts.html" %}
 {% endblock %}

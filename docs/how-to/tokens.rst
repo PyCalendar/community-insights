@@ -35,7 +35,7 @@ Add the token to the site
 #. Set the two sliders, see :ref:`share-points`.
 #. Press **Add the token**. The site asks GitHub who the token belongs to, how many points it has and when it expires, and shows that in the list.
 #. Press **Test on my projects**: it tells you which repositories of your projects the token cannot read. The made up demo project is not tested.
-#. Use the arrows to change the order. The first token that has points left is used.
+#. Drag a token by its handle ⠿ to another place, or use the arrows, to change the order. The first token that has points left is used.
 
 .. _share-points:
 

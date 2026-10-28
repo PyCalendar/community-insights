@@ -151,3 +151,35 @@ def test_an_unknown_sort_is_shown_as_an_error(synced, signed_in):
     response = signed_in.get(f"/s/{Project.objects.get().pk}/contributors/?sort=response")
     assert response.status_code == 200
     assert "There is no variable" in response.content.decode()
+
+
+def test_the_query_runs_without_loading_the_page(world, signed_in):  # noqa: F811
+    """htmx sends the query and puts only the result and the messages into the page."""
+    pk = world["project"].pk
+    page = signed_in.get(f"/s/{pk}/contributors/").content.decode()
+    assert f'hx-get="/s/{pk}/contributors/"' in page
+    assert 'hx-trigger="submit, change from:#group, change from:#chart"' in page
+    assert 'hx-select="#query-result"' in page and 'hx-push-url="true"' in page
+    assert 'hx-select-oob="#messages"' in page and '<div id="messages">' in page
+    assert '<div id="query-result"' in page
+    assert '<thead hx-boost="true" hx-push-url="true">' in page, "sorting without a reload"
+
+
+def test_the_result_has_the_downloads_of_its_query(world, signed_in):  # noqa: F811
+    """The downloads are part of the result, so they follow a query htmx ran."""
+    pk = world["project"].pk
+    page = signed_in.get(
+        f"/s/{pk}/contributors/?where=prs_opened+>+0", HTTP_HX_REQUEST="true"
+    ).content.decode()
+    result = page[page.index('<div id="query-result"') :]
+    assert f"/s/{pk}/contributors.csv?where=prs_opened" in result
+
+
+def test_an_invalid_query_shows_its_error_in_the_messages(world, signed_in):  # noqa: F811
+    """The error of a query is in the messages, which htmx puts into the page, too."""
+    pk = world["project"].pk
+    page = signed_in.get(
+        f"/s/{pk}/contributors/?where=nonsense+>+1", HTTP_HX_REQUEST="true"
+    ).content.decode()
+    messages = page[page.index('<div id="messages">') : page.index('<div id="query-result"')]
+    assert "nonsense" in messages

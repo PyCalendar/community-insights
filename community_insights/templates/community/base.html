@@ -33,6 +33,7 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'classes' %}">{% translate "Classes" %}</a></li>
         {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'cache' %}">{% translate "Cache" %}</a></li>{% endif %}
         <li class="nav-item"><a class="nav-link" href="{% url 'github_access' %}">{% translate "GitHub access" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{% translate "Profile" %}</a></li>
         {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">{% translate "Admin" %}</a></li>{% endif %}
       {% endif %}
       </ul>
@@ -49,9 +50,9 @@
   </div>
 </nav>
 <main class="container py-3 py-md-4">
-  {% for message in messages %}
+  <div id="messages">{% for message in messages %}
   <div class="alert alert-{% if message.level_tag == 'error' %}danger{% else %}{{ message.level_tag }}{% endif %}" role="alert">{{ message }}</div>
-  {% endfor %}
+  {% endfor %}</div>
   {% block content %}{% endblock %}
 </main>
 <footer class="site-footer mt-4 py-4">
@@ -74,6 +75,7 @@
 </footer>
 <script src="{% url 'javascript-catalog' %}"></script>
 <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
 <script src="{% static 'js/confirm.js' %}" defer></script>
 <script src="{% static 'js/copy.js' %}" defer></script>
 {% if not request.timezone_active %}<script src="{% static 'js/time-zone.js' %}" data-endpoint="{% url 'tz_detect__set' %}" data-csrf-token="{{ csrf_token }}" data-csrf-header="X-CSRFToken" defer></script>{% endif %}

@@ -57,7 +57,8 @@ async def repositories(graphql, owner: str | None = None, limit: int = 300) -> l
     query = queries.repositories(owner)
     found, after = [], None
     while len(found) < limit:
-        data = await graphql(query, login=owner or "", after=after)
+        variables = {"after": after} if owner is None else {"login": owner, "after": after}
+        data = await graphql(query, **variables)
         owner_data = data.get("viewer") or data.get("repositoryOwner")
         if owner_data is None:
             raise OwnerNotFound(f"{owner} was not found on GitHub.")

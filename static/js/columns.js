@@ -1,6 +1,6 @@
 /* The columns of the contributors table: a text field data-columns-input
-   (names separated by spaces) becomes a list to reorder by drag and drop or the
-   arrow buttons, with a remove button per column and a select to add one. The
+   (names separated by spaces) becomes a list to reorder by drag and drop
+   (Sortable.js, also by touch) or the arrow buttons, with a remove button per column and a select to add one. The
    default columns are in data-columns-default; an unchanged default stays "". */
 (function () {
   "use strict";
@@ -58,7 +58,7 @@
     return element;
   }
 
-  function setup(input) {
+  function setup(input, Sortable) {
     var doc = input.ownerDocument;
     var defaults = (input.getAttribute("data-columns-default") || "").split(/\s+/).filter(Boolean);
     var names = (input.getAttribute("data-columns-names") || "").split(/\s+/).filter(Boolean);
@@ -68,7 +68,6 @@
     var choose = doc.createElement("select");
     choose.className = "form-select form-select-sm w-auto";
     choose.setAttribute("aria-label", _("Add a column"));
-    var dragged = null;
 
     function change(next) {
       columns = next;
@@ -81,7 +80,6 @@
       columns.forEach(function (name, index) {
         var item = doc.createElement("li");
         item.className = "column-chip";
-        item.draggable = true;
         item.setAttribute("data-column", name);
         var label = doc.createElement("span");
         label.className = "font-monospace";
@@ -95,13 +93,6 @@
           if (action === "left") change(move(columns, index, -1));
           if (action === "right") change(move(columns, index, 1));
           if (action === "remove") change(remove(columns, index));
-        });
-        item.addEventListener("dragstart", function () { dragged = index; });
-        item.addEventListener("dragover", function (event) { event.preventDefault(); });
-        item.addEventListener("drop", function (event) {
-          event.preventDefault();
-          if (dragged !== null && dragged !== index) change(moveTo(columns, dragged, index));
-          dragged = null;
         });
         list.appendChild(item);
       });
@@ -126,6 +117,17 @@
     input.parentNode.insertBefore(list, input.nextSibling);
     input.parentNode.insertBefore(choose, list.nextSibling);
     draw();
+    if (Sortable) {
+      Sortable.create(list, {
+        draggable: ".column-chip",
+        filter: "button",
+        preventOnFilter: false,
+        animation: 150,
+        onEnd: function (event) {
+          if (event.oldIndex !== event.newIndex) change(moveTo(columns, event.oldIndex, event.newIndex));
+        },
+      });
+    }
     return { list: list, choose: choose, columns: function () { return columns; } };
   }
 
@@ -135,6 +137,8 @@
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   } else {
-    document.querySelectorAll("[data-columns-input]").forEach(setup);
+    document.querySelectorAll("[data-columns-input]").forEach(function (input) {
+      setup(input, window.Sortable);
+    });
   }
 })();

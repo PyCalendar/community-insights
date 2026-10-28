@@ -60,7 +60,7 @@ In the external modes the worker also waits for rate limits to be renewed and cl
 Requests
 ========
 
-All requests to GitHub are asynchronous (`niquests <https://niquests.readthedocs.io/>`_). Several jobs run at the same time (``FETCH_CONCURRENCY``), and within a job the pull requests and the issues are read at the same time, and so are the comments of the items of a page and the batches of people.
+All requests to GitHub are asynchronous (`httpx <https://www.python-httpx.org/>`_), at an even pace below the limit of GitHub per minute (`aiolimiter <https://aiolimiter.readthedocs.io/en/stable/>`_). Several jobs run at the same time (``FETCH_CONCURRENCY``), and within a job the pull requests and the issues are read at the same time, and so are the comments of the items of a page and the batches of people.
 
 GitHub limits more than the points per hour. The site stays below its secondary limits: at most 10 requests of a token at the same time, an even pace below 2000 points per minute, and at most ``GITHUB_MAX_CONCURRENT`` requests of the whole server, which all tokens share the address of. When GitHub still asks to slow down, the site waits as long as GitHub asks and tries again; longer waits move to the next token.
 

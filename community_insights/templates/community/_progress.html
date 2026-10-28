@@ -1,0 +1,16 @@
+{% load community i18n %}
+{# How complete the data is and which fetches run. While fetches run, htmx asks the page again every few seconds; when they end, the page is loaded again (HX-Refresh). #}
+<div id="data-progress"{% if data.jobs or error %} hx-get="{% url 'progress' scope.text %}" hx-trigger="every {% if error %}8s{% else %}4s{% endif %}" hx-swap="outerHTML"{% endif %}>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <div class="flex-grow-1" style="min-width: 12rem">
+      <div class="progress" role="progressbar" aria-label="{% translate "Data read from GitHub" %}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ data.percent }}">
+        <div class="progress-bar{% if data.jobs %} progress-bar-striped progress-bar-animated{% endif %}" data-progress="bar" style="width: {{ data.percent }}%"></div>
+      </div>
+      <small class="text-muted" data-progress="text" aria-live="polite">{% if error %}<span class="text-danger">{{ error.title }}: {{ error }}</span> {{ error.code|error_help }}
+      {% else %}{% if data.total is not None %}{% blocktranslate with percent=data.percent items=data.items total=data.total %}{{ percent }}% of the data ({{ items }} of {{ total }} items){% endblocktranslate %}{% else %}{% blocktranslate with percent=data.percent %}{{ percent }}% of the data{% endblocktranslate %}{% endif %}{% if data.jobs %}{% if data.seconds_left is not None %}{% blocktranslate with left=data.seconds_left|duration %}, complete in about {{ left }}{% endblocktranslate %}{% else %}{% translate ", reading" %}{% endif %}{% elif data.percent < 100 %}{% translate ", read from GitHub to complete it" %}{% endif %}{% endif %}</small>
+    </div>
+    <a class="btn btn-sm btn-primary" href="{% url 'fetch' scope.text %}?next={{ page_path|default:request.path|urlencode }}">{% translate "Read from GitHub" %}</a>
+    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#data-details" aria-expanded="false" aria-controls="data-details">{% translate "Data and sources" %}</button>
+  </div>
+  <ul class="small mb-0 mt-1 ps-3" data-progress="jobs">{% for job in data.jobs %}<li>{{ job.repository }}: {{ job.status }} {{ job.percent }}%{% if job.message %} ({{ job.message }}){% endif %}</li>{% endfor %}</ul>
+</div>

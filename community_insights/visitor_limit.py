@@ -1,13 +1,13 @@
 """How often visitors without an account may add repositories and fetch: per address and hour.
 
 Visitors use the tokens people donated to the site. A limit per address keeps one visitor from
-using them all up.
+using them all up. django-ratelimit counts; the address comes from ``client_address``, which
+trusts only the proxies of ``TRUSTED_PROXIES``.
 """
 
 from django.conf import settings
-from django.core.cache import cache
-from django.utils import timezone
 from django.utils.translation import gettext
+from django_ratelimit.core import is_ratelimited
 
 from .errors import VisitorLimitReached
 
@@ -62,6 +62,8 @@ class VisitorLimit:
     def count(self, request) -> None:
         """Count an action of a visitor; people with an account are not limited.
 
+        django-ratelimit counts in the cache, per action and address, in windows of an hour.
+
         Args:
             request: The request of the action.
 
@@ -70,15 +72,13 @@ class VisitorLimit:
         """
         if self.per_hour <= 0 or request.user.is_authenticated:
             return
-        hour = timezone.now().strftime("%Y%m%d%H")
-        key = f"visitor-limit:{self.action}:{client_address(request)}:{hour}"
-        cache.add(key, 0, timeout=3600)
-        try:
-            done = cache.incr(key)
-        except ValueError:  # gone between add and incr
-            cache.set(key, 1, timeout=3600)
-            done = 1
-        if done > self.per_hour:
+        if is_ratelimited(
+            request,
+            group=f"visitor-limit:{self.action}",
+            key=lambda group, request: client_address(request),
+            rate=f"{self.per_hour}/h",
+            increment=True,
+        ):
             raise VisitorLimitReached(
                 gettext(
                     "Visitors may do this %(times)s times per hour. "

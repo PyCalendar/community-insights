@@ -130,8 +130,8 @@ jobs:
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           enable-cache: false
-      - name: Install Firefox
-        uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1
+      - name: Install the Firefox of Playwright with what it needs
+        run: make browsers PLAYWRIGHT_FLAGS=--with-deps
       - name: Run make test-browser
         run: make test-browser WINDOW="$WINDOW"
         env:
@@ -257,6 +257,52 @@ jobs:
       - name: Run make docs
         run: make docs
 
+  graphql:
+    name: Validate the GraphQL queries against the schema of GitHub (make check-graphql)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: false
+      - name: Run make check-graphql
+        run: make check-graphql
+
+  site-links:
+    name: Check the links of the running site (make check-site-links)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: false
+      - name: Run make check-site-links
+        run: make check-site-links
+
+  vendor:
+    name: static/vendor is made by make vendor (make check-vendor)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Run make check-vendor
+        run: make check-vendor
+
   docker:
     name: Build and start the Docker image (make docker-test)
     runs-on: ubuntu-latest
@@ -270,9 +316,9 @@ jobs:
 
   push:
     name: Push the Docker image to ghcr.io
-    # every test; "changelog" only runs for pull requests; "linkcheck" depends on
-    # other sites, so a site that is down does not stop the image
-    needs: [lint, typecheck, translations, test, javascript, browser, reuse, zizmor, build, docs, vale, docker]
+    # every test; "changelog" only runs for pull requests; "linkcheck" and "graphql"
+    # depend on other sites, so a site that is down does not stop the image
+    needs: [lint, typecheck, translations, test, javascript, browser, site-links, vendor, reuse, zizmor, build, docs, vale, docker]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -283,6 +329,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          # hatch-vcs counts the commits since the last tag
+          fetch-depth: 0
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: false
       - name: Write build version
         run: make version
       - name: Set up QEMU for arm64

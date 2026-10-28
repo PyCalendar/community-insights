@@ -1,0 +1,1 @@
+make check-site-links checks every link of the running site with LinkChecker, and make check-vendor checks that static/vendor comes from package-lock.json; both run in the CI.

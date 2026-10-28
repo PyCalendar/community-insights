@@ -65,7 +65,8 @@ see also [Contribute](https://community-insights.readthedocs.io/en/latest/contri
 - Every change comes with tests, also of its edge cases and of the errors people
   can see. Tests are sorted by topic into the directories of `tests/`.
 - Run what the CI runs, with the same commands: `make lint`, `make typecheck`, `make test`,
-  `make test-js`, `make test-browser` (also `WINDOW=375x812`), `make docs`,
+  `make test-js`, `make test-browser` (also `WINDOW=375x812`), `make check-graphql`,
+  `make check-site-links`, `make check-vendor`, `make build`, `make docs`,
   `make vale`, `make linkcheck`, `make reuse`, `make zizmor`, `make docker-test`.
 - Report the results as they are: say what failed and what was not run.
 

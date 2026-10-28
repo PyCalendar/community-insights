@@ -10,7 +10,7 @@ ROOT = Path(__file__).parent.parent.parent
 
 MODULES = [
     p
-    for folder in ("community_insights", "tests", "features")
+    for folder in ("community_insights", "tests")
     for p in (ROOT / folder).rglob("*.py")
     if "migrations" not in p.parts
 ]

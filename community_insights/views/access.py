@@ -7,7 +7,13 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext as _
 
 from ..demo import DEMO
-from ..errors import InvalidPercentage, LimitNotANumber, LimitTooSmall, MissingToken
+from ..errors import (
+    InvalidPercentage,
+    InvalidTokenOrder,
+    LimitNotANumber,
+    LimitTooSmall,
+    MissingToken,
+)
 from ..feedback import show_error
 from ..models import (
     AccessToken,
@@ -121,6 +127,23 @@ def add_token(request, user):
     return stored
 
 
+def order_tokens(user, ids: list[str]) -> None:
+    """Use the tokens of a user in this order, the first one first.
+
+    Args:
+        user: The user.
+        ids: The ids of all tokens of the user, the first one first.
+
+    Raises:
+        InvalidTokenOrder: If the ids are not each token of the user once.
+    """
+    tokens = {str(t.pk): t for t in user.access_tokens.all()}
+    if sorted(ids) != sorted(tokens):
+        raise InvalidTokenOrder(gettext("The order does not name each of your tokens once."))
+    for position, pk in enumerate(ids):
+        tokens[pk].to(position)
+
+
 def test_token(stored: AccessToken) -> dict:
     """Can the token read every repository of the projects of its user?
 
@@ -177,6 +200,8 @@ def github_access(request):
                     AccessToken, pk=request.POST["id"], user=user, linked=False
                 ).delete()
                 messages.success(request, _("The token was deleted."))
+            elif action == "order":
+                order_tokens(user, request.POST.getlist("order"))
             elif action in ("up", "down"):
                 moved = get_object_or_404(AccessToken, pk=request.POST["id"], user=user)
                 moved.up() if action == "up" else moved.down()

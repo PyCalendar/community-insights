@@ -7,7 +7,7 @@
 set -e
 python manage.py migrate --noinput
 python manage.py invalidate_cachalot -v0  # the cache of the statistics starts fresh
-python manage.py ensure_superuser  # only if DEFAULT_SUPERUSER is set
+python manage.py ensure_superuser  # DEFAULT_SUPERUSER, email:password, each start
 python manage.py check_production  # stops the container if a default password is used
 if [ "$FETCH_WORKER" = "external-http-container" ]; then
     (while true; do python manage.py fetch_worker || true; sleep 5; done) &

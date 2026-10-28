@@ -15,8 +15,8 @@ RUN_IN_CI = set(re.findall(r"run: make ([\w-]+)", WORKFLOW))
 TARGETS = set(re.findall(r"^([\w-]+):", MAKEFILE, re.MULTILINE))
 JOBS = re.findall(r"^  ([\w-]+):\n", WORKFLOW.split("\njobs:\n", 1)[-1], re.MULTILINE)
 NEEDED_FOR_PUSH = re.search(r"needs: \[([^\]]*)\]", WORKFLOW)
-# changelog: only for pull requests; linkcheck: other sites can be down
-NOT_NEEDED_FOR_PUSH = {"changelog", "linkcheck", "push"}
+# changelog: only for pull requests; linkcheck and graphql: other sites can be down
+NOT_NEEDED_FOR_PUSH = {"changelog", "linkcheck", "graphql", "push"}
 
 
 def test_test_all_lists_the_checks():

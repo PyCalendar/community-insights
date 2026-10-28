@@ -1,17 +1,24 @@
-class Response:
-    """An answer of the HTTP session, to test the real client."""
+import json
 
-    def __init__(self, status=200, body=None, headers=None, text=""):
-        """An HTTP answer with a status, a body, headers and a text."""
-        self.status_code, self.body, self.headers, self.text = (
-            status,
-            body or {},
-            headers or {},
-            text,
-        )
+import httpx
 
-    def json(self):
-        """The body, or its error if it is no JSON."""
-        if isinstance(self.body, Exception):
-            raise self.body
-        return self.body
+
+def Response(status=200, body=None, headers=None, text=""):  # noqa: N802 - reads like the class
+    """An answer of GitHub, as httpx gives it, to test the real clients with respx.
+
+    Args:
+        status: The status code.
+        body: The JSON of the answer; an exception for an answer that is no JSON.
+        headers: The headers.
+        text: The text of an answer without JSON.
+
+    Returns:
+        The answer.
+    """
+    if isinstance(body, Exception):
+        content = str(body).encode()
+    elif text and body is None:
+        content = text.encode()
+    else:
+        content = json.dumps(body if body is not None else {}).encode()
+    return httpx.Response(status, content=content, headers=headers or {})

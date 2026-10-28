@@ -7,14 +7,15 @@ DEFAULT_PASSWORDS = ("admin", "password", "123456", "12345678", "changeme", "sec
 
 
 def weak_password_users() -> list[str]:
-    """The superusers whose password is a default one or their own name.
+    """The superusers whose password is a default one, their own name or email address.
 
     Returns:
         Their usernames.
     """
     found = []
     for user in get_user_model().objects.filter(is_superuser=True):
-        if any(user.check_password(p) for p in (*DEFAULT_PASSWORDS, user.username)):
+        own = (user.username, user.username.split("@")[0], user.email, user.email.split("@")[0])
+        if any(user.check_password(p) for p in (*DEFAULT_PASSWORDS, *own) if p):
             found.append(user.username)
     return found
 

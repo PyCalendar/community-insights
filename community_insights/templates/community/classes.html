@@ -6,13 +6,13 @@
 <p class="text-muted"><a href="{{ links.documentation }}reference/class-rules.html" target="_blank" rel="noopener">{% translate "What the kinds of rules mean" %}</a> · <a href="{{ links.documentation }}reference/classes.html" target="_blank" rel="noopener">{% translate "Classes of people in the documentation" %}</a></p>
 <p class="text-muted">{% translate "Response times are shown per class. Somebody belongs to the <strong>first</strong> class (top to bottom) with a rule that matches, so put specific classes above general ones." %}</p>
 <p class="small text-muted">{% translate "Drag a class by its handle ⠿ to another place, or use the arrows. Change the name and the colour in the field at the top of a class and press Save." %}</p>
-<form method="post" id="class-order" data-class-order-form hidden>{% csrf_token %}<input type="hidden" name="action" value="order"></form>
-<div class="row g-3" data-class-order>
+<form method="post" id="class-order" hidden>{% csrf_token %}<input type="hidden" name="action" value="order"></form>
+<div class="row g-3" data-sort-list data-sort-form="class-order">
   {% for c in classes %}
-  <div class="col-12 col-lg-6" data-class-id="{{ c.pk }}"><div class="card h-100">
+  <div class="col-12 col-lg-6" data-sort-id="{{ c.pk }}"><div class="card h-100">
     <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
       <form method="post" class="d-flex gap-1 align-items-center flex-grow-1">{% csrf_token %}<input type="hidden" name="action" value="edit_class"><input type="hidden" name="id" value="{{ c.pk }}">
-        <span class="drag-handle" draggable="true" data-drag-class title="{% translate "Drag to move" %}" aria-hidden="true">⠿</span>
+        <span class="drag-handle" data-sort-handle title="{% translate "Drag to move" %}" aria-hidden="true">⠿</span>
         <input type="color" class="form-control form-control-sm form-control-color" name="color" value="{{ c.color }}" aria-label="{% blocktranslate with name=c.name %}Colour of {{ name }}{% endblocktranslate %}">
         <input class="form-control form-control-sm fw-semibold" name="name" value="{{ c.name }}" maxlength="60" required title="{% blocktranslate with ident=c.ident %}Id in shared addresses: {{ ident }}{% endblocktranslate %}" aria-label="{% blocktranslate with name=c.name %}Name of {{ name }}{% endblocktranslate %}">
         <button class="btn btn-sm btn-outline-primary">{% translate "Save" %}</button>
@@ -62,5 +62,6 @@
     <div class="col-4 col-md-2"><label class="form-label small" for="color">{% translate "Colour" %}</label><input id="color" class="form-control form-control-color w-100" type="color" name="color" value="#649568"></div>
     <div class="col-12 col-md-2"><button class="btn btn-primary w-100">{% translate "Create" %}</button></div>
   </form></div>
-<script src="{% static 'js/classes-order.js' %}" defer></script>
+<script src="{% static 'vendor/sortable/Sortable.min.js' %}" defer></script>
+<script src="{% static 'js/sortable-order.js' %}" defer></script>
 {% endblock %}

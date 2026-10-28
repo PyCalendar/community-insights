@@ -1,0 +1,44 @@
+{% extends "community/base.html" %}
+{% load socialaccount i18n %}
+{% block title %}{% translate "Profile" %}{% endblock %}
+{% block content %}
+<h1 class="h3">{% translate "Profile" %}</h1>
+<p class="text-muted">{% blocktranslate with name=user.email|default:user.username %}Signed in as <strong>{{ name }}</strong>.{% endblocktranslate %} <a href="{{ links.documentation }}how-to/profile.html" target="_blank" rel="noopener">{% translate "What you can change here" %}</a></p>
+
+<section class="card mb-3" id="email" aria-labelledby="email-title"><div class="card-header"><h2 class="h6 mb-0" id="email-title">{% translate "Email addresses" %}</h2></div><div class="card-body">
+  <ul class="list-unstyled mb-2">{% for address in addresses %}
+    <li class="d-flex flex-wrap align-items-center gap-2 mb-1" data-email="{{ address.email }}">
+      <span>{{ address.email }}</span>
+      {% if address.primary %}<span class="badge text-bg-primary">{% translate "primary" %}</span>{% endif %}
+      {% if address.verified %}<span class="badge text-bg-success">{% translate "confirmed" %}</span>
+      {% else %}<span class="badge text-bg-warning">{% translate "not confirmed" %}</span>
+        <form method="post" action="{% url 'account_email' %}">{% csrf_token %}<input type="hidden" name="email" value="{{ address.email }}">
+          <button class="btn btn-sm btn-outline-primary" name="action_send">{% translate "Send the confirmation again" %}</button></form>{% endif %}
+    </li>{% empty %}<li class="text-muted">{% translate "No email address yet." %}</li>{% endfor %}</ul>
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'account_email' %}">{% translate "Add, remove or choose the primary address" %}</a>
+</div></section>
+
+<section class="card mb-3" id="password" aria-labelledby="password-title"><div class="card-header"><h2 class="h6 mb-0" id="password-title">{% translate "Password" %}</h2></div><div class="card-body d-flex flex-wrap gap-2">
+  {% if has_password %}<a class="btn btn-sm btn-outline-primary" href="{% url 'account_change_password' %}">{% translate "Change the password" %}</a>
+  {% else %}<a class="btn btn-sm btn-outline-primary" href="{% url 'account_set_password' %}">{% translate "Set a password" %}</a>{% endif %}
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'account_reset_password' %}">{% translate "Reset the password by email" %}</a>
+</div></section>
+
+<section class="card mb-3" id="github" aria-labelledby="github-title"><div class="card-header"><h2 class="h6 mb-0" id="github-title">{% translate "GitHub" %}</h2></div><div class="card-body">
+  {% if github %}<p class="mb-2">{% blocktranslate with login=github.extra_data.login %}Linked with the GitHub account <strong>{{ login }}</strong>.{% endblocktranslate %}</p>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'socialaccount_connections' %}">{% translate "Manage linked accounts" %}</a>
+  {% else %}{% get_providers as providers %}
+    {% if providers %}<p class="mb-2">{% translate "No GitHub account is linked." %}</p>
+      <form method="post" action="{% provider_login_url 'github' process='connect' %}">{% csrf_token %}<button class="btn btn-sm btn-primary">{% translate "Link GitHub account" %}</button></form>
+    {% else %}<p class="text-muted mb-0">{% translate "This installation has no GitHub OAuth app: add tokens below." %}</p>{% endif %}
+  {% endif %}
+</div></section>
+
+<section class="card mb-3" id="tokens" aria-labelledby="tokens-title"><div class="card-header"><h2 class="h6 mb-0" id="tokens-title">{% translate "GitHub tokens" %}</h2></div><div class="card-body">
+  <ul class="list-unstyled mb-2">{% for t in tokens %}
+    <li data-token="{{ t.pk }}">{{ t }} <span class="text-muted">({{ t.login }})</span>
+      {% if t.expired %}<span class="badge text-bg-danger">{% translate "expired" %}</span>{% elif t.expires_soon %}<span class="badge text-bg-warning">{% translate "expires soon" %}</span>{% endif %}</li>
+  {% empty %}<li class="text-muted">{% translate "No token yet." %}</li>{% endfor %}</ul>
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'github_access' %}">{% translate "Add, order, test and share tokens" %}</a>
+</div></section>
+{% endblock %}

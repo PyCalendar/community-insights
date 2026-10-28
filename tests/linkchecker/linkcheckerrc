@@ -1,0 +1,30 @@
+# linkchecker for the running site (make check-site-links): every page a
+# signed in person can reach, with the demo project. Other sites are not checked.
+[checking]
+threads=4
+timeout=30
+# at most this many seconds for the whole check
+maxrunseconds=600
+
+[filtering]
+# signing out ends the check; files made in the background are not pages;
+# the same page sorted, shared or in another theme has the same links
+ignore=
+  /accounts/logout/
+  \.ods(\?|$)
+  /i18n/setlang/
+  [?&]sort=
+  /share/[^/]+/\?
+  [?&]from=
+  /admin/
+
+[authentication]
+entry=
+  ^http://127\.0\.0\.1:\d+/ admin@example.com admin
+loginurl=http://127.0.0.1:8765/accounts/login/
+loginuserfield=login
+loginpasswordfield=password
+
+[output]
+log=text
+warnings=0

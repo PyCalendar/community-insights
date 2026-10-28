@@ -174,3 +174,45 @@ def test_the_page_says_how_to_create_a_token_before_the_tokens(world, signed_in)
     assert "how-to/tokens.html" in page[hint : page.index("2. Tokens")]
     assert "Suggested limit of API points when a fetch needs more than this" in page
     assert "how-to/tokens.html#points-and-limits" in page
+
+
+def test_the_tokens_are_put_in_a_new_order(world, signed_in):  # noqa: F811
+    """A drop sends the ids of all tokens: they are used in that order."""
+    from ..factories import AccessTokenFactory
+
+    user_ = world["user"]
+    AccessTokenFactory(user=user_, token="b")
+    AccessTokenFactory(user=user_, token="c")
+    ids = [str(pk) for pk in user_.access_tokens.values_list("pk", flat=True)]
+    signed_in.post("/dashboard/github/", {"action": "order", "order": ids[::-1]})
+    assert [t.token for t in user_.access_tokens.all()] == ["c", "b", "t"]
+
+
+@pytest.mark.parametrize("change", ["missing", "twice", "foreign"])
+def test_an_order_must_name_each_token_once(world, signed_in, change):  # noqa: F811
+    """An order that leaves out, repeats or adds a token changes nothing."""
+    from ..factories import AccessTokenFactory
+
+    user_ = world["user"]
+    AccessTokenFactory(user=user_, token="b")
+    foreign = AccessTokenFactory(token="f")
+    signed_in.get("/dashboard/github/")  # adds the token of the linked account
+    ids = [str(pk) for pk in user_.access_tokens.values_list("pk", flat=True)]
+    wrong = {
+        "missing": ids[1:],
+        "twice": ids[::-1] + ids[:1],
+        "foreign": [str(foreign.pk), *ids[1:]],
+    }[change]
+    response = signed_in.post(
+        "/dashboard/github/", {"action": "order", "order": wrong}, follow=True
+    )
+    assert b"Invalid order of the tokens" in response.content
+    assert [str(pk) for pk in user_.access_tokens.values_list("pk", flat=True)] == ids
+
+
+def test_the_tokens_can_be_ordered_by_dragging(world, signed_in):  # noqa: F811
+    """Each token has a handle; Sortable.js sends the order with a form."""
+    page = signed_in.get("/dashboard/github/").content.decode()
+    assert 'data-sort-list data-sort-form="token-order"' in page
+    assert 'id="token-order"' in page and "data-sort-handle" in page
+    assert "vendor/sortable/Sortable.min.js" in page and "js/sortable-order.js" in page

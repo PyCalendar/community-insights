@@ -6,7 +6,7 @@ documentation (``CommunityError.docs_url``). Any other exception is translated i
 """
 
 from .base import DOCS_URL, CommunityError, UnexpectedError
-from .configuration import ConfigurationError, UnknownWorkerMode
+from .configuration import ConfigurationError, InvalidDefaultSuperuser, UnknownWorkerMode
 from .fetching import (
     AllTokensUsedUp,
     FetchCancelled,
@@ -44,6 +44,7 @@ from .input import (
     InvalidPercentage,
     InvalidQuery,
     InvalidTarget,
+    InvalidTokenOrder,
     LimitNotANumber,
     LimitTooSmall,
     MissingToken,
@@ -74,6 +75,7 @@ from .translate import all_errors, by_code, translate
 __all__ = [
     "ClassNameTaken",
     "InvalidClassOrder",
+    "InvalidTokenOrder",
     "InvalidColor",
     "AllTokensUsedUp",
     "CommunityError",
@@ -126,6 +128,7 @@ __all__ = [
     "UnknownRuleKind",
     "UnknownTable",
     "UnknownVariable",
+    "InvalidDefaultSuperuser",
     "UnknownWorkerMode",
     "UnsupportedComparison",
     "UserItemsLimitReached",

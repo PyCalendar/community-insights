@@ -15,13 +15,14 @@ else
 fi
 COMMIT=$(echo "$FULL_COMMIT" | cut -c1-7)
 
-# the release tag (v1.2.3) or the version of pyproject.toml
+# the release tag (v1.2.3), else the version hatch-vcs derives from the last tag
 TAG=""
 if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
     TAG="${GITHUB_REF_NAME}"
     VERSION="${GITHUB_REF_NAME#v}"
 else
-    VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "$PROJECT_ROOT/pyproject.toml" | head -n 1)
+    VERSION=$(cd "$PROJECT_ROOT" && uvx --quiet --from hatchling==1.27.0 --with hatch-vcs==0.5.0 \
+        hatchling version 2>/dev/null || echo "development")
 fi
 
 REPO="${GITHUB_REPOSITORY:-PyCalendar/community-insights}"

@@ -53,8 +53,8 @@ def summary(
     and `expon.ppf(0.95, scale=scale)`
     - Kaplan-Meier (with `observed`): the items without a response of the class
     count as waiting at least as long as they were observed (until closed or
-    now); median and 95th percentile of `scipy.stats.ecdf` of
-    `scipy.stats.CensoredData`, "-" if not reached. The count is of all items.
+    now); median and 95th percentile of the Kaplan-Meier estimate of lifelines,
+    "-" if not reached. The count is of all items.
 
 
     Args:

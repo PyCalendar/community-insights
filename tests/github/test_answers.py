@@ -58,9 +58,9 @@ def test_github_answers_become_errors(response, expected):
 
 def test_unreachable_github():
     """Unreachable github."""
-    import niquests
+    import httpx
 
-    client = answering(niquests.ConnectionError("no route"))
+    client = answering(httpx.ConnectError("no route"))
     with pytest.raises(errors.GitHubUnreachable):
         run(client.graphql, "query { x }")
 

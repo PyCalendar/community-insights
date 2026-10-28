@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from community_insights import errors
 from community_insights.errors import GitHubError, RepositoryNotFound, TokenError
 from community_insights.github import Client, RateLimited, parse_expiration
 from community_insights.github.reads import repositories
@@ -146,3 +147,43 @@ def test_queries_escape_repository_names():
     assert run(client.visible, ['a"b/c\\d']) == {'a"b/c\\d': False}
     query = sent[0][1]["query"]
     assert 'owner: "a\\"b"' in query and 'name: "c\\\\d"' in query
+
+
+def test_the_token_and_the_name_of_the_site_are_sent():
+    """GitHub sees the token and who asks."""
+    import httpx
+    import respx
+
+    mock = respx.MockRouter()
+    route = mock.post("https://api.github.com/graphql").respond(json={"data": {"x": 1}})
+    client = Client(
+        "secret", api="https://api.github.com", transport=httpx.MockTransport(mock.async_handler)
+    )
+    assert run(client.graphql, "query { x }") == {"x": 1}
+    request = route.calls.last.request
+    assert request.headers["Authorization"] == "Bearer secret"
+    assert request.headers["User-Agent"] == "community-insights"
+
+
+def test_the_requests_of_a_token_keep_a_pace():
+    """aiolimiter lets a token send at most POINTS_PER_SECOND requests per second."""
+    from community_insights.github import limits
+
+    client = Client("secret")
+    assert client.pace.max_rate == limits.POINTS_PER_SECOND
+    assert client.pace.time_period == 1
+
+
+def test_a_timeout_is_unreachable():
+    """A request that takes too long is shown as GitHub being unreachable."""
+    import httpx
+
+    with pytest.raises(errors.GitHubUnreachable, match="ReadTimeout"):
+        run(answering(httpx.ReadTimeout("")).graphql, "query { x }")
+
+
+def test_the_client_closes_its_connections():
+    """close() closes the httpx client."""
+    client = answering()
+    run(client.close)
+    assert client.session.is_closed

@@ -15,7 +15,7 @@ from django.utils.translation import gettext, gettext_lazy  # noqa: E402
 from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 from matplotlib.ticker import FixedLocator, FuncFormatter  # noqa: E402
 
-from .stats import format_duration, histogram  # noqa: E402
+from .stats import format_duration, histogram, survival  # noqa: E402
 
 plt.rcParams["svg.fonttype"] = "none"
 plt.rcParams["font.size"] = 9
@@ -50,10 +50,9 @@ KIND_COLORS = {
 }
 BAR = {"light": GREEN_DARK, "dark": GREEN_LIGHT}
 # from dark (few) to the full green (many): no white, which looked like missing data
+HEAT_STOPS = ["#1c331b", GREEN_DEEPEST, GREEN_DARK, GREEN]
 HEAT = {
-    theme: LinearSegmentedColormap.from_list(
-        f"community-{theme}", ["#1c331b", GREEN_DEEPEST, GREEN_DARK, GREEN]
-    )
+    theme: LinearSegmentedColormap.from_list(f"community-{theme}", HEAT_STOPS)
     for theme in ("light", "dark")
 }
 WEEKDAYS = [
@@ -302,22 +301,72 @@ def response_month_chart(months, theme: str = "light") -> bytes:
     return svg(figure)
 
 
-def duration_axis(axes, highest: float):
-    """A y axis of hours that shows durations, such as 10min, 6h, 7d, from 0.
+def duration_axis(axes, highest: float, axis: str = "y"):
+    """An axis of hours that shows durations, such as 10min, 6h, 7d, from 0.
 
     Args:
         axes: The axes to change.
         highest: The highest value shown, in hours.
+        axis: ``y`` or ``x``.
     """
-    axes.set_yscale("symlog", linthresh=1 / 60)
     above = [tick for tick in DURATION_TICKS if tick >= highest]
     top = above[0] if above else highest
-    axes.set_ylim(0, top * 1.05 or 1)
-    axes.yaxis.set_major_locator(FixedLocator([t for t in DURATION_TICKS if t <= top]))
-    axes.yaxis.set_minor_locator(FixedLocator([]))
-    axes.yaxis.set_major_formatter(
+    shown = axes.yaxis if axis == "y" else axes.xaxis
+    if axis == "y":
+        axes.set_yscale("symlog", linthresh=1 / 60)
+        axes.set_ylim(0, top * 1.05 or 1)
+    else:
+        axes.set_xscale("symlog", linthresh=1 / 60)
+        axes.set_xlim(0, top * 1.05 or 1)
+    shown.set_major_locator(FixedLocator([t for t in DURATION_TICKS if t <= top]))
+    shown.set_minor_locator(FixedLocator([]))
+    shown.set_major_formatter(
         FuncFormatter(lambda hours, _: format_duration(hours * 3600) if hours else "0")
     )
+
+
+def survival_chart(title: str, entries, observed, classes, theme: str = "light") -> bytes:
+    """The share of the items still waiting for a response of each class, over time.
+
+    Kaplan-Meier curves of lifelines, with their 95 % confidence interval as a band: the items
+    without a response count as waiting as long as they were observed.
+
+    Args:
+        title: The kind, such as *Pull requests*.
+        entries: The seconds until the first response of each class, one dictionary per item.
+        observed: How long each item was observed.
+        classes: The classes of people, in their order, with their colours.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG; a chart that says so without responses.
+    """
+    curves = [(c, survival(entries, observed, c.name)) for c in classes]
+    curves = [(c, fitted) for c, fitted in curves if fitted is not None]
+    if not curves:
+        return empty(gettext("%(title)s: no responses yet") % {"title": title}, theme)
+    figure, axes = plt.subplots(figsize=(7, 3.2))
+    highest = 0.0
+    for person_class, fitted in curves:
+        hours = fitted.survival_function_.index.to_numpy() / 3600
+        share = fitted.survival_function_.iloc[:, 0].to_numpy() * 100
+        band = fitted.confidence_interval_survival_function_.to_numpy() * 100
+        axes.step(hours, share, where="post", color=person_class.color, label=person_class.name)
+        axes.fill_between(
+            hours, band[:, 0], band[:, 1], step="post", color=person_class.color, alpha=0.15
+        )
+        highest = max(highest, float(hours.max()))
+    duration_axis(axes, highest, "x")
+    axes.set_ylim(0, 100)
+    axes.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:.0f} %"))
+    axes.set_title(
+        gettext("%(title)s (%(items)s): still waiting for a response")
+        % {"title": title, "items": len(entries)}
+    )
+    axes.set_xlabel(gettext("time since opened"))
+    axes.set_ylabel(gettext("without a response"))
+    style(axes, theme, legend=True)
+    return svg(figure)
 
 
 def month_chart(months, theme: str = "light") -> bytes:

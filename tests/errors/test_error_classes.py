@@ -2,6 +2,7 @@
 
 import re
 
+import httpx
 import pytest
 import requests
 
@@ -37,6 +38,9 @@ def test_every_error_is_in_the_documentation():
         (requests.ConnectionError("down"), errors.GitHubUnreachable),
         (requests.Timeout("slow"), errors.GitHubUnreachable),
         (requests.HTTPError("x"), errors.GitHubError),
+        (httpx.ConnectError("down"), errors.GitHubUnreachable),
+        (httpx.ReadTimeout("slow"), errors.GitHubUnreachable),
+        (httpx.DecodingError("odd"), errors.GitHubError),
         (ValueError("bad"), errors.InvalidInput),
         (KeyError("k"), errors.UnexpectedError),
         (errors.ExpiredAPIToken("x"), errors.ExpiredAPIToken),

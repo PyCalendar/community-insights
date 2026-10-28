@@ -7,27 +7,16 @@ from django.utils import timezone
 
 from community_insights.models import AccessToken
 from community_insights.tokens import Entry, NoTokenLeft, TokenPool
+from tests.factories import AccessTokenFactory, UserFactory
 
 from ..fakes import Counting, FakeClient, run
 
 pytestmark = pytest.mark.django_db
 
 
-def stored(user, **fields):  # noqa: F811
-    """A stored token of a user."""
-    return AccessToken.objects.create(user=user, token="t", login="x", **fields)
-
-
-def other_user(name="bob"):
-    """Another user."""
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(name, f"{name}@example.org", "pw")
-
-
 def test_the_model_computes_the_numbers_of_the_sliders(user):  # noqa: F811
     """The same numbers as tests/js/token-sliders.test.js."""
-    token = stored(user)
+    token = AccessTokenFactory(user=user)
     assert (token.max_points, token.shared_points, token.reserve) == (5000, 500, 0)
     token.max_percent, token.shared_percent = 90, 10
     assert (token.max_points, token.shared_points, token.reserve) == (4500, 450, 500)
@@ -39,17 +28,19 @@ def test_shared_points_of_others_come_after_the_own_tokens(user):  # noqa: F811
     """Shared points of others come after the own tokens."""
     from community_insights.tokens import entries_for
 
-    stored(user, label="own")
-    friend = other_user()
+    AccessTokenFactory(user=user, label="own")
+    friend = UserFactory(username="bob")
     AccessToken.objects.create(user=friend, token="f", login="bob", shared_percent=10)
-    AccessToken.objects.create(user=other_user("eve"), token="e", login="eve", shared_percent=0)
+    AccessToken.objects.create(
+        user=UserFactory(username="eve"), token="e", login="eve", shared_percent=0
+    )
     entries = entries_for(user, lambda token: FakeClient())
     assert [(e.label, e.shared) for e in entries] == [("own", False), ("shared by bob", True)]
 
 
 def test_others_use_only_the_shared_points(user):  # noqa: F811
     """Others use only the shared points."""
-    friend = other_user()
+    friend = UserFactory(username="bob")
     token = AccessToken.objects.create(
         user=friend,
         token="f",
@@ -70,7 +61,7 @@ def test_others_use_only_the_shared_points(user):  # noqa: F811
 
 def test_the_reserve_stays_with_github(user):  # noqa: F811
     """The reserve stays with github."""
-    token = stored(user, rate_limit=5000, max_percent=90)  # stop when 500 are left
+    token = AccessTokenFactory(user=user, rate_limit=5000, max_percent=90)  # stop when 500 are left
     token.rate_remaining = 501
     token.rate_reset_at = timezone.now() + timedelta(minutes=30)
     assert token.owner_left(timezone.now()) == 1
@@ -84,7 +75,7 @@ def test_points_allowed_above_the_maximum_for_this_hour(user):  # noqa: F811
     from community_insights.tokens import HourAllowance
 
     profile = Profile.of(user)
-    token = stored(user, rate_limit=100, max_percent=1)  # 1 point per hour
+    token = AccessTokenFactory(user=user, rate_limit=100, max_percent=1)  # 1 point per hour
     entry = Entry("own", Counting("a"), token, allowance=HourAllowance(profile))
     pool = TokenPool([entry])
     run(pool.graphql, "query { x }")
@@ -106,9 +97,9 @@ def test_points_left(user):  # noqa: F811
     """Points left."""
     from community_insights.tokens import points_left
 
-    own = stored(user, rate_limit=100, max_percent=50)
+    own = AccessTokenFactory(user=user, rate_limit=100, max_percent=50)
     friend = AccessToken.objects.create(
-        user=other_user(), token="f", login="bob", rate_limit=100, shared_percent=10
+        user=UserFactory(username="bob"), token="f", login="bob", rate_limit=100, shared_percent=10
     )
     entries = [Entry("own", Counting("a"), own), Entry("bob", Counting("b"), friend, shared=True)]
     assert points_left(entries, timezone.now()) == {

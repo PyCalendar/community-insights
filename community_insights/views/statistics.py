@@ -16,21 +16,24 @@ from .scope import scope_of, scope_view, stats_page
 FITS = ["measured", "normal", "exponential", "Kaplan-Meier"]
 
 
-def fit_table(title: str, kind: str, entries, names: list[str], observed) -> tuple:
-    """A table of the response times and the fit shown first.
+def fit_table(title: str, kind: str, found, names: list[str]) -> tuple:
+    """A table of the response times, the fit shown first and the trend.
 
     Args:
         title: The title of the table.
         kind: ``pr`` or ``issue``.
-        entries: The first response times of the items.
+        found: For each item the time it was created, its first response times and how long it
+            was observed (``stats.response_rows``).
         names: The names of the classes, in their order.
-        observed: How long each item was observed.
 
     Returns:
-        The title, the kind, the rows and the fit with the lowest standard error.
+        The title, the kind, the rows, the fit with the lowest standard error, and the trend
+        (None without enough responses).
     """
+    entries = [times for _, times, _ in found]
+    observed = [seconds for _, _, seconds in found]
     rows = stats.summary(entries, names, observed)
-    return title, kind, rows, stats.best_fit(rows)
+    return title, kind, rows, stats.best_fit(rows), stats.trend(found)
 
 
 @scope_view
@@ -46,9 +49,7 @@ def overview(request, scope):
     """
     scope = scope_of(request, scope)
     classes = scope.visible_classes()
-    entries, observed = stats.response_times(
-        scope.repositories, scope.classifier(), scope.since, scope.until
-    )
+    found = stats.response_rows(scope.repositories, scope.classifier(), scope.since, scope.until)
     names = [c.name for c in classes]
     return stats_page(
         request,
@@ -58,8 +59,8 @@ def overview(request, scope):
             "scope": scope,
             "counts": stats.counts(scope.repositories, scope.since, scope.until),
             "tables": [
-                fit_table(_("Pull requests"), "pr", entries[Item.PR], names, observed[Item.PR]),
-                fit_table(_("Issues"), "issue", entries[Item.ISSUE], names, observed[Item.ISSUE]),
+                fit_table(_("Pull requests"), "pr", found[Item.PR], names),
+                fit_table(_("Issues"), "issue", found[Item.ISSUE], names),
             ],
             "fits": FITS,
             "classes": classes,

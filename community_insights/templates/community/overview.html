@@ -22,9 +22,11 @@
 <h2 class="h5">{% translate "Response times" %}</h2>
 <p class="text-muted small">{% url 'classes' as classes_url %}{% blocktranslate %}Time until the first response of each class of people (<a href="{{ classes_url }}">edit classes</a>). The author's own comments do not count. <em>Measured</em>, <em>normal</em> and <em>exponential</em> use only the items that got a response; <em>Kaplan-Meier</em> counts the others, too, as waiting at least until they were closed or until now, and is "-" where less than half (or 95 %) got a response.{% endblocktranslate %}</p>
 <div class="row g-4">
-  {% for title, kind, rows, best in tables %}
+  {% for title, kind, rows, best, trend in tables %}
   <div class="col-12 col-xl-6">
     <div class="chart mb-3">{% url 'chart' scope.text 'responses-'|add:kind as base %}{% blocktranslate asvar alt %}{{ title }}: first response times{% endblocktranslate %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}</div>
+    <div class="chart mb-3">{% url 'chart' scope.text 'survival-'|add:kind as base %}{% blocktranslate asvar alt %}{{ title }}: share still waiting for a response (Kaplan-Meier){% endblocktranslate %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
+      <p class="small text-muted mb-0"><a href="{{ links.documentation }}explanation/response-times.html#kaplan-meier-curve" target="_blank" rel="noopener">{% translate "How to read the Kaplan-Meier curve" %}</a></p></div>
     {% if rows %}
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
       <label class="form-label small mb-0" for="fit-{{ kind }}">{% translate "Statistic" %}</label>
@@ -40,6 +42,11 @@
     </table></div>
     <p class="small text-muted">{% translate "n counts the items with a response of the class. Kaplan-Meier counts all items, so its n is the same for every class: the items without a response of the class count as waiting, until they were closed or until now." %} <a href="{{ links.documentation }}explanation/response-times.html">{% translate "How to read the response times" %}</a></p>
     {% endif %}
+    <p class="small" data-trend="{{ kind }}">{% if not trend %}<span class="text-muted">{% translate "Trend: too few responses to tell whether they get faster or slower." %}</span>
+    {% elif not trend.clear %}{% blocktranslate with p=trend.p_value|floatformat:2 n=trend.responses %}Trend: no clear change of the time until the first response over time (p = {{ p }}, {{ n }} responses).{% endblocktranslate %}
+    {% elif trend.faster %}{% blocktranslate with size=trend.size|floatformat:0 low=trend.bounds.0|floatformat:0 high=trend.bounds.1|floatformat:0 p=trend.p_value|floatformat:3 n=trend.responses %}Trend: the first responses get <strong>{{ size }} % faster</strong> per month (95 % confidence interval {{ low }} % to {{ high }} %, p = {{ p }}, {{ n }} responses).{% endblocktranslate %}
+    {% else %}{% blocktranslate with size=trend.size|floatformat:0 low=trend.bounds.0|floatformat:0 high=trend.bounds.1|floatformat:0 p=trend.p_value|floatformat:3 n=trend.responses %}Trend: the first responses get <strong>{{ size }} % slower</strong> per month (95 % confidence interval {{ low }} % to {{ high }} %, p = {{ p }}, {{ n }} responses).{% endblocktranslate %}{% endif %}
+    <a href="{{ links.documentation }}explanation/response-times.html#trend" target="_blank" rel="noopener">{% translate "How the trend is computed" %}</a></p>
   </div>
   {% endfor %}
 </div>
@@ -65,4 +72,5 @@
 <script src="{% static 'js/share.js' %}" defer></script>
 <script src="{% static 'js/badge.js' %}" defer></script>
 <script src="{% static 'js/fit-select.js' %}" defer></script>
+{% include "community/_chart_scripts.html" %}
 {% endblock %}

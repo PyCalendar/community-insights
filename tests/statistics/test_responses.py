@@ -90,3 +90,58 @@ def test_the_overview_selects_the_best_fit(synced, signed_in):
     assert "selected>" in page and "(lowest std error)" in page
     assert "Kaplan-Meier counts all items" in page
     assert "js/fit-select.js" in page
+
+
+def test_kaplan_meier_when_every_item_got_a_response():
+    """Without waiting items, the 95 % is the slowest response."""
+    entries = [{"bot": 60.0}, {"bot": 120.0}, {"bot": 3600.0}]
+    fitted = stats.survival(entries, [60.0, 120.0, 3600.0], "bot")
+    assert stats.quantile(fitted, 0.5) == 120.0
+    assert stats.quantile(fitted, 0.95) == 3600.0
+    assert stats.quantile(fitted, 1.0) == 3600.0
+
+
+def test_kaplan_meier_with_responses_at_once():
+    """Responses after 0 seconds count; no warning stops it."""
+    fitted = stats.survival([{"bot": 0.0}, {"bot": 0.0}, {}], [0.0, 0.0, 10.0], "bot")
+    assert stats.quantile(fitted, 0.5) == 0.0
+    assert stats.quantile(fitted, 0.95) is None
+
+
+def test_kaplan_meier_of_the_first_response_of_anybody():
+    """Without a class, the fastest class of an item counts."""
+    entries = [{"bot": 60.0, "maintainer": 30.0}, {"maintainer": 90.0}, {}]
+    fitted = stats.survival(entries, [60.0, 90.0, 1000.0], None)
+    assert stats.quantile(fitted, 0.5) == 90.0
+    assert stats.survival([{}, {}], [1.0, 2.0], None) is None
+
+
+def test_kaplan_meier_needs_one_observation_per_item():
+    """The lists must be as long as each other."""
+    with pytest.raises(ValueError):
+        stats.survival([{"bot": 1.0}], [1.0, 2.0], "bot")
+
+
+def test_responses_by_month_of_somebody_who_never_responded(synced, user):  # noqa: F811
+    """No responses: no months."""
+    from datetime import UTC
+
+    assert stats.responses_by_month(Repository.objects.all(), "nobody", UTC) == {}
+
+
+def test_the_kaplan_meier_code_of_the_documentation_gives_the_same_median():
+    """docs/how-to/verify.rst computes the median of Kaplan-Meier from the downloads."""
+    import lifelines
+    import pandas
+
+    entries = [{"bot": 60.0}, {"bot": 600.0}, {}, {"bot": 30.0}, {}]
+    observed = [60.0, 600.0, 7200.0, 30.0, 50.0]
+    table = pandas.DataFrame(
+        {"seconds_bot": [e.get("bot") for e in entries], "observed_seconds": observed}
+    )
+    # the code of the documentation
+    column = table["seconds_bot"]
+    durations = column.fillna(table["observed_seconds"])
+    fitted = lifelines.KaplanMeierFitter().fit(durations, event_observed=column.notna())
+    ours = stats.quantile(stats.survival(entries, observed, "bot"), 0.5)
+    assert fitted.median_survival_time_ == ours == 600.0

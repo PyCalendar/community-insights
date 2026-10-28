@@ -92,3 +92,41 @@ def test_the_address_of_the_visitor(forwarded, proxies, address):
     """The address of the visitor."""
     request = RequestFactory().get("/", REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR=forwarded)
     assert client_address(request, proxies) == address
+
+
+def test_the_limit_ends_after_an_hour(world, client, github, monkeypatch):
+    """django-ratelimit counts in windows of an hour: the next one allows again."""
+    import time
+
+    now = time.time()
+    monkeypatch.setattr("django_ratelimit.core.time.time", lambda: now)
+    submit(client, "new/a")
+    submit(client, "new/b")
+    assert b"Too many requests" in submit(client, "new/c").content
+    monkeypatch.setattr("django_ratelimit.core.time.time", lambda: now + 3601)
+    submit(client, "new/c")
+    assert Repository.objects.filter(full_name="new/c").exists()
+
+
+def test_the_actions_are_counted_apart(world, client, github):
+    """Adding repositories does not use up the fetches."""
+    submit(client, "new/a")
+    submit(client, "new/b")
+    address = {"HTTP_X_FORWARDED_FOR": "203.0.113.1"}
+    client.post("/s/o~empty/fetch/", {"next": "/s/o~empty/"}, **address)
+    assert FetchJob.objects.filter(user=None).count() == 1
+
+
+def test_a_made_up_forwarded_address_does_not_escape_the_limit(world, client, github):
+    """Only the address the trusted proxy added counts, not those the visitor sends."""
+    submit(client, "new/a", address="1.1.1.1, 203.0.113.5")
+    submit(client, "new/b", address="2.2.2.2, 203.0.113.5")
+    refused = submit(client, "new/c", address="3.3.3.3, 203.0.113.5")
+    assert b"Too many requests from this address" in refused.content
+
+
+def test_the_limit_is_counted_per_action_and_kept_after_an_error(world, client, github):
+    """A refused request does not reset the count."""
+    for name in ("new/a", "new/b", "new/c", "new/c"):
+        last = submit(client, name)
+    assert b"Too many requests from this address" in last.content

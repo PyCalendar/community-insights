@@ -1,16 +1,20 @@
 """The data behind the statistics as tables, to check them with scipy, pandas or a spreadsheet.
 
+CSV and Parquet are written by pandas and pyarrow.
+
 See docs/how-to/verify.rst.
 """
 
-import csv
 import io
 import json
 import re
 from datetime import UTC, datetime
 
+import pandas as pd
+import pyarrow
 from django.utils import timezone
 from django.utils.translation import gettext
+from pyarrow import parquet
 
 from . import stats
 from .errors import UnknownTable
@@ -331,6 +335,18 @@ def workbook(
     return sheets
 
 
+def frame(rows: list[dict]) -> pd.DataFrame:
+    """Rows as a pandas table, the values as they are.
+
+    Args:
+        rows: The rows, all with the same keys.
+
+    Returns:
+        The table; without rows, one without columns.
+    """
+    return pd.DataFrame(rows, dtype=object)
+
+
 def to_csv(rows: list[dict]) -> str:
     """Rows as CSV with a header; None becomes an empty cell.
 
@@ -339,13 +355,46 @@ def to_csv(rows: list[dict]) -> str:
 
     Returns:
         The CSV; empty without rows.
+
+    Examples:
+        >>> print(to_csv([{"login": "bob", "seconds": 60}, {"login": "eve", "seconds": None}]))
+        login,seconds
+        bob,60
+        eve,
+        <BLANKLINE>
+        >>> to_csv([])
+        ''
     """
-    buffer = io.StringIO()
-    if rows:
-        writer = csv.DictWriter(buffer, fieldnames=list(rows[0]), lineterminator="\n")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({k: "" if v is None else v for k, v in row.items()})
+    if not rows:
+        return ""
+    return frame(rows).to_csv(index=False, lineterminator="\n", na_rep="")
+
+
+# columns with times, as ISO 8601 in the rows; times in Parquet
+TIME_COLUMNS = re.compile(r"(^at$|_at$|^first_activity$|^last_activity$)")
+
+
+def to_parquet(rows: list[dict], about: dict) -> bytes:
+    """Rows as Parquet, with types: numbers, texts and times; what the export is as metadata.
+
+    pandas reads it with ``pandas.read_parquet``; the facts of ``about`` are the JSON of the
+    key ``community-insights`` of the metadata of the schema.
+
+    Args:
+        rows: The rows, all with the same keys.
+        about: What the export is: repositories, time range, classes and version.
+
+    Returns:
+        The Parquet file.
+    """
+    table = pd.DataFrame(rows).convert_dtypes()
+    for name in table.columns:
+        if TIME_COLUMNS.search(str(name)):
+            table[name] = pd.to_datetime(table[name].replace("", None), utc=True)
+    arrow = pyarrow.Table.from_pandas(table, preserve_index=False)
+    metadata = {**(arrow.schema.metadata or {}), b"community-insights": json.dumps(about).encode()}
+    buffer = io.BytesIO()
+    parquet.write_table(arrow.replace_schema_metadata(metadata), buffer)
     return buffer.getvalue()
 
 

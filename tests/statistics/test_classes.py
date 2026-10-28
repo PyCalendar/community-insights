@@ -134,9 +134,10 @@ def test_an_order_must_name_each_class_once(user, signed_in, change):
 def test_the_classes_page_can_be_ordered_by_dragging(user, signed_in):
     """The classes page can be ordered by dragging."""
     page = signed_in.get("/dashboard/classes/").content.decode()
-    assert "data-class-order" in page and "data-drag-class" in page
+    assert 'data-sort-list data-sort-form="class-order"' in page and "data-sort-handle" in page
+    assert 'id="class-order"' in page
     assert 'name="action" value="edit_class"' in page
-    assert "js/classes-order.js" in page
+    assert "vendor/sortable/Sortable.min.js" in page and "js/sortable-order.js" in page
 
 
 def test_the_classes_of_the_site_are_hidden_not_deleted(user, signed_in):

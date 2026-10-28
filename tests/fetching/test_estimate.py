@@ -6,17 +6,13 @@ import pytest
 from django.utils import timezone
 
 from community_insights import pipeline
-from community_insights.models import FetchJob, Item
+from community_insights.models import Item
 from community_insights.sync import store_repository
+from tests.factories import FetchJobFactory
 
 from ..fakes import FakeClient, item, repo, run
 
 pytestmark = pytest.mark.django_db
-
-
-def job_for(user, name="o/r", **fields):  # noqa: F811
-    """A fetch job of a user for a repository."""
-    return FetchJob.objects.create(user=user, repository=store_repository(repo(name)), **fields)
 
 
 def test_estimate_first_fetch_and_later(user):  # noqa: F811
@@ -69,9 +65,12 @@ def test_empty_repository_is_complete(user):  # noqa: F811
 
 def test_seconds_left(user):  # noqa: F811
     """Seconds left."""
-    job = job_for(user, items_expected=200, items_done=0)
+    job = FetchJobFactory(user=user, repository__full_name="o/r", items_expected=200, items_done=0)
     assert pipeline.seconds_left([job]) == pytest.approx(200 / pipeline.ITEMS_PER_SECOND)
-    waiting = job_for(
-        user, "o/w", items_expected=0, not_before=timezone.now() + timedelta(seconds=60)
+    waiting = FetchJobFactory(
+        user=user,
+        repository__full_name="o/w",
+        items_expected=0,
+        not_before=timezone.now() + timedelta(seconds=60),
     )
     assert pipeline.seconds_left([waiting]) == pytest.approx(60, abs=2)

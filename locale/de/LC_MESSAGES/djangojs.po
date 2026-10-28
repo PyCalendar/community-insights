@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 18:06+0000\n"
+"POT-Creation-Date: 2026-10-27 20:39+0000\n"
 "PO-Revision-Date: 2026-10-27 10:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: German\n"
@@ -32,36 +32,6 @@ msgstr "+ Spalte hinzufügen"
 msgid "Copied"
 msgstr "Kopiert"
 
-msgid "The file is ready."
-msgstr "Die Datei ist bereit."
-
-msgid "The file could not be made."
-msgstr "Die Datei konnte nicht erstellt werden."
-
-msgid "The file is being made from the data on this site."
-msgstr "Die Datei wird aus den Daten dieser Seite erstellt."
-
-msgid "%(percent)s% of the data"
-msgstr "%(percent)s% der Daten"
-
-msgid "%(percent)s% of the data (%(items)s of %(total)s items)"
-msgstr "%(percent)s% der Daten (%(items)s von %(total)s Einträgen)"
-
-msgid ", complete in about %(left)s"
-msgstr ", vollständig in etwa %(left)s"
-
-msgid ", reading"
-msgstr ", wird gelesen"
-
-msgid ", read from GitHub to complete it"
-msgstr ", lies von GitHub, um sie zu vervollständigen"
-
-msgid "The site cannot be reached right now; trying again."
-msgstr "Die Seite ist gerade nicht erreichbar; neuer Versuch folgt."
-
-msgid "What to do"
-msgstr "Was zu tun ist"
-
 msgid "project"
 msgstr "Projekt"
 
@@ -82,8 +52,37 @@ msgstr "%(target)s hinzufügen"
 
 msgid ""
 "%(max)s of %(limit)s points per hour, stopping when %(reserve)s are left"
-msgstr ""
-"%(max)s von %(limit)s Punkten pro Stunde, Halt bei %(reserve)s übrigen"
+msgstr "%(max)s von %(limit)s Punkten pro Stunde, Halt bei %(reserve)s übrigen"
 
 msgid "%(shared)s of %(max)s points per hour for others on this site"
 msgstr "%(shared)s von %(max)s Punkten pro Stunde für andere auf dieser Seite"
+
+#~ msgid "The file is ready."
+#~ msgstr "Die Datei ist bereit."
+
+#~ msgid "The file could not be made."
+#~ msgstr "Die Datei konnte nicht erstellt werden."
+
+#~ msgid "The file is being made from the data on this site."
+#~ msgstr "Die Datei wird aus den Daten dieser Seite erstellt."
+
+#~ msgid "%(percent)s% of the data"
+#~ msgstr "%(percent)s% der Daten"
+
+#~ msgid "%(percent)s% of the data (%(items)s of %(total)s items)"
+#~ msgstr "%(percent)s% der Daten (%(items)s von %(total)s Einträgen)"
+
+#~ msgid ", complete in about %(left)s"
+#~ msgstr ", vollständig in etwa %(left)s"
+
+#~ msgid ", reading"
+#~ msgstr ", wird gelesen"
+
+#~ msgid ", read from GitHub to complete it"
+#~ msgstr ", lies von GitHub, um sie zu vervollständigen"
+
+#~ msgid "The site cannot be reached right now; trying again."
+#~ msgstr "Die Seite ist gerade nicht erreichbar; neuer Versuch folgt."
+
+#~ msgid "What to do"
+#~ msgstr "Was zu tun ist"

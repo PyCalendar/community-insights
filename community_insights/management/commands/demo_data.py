@@ -18,7 +18,7 @@ class Command(BaseCommand):
         Args:
             parser: The parser of the arguments of the command.
         """
-        parser.add_argument("username", nargs="?", default="admin")
+        parser.add_argument("username", nargs="?", default="admin@example.com")
 
     def handle(self, *args, username, **options):
         """Add the project and read its made up data, once.
@@ -31,7 +31,11 @@ class Command(BaseCommand):
         Raises:
             CommandError: If there is no such user.
         """
-        user = get_user_model().objects.filter(username=username).first()
+        users = get_user_model().objects
+        user = (
+            users.filter(username__iexact=username).first()
+            or users.filter(email__iexact=username).order_by("pk").first()
+        )
         if user is None:
             raise CommandError(f"There is no user {username}.")
         ensure_default_classes(user)

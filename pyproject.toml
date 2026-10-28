@@ -1,6 +1,6 @@
 [project]
 name = "community-insights"
-version = "0.2.0"
+dynamic = ["version"]  # from the git tag, by hatch-vcs
 description = "Contributor Community Insights: response times, contributors and badges for GitHub projects"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -14,7 +14,6 @@ dependencies = [
     "requests>=2.32",
     "whitenoise>=6.9",
     "scipy>=1.18.1",
-    "niquests>=3.21.2",
     "django-environ>=0.14.0",
     "django-health-check>=4.8.0",
     "django-fernet-encrypted-fields>=0.4.0",
@@ -27,12 +26,29 @@ dependencies = [
     "psycopg[binary]>=3.3.6",
     "odfpy>=1.4.1",
     "geonamescache>=2.0",
+    "pandas>=2.3.3",
+    "pyarrow>=26.0.0",
+    "lifelines>=0.30.3",
+    "statsmodels>=0.15.0",
+    "gql>=4.4.0",
+    "django-htmx>=1.29.0",
+    "pip-licenses>=5.5.5",
+    "django-ratelimit>=4.1.0",
+    "anybadge>=1.16.0",
+    "aiolimiter>=1.2",
+    "httpx>=0.28.1",
 ]
 
 [build-system]
 # pip install .[docs] on Read the Docs builds the package
-requires = ["hatchling==1.27.0"]
+requires = ["hatchling==1.27.0", "hatch-vcs==0.5.0"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+# the version is the git tag (v1.2.3); between releases 1.2.4.devN+gHASH
+source = "vcs"
+# without git, such as in an archive of the code
+raw-options = { fallback_version = "0.0.0" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["community_insights"]
@@ -61,17 +77,18 @@ docs = [
 
 [dependency-groups]
 dev = [
-    "behave-django",
     "django-debug-toolbar>=8.0.0",
     "django-types>=0.24.0",
+    "factory-boy>=3.3.3",
     "polib>=1.2.0",
     "pre-commit",
     "pyright>=1.1.414",
     "pytest",
     "pytest-cov",
     "pytest-django",
+    "pytest-playwright>=0.10.0",
+    "respx>=0.23.1",
     "ruff==0.16.10",
-    "selenium",
 ]
 
 [tool.pytest.ini_options]
@@ -82,8 +99,9 @@ filterwarnings = ["ignore:No directory at:UserWarning"]  # staticfiles/ is made 
 markers = [
     "performance: measures speed; run with make test-performance",
     "network: may use the network (reads GitHub with a real token)",
+    "browser: in Firefox with Playwright; run with make test-browser",
 ]
-addopts = "-m 'not performance'"
+addopts = "-m 'not performance and not browser'"
 
 [tool.ruff]
 line-length = 100

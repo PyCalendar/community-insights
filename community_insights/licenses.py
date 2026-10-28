@@ -1,6 +1,6 @@
 """The licenses of the software of the site.
 
-The licenses of the software of the site: the installed Python packages, read from their metadata,
+The licenses of the software of the site: the installed Python packages, read by pip-licenses,
 the JavaScript the pages load, from static/vendor/vendor.json, and the code taken over from other
 projects, from REUSE.toml.
 """
@@ -9,15 +9,18 @@ import json
 import tomllib
 from dataclasses import dataclass
 from functools import cache
-from importlib.metadata import PackageNotFoundError, distributions
+from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as installed_version
 from pathlib import Path
 
+import piplicenses
 from django.conf import settings
 from django.templatetags.static import static
+from django.urls import reverse
 
 VENDOR = Path(__file__).parent.parent / "static" / "vendor" / "vendor.json"
 REUSE = Path(__file__).parent.parent / "REUSE.toml"
+PROJECT_LICENSE = "AGPL-3.0-or-later"  # the license of the project, in REUSE.toml
 
 
 @dataclass(frozen=True)
@@ -39,58 +42,103 @@ class Package:
     license_url: str = ""
 
 
-def license_of(metadata) -> str:
+UNKNOWN = "UNKNOWN"  # what pip-licenses says for a field that is missing
+
+
+def license_of(entry: dict) -> str:
     """The SPDX expression, the license field, or the license classifiers.
 
     Args:
-        metadata: The metadata of an installed package.
+        entry: A package as pip-licenses describes it.
 
     Returns:
         The license, "see the package" if none is given.
+
+    Examples:
+        >>> license_of({"license_expression": "MIT"})
+        'MIT'
+        >>> license_of({"license_expression": "UNKNOWN", "license": "BSD"})
+        'BSD'
+        >>> license_of({"license": "BSD " * 30, "license_classifier": ["BSD License"]})
+        'BSD License'
+        >>> license_of({})
+        'see the package'
     """
-    expression = metadata.get("License-Expression")
-    if expression:
+    expression = entry.get("license_expression", UNKNOWN)
+    if expression != UNKNOWN:
         return expression
-    text = (metadata.get("License") or "").strip()
-    if text and "\n" not in text and len(text) < 80:
+    text = entry.get("license", UNKNOWN).strip()
+    if text != UNKNOWN and text and "\n" not in text and len(text) < 80:
         return text
-    classifiers = [
-        c.split(" :: ")[-1]
-        for c in metadata.get_all("Classifier") or []
-        if c.startswith("License :: ") and c.count(" :: ") > 1
-    ]
-    return ", ".join(classifiers) or "see the package"
+    return ", ".join(entry.get("license_classifier", [])) or "see the package"
 
 
-def url_of(metadata) -> str:
-    """The home page of a package, from its metadata, else its page on PyPI.
+def url_of(entry: dict) -> str:
+    """The home page of a package, else its page on PyPI.
 
     Args:
-        metadata: The metadata of an installed package.
+        entry: A package as pip-licenses describes it.
 
     Returns:
         The address.
+
+    Examples:
+        >>> url_of({"name": "x", "home-page": "https://x.org"})
+        'https://x.org'
+        >>> url_of({"name": "x", "home-page": "UNKNOWN"})
+        'https://pypi.org/project/x/'
     """
-    for entry in metadata.get_all("Project-URL") or []:
-        label, _, url = entry.partition(",")
-        if label.strip().lower() in ("homepage", "home", "source", "source code", "repository"):
-            return url.strip()
-    return metadata.get("Home-page") or f"https://pypi.org/project/{metadata['Name']}/"
+    url = entry.get("home-page", UNKNOWN)
+    if url.startswith(("http://", "https://")):
+        return url
+    return f"https://pypi.org/project/{entry['name']}/"
+
+
+@cache
+def installed() -> dict[str, dict]:
+    """The installed Python packages as pip-licenses reads them, by lower case name.
+
+    Returns:
+        The entries of pip-licenses, with the texts of their license files.
+    """
+    arguments = piplicenses.create_parser().parse_args(
+        ["--from=mixed", "--with-system", "--with-urls", "--with-license-file", "--no-license-path"]
+    )
+    found: dict[str, dict] = {}
+    for entry in piplicenses.get_packages(arguments):
+        found.setdefault(str(entry["name"]).lower(), entry)
+    return found
+
+
+def license_text(name: str) -> str | None:
+    """The text of the license file of an installed package.
+
+    Args:
+        name: The name of the package, in any case.
+
+    Returns:
+        The text, None if the package is not installed or ships no license file.
+    """
+    entry = installed().get(name.lower())
+    if entry is None or entry.get("licensetext", UNKNOWN) == UNKNOWN:
+        return None
+    return entry["licensetext"]
 
 
 @cache
 def packages() -> list[Package]:
-    """The installed Python packages, by name."""
-    found = {}
-    for distribution in distributions():
-        metadata = distribution.metadata
-        name = metadata["Name"]
-        if not name or name.lower() in found:
-            continue
-        found[name.lower()] = Package(
-            name, metadata["Version"] or "", license_of(metadata), url_of(metadata)
+    """The installed Python packages, by name, linked to the texts of their licenses.
+
+    Returns:
+        The packages, read by pip-licenses.
+    """
+    found = []
+    for key, entry in installed().items():
+        text_url = reverse("license", args=[key]) if license_text(key) is not None else ""
+        found.append(
+            Package(entry["name"], entry["version"], license_of(entry), url_of(entry), text_url)
         )
-    return sorted(found.values(), key=lambda p: p.name.lower())
+    return sorted(found, key=lambda p: p.name.lower())
 
 
 def address(path: str) -> str:
@@ -144,8 +192,8 @@ def scripts() -> list[Package]:
 def reused(path: Path = REUSE) -> list[Package]:
     """The code taken over from other projects, with its copyright and license.
 
-    Read from the annotations of REUSE.toml, except the one of the whole project. The name is
-    the files, the version the copyright.
+    Read from the annotations of REUSE.toml, except those of the project, under its license.
+    The name is the files, the version the copyright.
 
     Args:
         path: The REUSE.toml; a missing file has no entries.
@@ -160,7 +208,7 @@ def reused(path: Path = REUSE) -> list[Package]:
     for annotation in tomllib.loads(path.read_text()).get("annotations", []):
         paths = annotation.get("path", [])
         paths = [paths] if isinstance(paths, str) else paths
-        if paths == ["**"]:
+        if annotation.get("SPDX-License-Identifier") == PROJECT_LICENSE:
             continue  # the project itself
         copyright_ = annotation.get("SPDX-FileCopyrightText", [])
         copyright_ = [copyright_] if isinstance(copyright_, str) else copyright_

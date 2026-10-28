@@ -6,7 +6,7 @@ from django.urls import Resolver404, resolve, reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
-from .. import errors, locations
+from .. import chart_data, errors, locations
 from ..stats import format_duration
 
 register = template.Library()
@@ -138,6 +138,33 @@ def share_formats() -> list[tuple[str, str]]:
         ("html", "HTML"),
         ("link", _("Link")),
     ]
+
+
+@register.simple_tag
+def chart_json_url(src: str) -> str:
+    """The address of the data of a chart for Chart.js, if it has an interactive version.
+
+    Args:
+        src: The address of the chart as SVG, with its parameters.
+
+    Returns:
+        The address of its JSON with the same parameters, "" for a chart without one.
+
+    Examples:
+        >>> chart_json_url("/s/1/chart/hours.svg?login=bob")
+        '/s/1/chart/hours.json?login=bob'
+        >>> chart_json_url("/s/1/chart/survival-pr.svg"), chart_json_url("/about/")
+        ('', '')
+    """
+    parts = urlsplit(src)
+    try:
+        match = resolve(parts.path)
+    except Resolver404:
+        return ""
+    if match.url_name != "chart" or match.kwargs["name"] not in chart_data.INTERACTIVE:
+        return ""
+    address = reverse("chart_json", kwargs=match.kwargs)
+    return f"{address}?{parts.query}" if parts.query else address
 
 
 @register.simple_tag(takes_context=True)

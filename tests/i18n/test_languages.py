@@ -82,7 +82,7 @@ def test_the_javascript_catalog(client):
     """The javascript catalog."""
     client.post("/i18n/setlang/", {"language": "de"})
     script = client.get("/jsi18n/").content.decode()
-    assert "der Daten" in script
+    assert "Eine Spalte hinzuf" in script  # ü is escaped in the script
     assert "function gettext" in script or "gettext" in script
 
 

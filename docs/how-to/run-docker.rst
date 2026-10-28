@@ -7,7 +7,6 @@ The image runs gunicorn, like `Open Web Calendar <https://open-web-calendar.quel
 Docker Compose
 ==============
 
-#. Create the :doc:`OAuth app <github-oauth>`.
 #. Save ``docker-compose.yml`` and ``.env`` next to each other. The files are in the repository; this is the compose file:
 
    .. literalinclude:: ../../docker-compose.yml
@@ -24,7 +23,7 @@ Docker Compose
 
        docker compose up -d
 
-#. Open http://localhost:5000 and sign in with GitHub.
+#. Open http://localhost:5000 and sign up. To sign in with GitHub, create the :doc:`OAuth app <github-oauth>` first.
 
 The fetch worker runs in the same container as the web server (``FETCH_WORKER=external-http-container``, the default of the image). To run it in a container of its own, see :ref:`worker-modes` and the optional ``worker`` service of the compose file.
 
@@ -57,7 +56,7 @@ The setting applies to containers created after the restart: ``docker compose up
 Behind a reverse proxy
 ======================
 
-Set ``ALLOWED_HOSTS`` to your domain and ``CSRF_TRUSTED_ORIGINS`` to ``https://your.domain``. The proxy must send ``X-Forwarded-Proto``.
+See :ref:`configure-public-address`.
 
 Build the image yourself
 ========================

@@ -1,25 +1,18 @@
-"""Flat SVG badges."""
+"""Flat SVG badges, drawn by anybadge with the widths of the text measured."""
 
-from xml.sax.saxutils import escape
+import hashlib
+import re
+from xml.sax.saxutils import escape, quoteattr
 
-CHAR_WIDTH = 6.6
-PAD = 10
-
-
-def width(text: str) -> int:
-    """The width of a part of a badge with the text, in pixels.
-
-    Args:
-        text: The text.
-
-    Returns:
-        The width.
-    """
-    return round(len(text) * CHAR_WIDTH + 2 * PAD)
+import anybadge
 
 
 def badge(label: str, value: str, color: str = "#2a7de1") -> bytes:
     """A flat SVG badge: the label on grey, the value on the colour.
+
+    anybadge measures the text, so long and short texts fit; the badge gets a title and a
+    label for screen readers. anybadge numbers its mask ids with a counter; the id is
+    derived from the texts instead, so the same badge is always the same bytes.
 
     Args:
         label: The text of the left side.
@@ -28,14 +21,26 @@ def badge(label: str, value: str, color: str = "#2a7de1") -> bytes:
 
     Returns:
         The SVG.
+
+    Examples:
+        >>> svg = badge("PR response p95", "3h <1d").decode()
+        >>> "<title>PR response p95: 3h &lt;1d</title>" in svg and 'role="img"' in svg
+        True
+        >>> badge("a", "b") == badge("a", "b")
+        True
     """
-    left, right = width(label), width(value)
-    total = left + right
-    label, value = escape(label), escape(value)
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{total}" height="20" role="img" aria-label="{label}: {value}">
-<title>{label}: {value}</title>
-<clipPath id="r"><rect width="{total}" height="20" rx="3"/></clipPath>
-<g clip-path="url(#r)"><rect width="{left}" height="20" fill="#555"/><rect x="{left}" width="{right}" height="20" fill="{color}"/></g>
-<g fill="#fff" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">
-<text x="{left / 2}" y="14">{label}</text><text x="{left + right / 2}" y="14">{value}</text></g>
-</svg>""".encode()
+    drawn = anybadge.Badge(label, value, default_color=color)
+    spoken = f"{label}: {value}"
+    stable = "badge-" + hashlib.sha256(f"{spoken}\n{color}".encode()).hexdigest()[:12]
+    svg = drawn.badge_svg_text.replace(f'"{drawn.mask_str}"', f'"{stable}"').replace(
+        f"#{drawn.mask_str})", f"#{stable})"
+    )
+    return re.sub(
+        r"<svg ([^>]*)>",
+        lambda found: (
+            f'<svg {found.group(1)} role="img" aria-label={quoteattr(spoken)}>'
+            f"<title>{escape(spoken)}</title>"
+        ),
+        svg,
+        count=1,
+    ).encode()

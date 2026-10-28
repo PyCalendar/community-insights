@@ -5,6 +5,7 @@ How-to guides
 .. toctree::
    :maxdepth: 1
 
+   configure
    github-oauth
    tokens
    run-docker
@@ -12,6 +13,7 @@ How-to guides
    develop
    translate
    use
+   profile
    queries
    verify
    report-bug

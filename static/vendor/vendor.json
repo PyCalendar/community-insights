@@ -8,6 +8,51 @@
     "files": [
       "vendor/bootstrap/bootstrap.min.css",
       "vendor/bootstrap/bootstrap.bundle.min.js"
+    ],
+    "npm": "bootstrap"
+  },
+  {
+    "name": "Chart.js",
+    "npm": "chart.js",
+    "version": "4.4.1",
+    "license": "MIT",
+    "url": "https://www.chartjs.org/",
+    "license_url": "vendor/chartjs/LICENSE.md",
+    "files": [
+      "vendor/chartjs/chart.umd.js"
+    ]
+  },
+  {
+    "name": "chartjs-chart-matrix",
+    "npm": "chartjs-chart-matrix",
+    "version": "2.0.1",
+    "license": "MIT",
+    "url": "https://chartjs-chart-matrix.pages.dev/",
+    "license_url": "vendor/chartjs/LICENSE.md",
+    "files": [
+      "vendor/chartjs/chartjs-chart-matrix.min.js"
+    ]
+  },
+  {
+    "name": "Sortable",
+    "npm": "sortablejs",
+    "version": "1.15.2",
+    "license": "MIT",
+    "url": "https://sortablejs.github.io/Sortable/",
+    "license_url": "vendor/sortable/LICENSE.txt",
+    "files": [
+      "vendor/sortable/Sortable.min.js"
+    ]
+  },
+  {
+    "name": "htmx",
+    "npm": "htmx.org",
+    "version": "2.0.4",
+    "license": "0BSD",
+    "url": "https://htmx.org/",
+    "license_url": "vendor/htmx/LICENSE.txt",
+    "files": [
+      "vendor/htmx/htmx.min.js"
     ]
   },
   {
@@ -25,16 +70,15 @@
     "license_url": "LICENSE",
     "files": [
       "js/badge.js",
-      "js/classes-order.js",
+      "js/charts.js",
       "js/column-names.js",
       "js/columns.js",
       "js/confirm.js",
       "js/copy.js",
-      "js/document-progress.js",
       "js/fit-select.js",
-      "js/progress.js",
       "js/query-complete.js",
       "js/share.js",
+      "js/sortable-order.js",
       "js/sources.js",
       "js/theme.js",
       "js/time-zone.js",

@@ -1,4 +1,4 @@
-"""Reading GitHub with its GraphQL API, asynchronously (niquests)."""
+"""Reading GitHub with its GraphQL API, asynchronously (httpx)."""
 
 from ..errors import GitHubError, RateLimitExceeded, TokenError
 from .answers import refusal

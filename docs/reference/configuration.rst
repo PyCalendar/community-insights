@@ -64,7 +64,7 @@ The application reads its settings from environment variables. With Docker, put 
      - Where the fetch worker runs, see :ref:`worker-modes`: ``internal`` (a thread of the web process), ``external-http-container`` (a process of its own in the web container), ``external-separate-container`` (only the ``worker`` service of the compose file; the web container runs none), ``inline`` (in the request, for tests). Another value stops the start with an error.
    * - ``VISITOR_SUBMITS_PER_HOUR``, ``VISITOR_FETCHES_PER_HOUR``
      - ``10``, ``5``
-     - How many repositories a visitor without an account may add, and how many fetches start, per address and hour. Visitors share the tokens people donated, so one visitor cannot use them all up. ``0`` for no limit. People with an account have no such limit.
+     - How many repositories a visitor without an account may add, and how many fetches start, per address and hour. Visitors share the tokens people donated, so one visitor cannot use them all up. ``0`` for no limit. People with an account have no such limit. ``django-ratelimit`` counts them in the cache (``CACHE_URL``), in windows of an hour; behind proxies, set ``TRUSTED_PROXIES`` so that the address of the visitor is counted, not that of the proxy.
    * - ``USER_MAX_ITEMS``
      - ``100000``
      - How many pull requests and issues the repositories of the projects of an account may hold; a fetch that would add more is refused. Administrators have no limit. ``0`` for no limit.
@@ -82,7 +82,7 @@ The application reads its settings from environment variables. With Docker, put 
      - A site others can reach. The container does not start while a superuser has a default password (``admin``, ``password``, or their own name). Set ``PRODUCTION=false`` for local test sites only. This is not ``DEBUG``.
    * - ``DEFAULT_SUPERUSER``
      - none
-     - ``name:password``: creates this superuser when the container starts, if it is missing; its email is ``name@example.org``. Set it before the first start (see the :doc:`../tutorial`) and remove it afterward. With ``PRODUCTION`` on, a default password stops the start.
+     - ``email:password``, such as ``admin@example.com:a-long-password``: each start of the container creates this superuser, or gives it this password and the rights of a superuser again. It signs in with the email address, which is also its name. Another form stops the start with the error *Invalid superuser* (see :doc:`errors`). With ``PRODUCTION`` on, a default password stops the start.
    * - ``DEBUG``
      - off
      - ``1`` turns on debug mode and the Django Debug Toolbar (development only). Never in production.

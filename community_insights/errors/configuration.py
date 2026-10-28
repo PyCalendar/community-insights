@@ -30,3 +30,18 @@ class UnknownWorkerMode(ConfigurationError):
     title = _("Unknown mode of the fetch worker")
     guide = "reference/configuration.html"
     guide_title = _("The settings of the site")
+
+
+class InvalidDefaultSuperuser(ConfigurationError):
+    """DEFAULT_SUPERUSER is not an email address and a password.
+
+    Write it as ``email:password``, such as ``admin@example.com:a-long-password``:
+    the superuser signs in with the email address. The password is set each time
+    the site starts, so changing it here changes the password.
+
+    The settings of the site: :doc:`/reference/configuration`.
+    """
+
+    title = _("Invalid superuser")
+    guide = "reference/configuration.html"
+    guide_title = _("The settings of the site")

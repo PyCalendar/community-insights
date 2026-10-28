@@ -20,19 +20,19 @@ Contributor Community Insights is a web application that shows how healthy the c
         :link: how-to/index
         :link-type: doc
 
-        Run it with Docker, set up a development environment, use the latest version.
+        Configure and update an installation, use the pages, query contributors, check the numbers, develop.
 
     .. grid-item-card:: 📖 Reference
         :link: reference/index
         :link-type: doc
 
-        Environment variables, badge parameters, rules for classes of people.
+        Settings, query variables, rules for classes of people, badges, downloads, addresses and errors.
 
     .. grid-item-card:: 💡 Explanation
         :link: explanation/index
         :link-type: doc
 
-        How the cache, the response times and the classes work.
+        How the site is built, how to read the response times and how queries and fetches work.
 
     .. grid-item-card:: 🤝 Contribute
         :link: contribute

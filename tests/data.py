@@ -5,9 +5,10 @@ from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 from django.contrib.auth import get_user_model
 
 from community_insights.classify import ensure_default_classes
-from community_insights.models import AccessToken, FetchJob, Project
+from community_insights.models import Project
 from community_insights.sync import read_repository, store_repository
 
+from .factories import AccessTokenFactory, FetchJobFactory, ProjectFactory
 from .fakes import FakeClient, commit, item, node, repo, set_time_zone
 
 T0 = "2026-01-05T10:00:00Z"  # a Monday
@@ -61,13 +62,11 @@ def world(user):
     synced = store_repository(repo("o/r", 5))
     read_repository(client, synced)
     empty = store_repository(repo("o/empty", 0))
-    project = Project.objects.create(user=user, target="o/r")
-    project.repositories.add(synced)
-    nothing = Project.objects.create(user=user, target="o/empty")
-    nothing.repositories.add(empty)
-    AccessToken.objects.create(user=user, token="t", login="alice", label="mine")
+    project = ProjectFactory(user=user, target="o/r", repositories=[synced])
+    nothing = ProjectFactory(user=user, target="o/empty", repositories=[empty])
+    AccessTokenFactory(user=user, token="t", label="mine")
     for status in ("queued", "running", "done", "failed", "cancelled", "limit"):
-        FetchJob.objects.create(
+        FetchJobFactory(
             user=user,
             repository=synced,
             status=status,

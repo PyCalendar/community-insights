@@ -18,7 +18,35 @@ help:  # This help message
 	@uv run pre-commit install || true  # not in a git checkout
 
 .PHONY: init
-init: clean-python .venv run-prepare  ## Recreate the environment and prepare the test site: then make run
+init: clean-python .venv browsers run-prepare  ## Recreate the environment, the browser of the tests and the test site: then make run
+
+# The Firefox of Playwright for the browser tests. PLAYWRIGHT_FLAGS=--with-deps also installs
+# the libraries of the system it needs (the CI; needs sudo).
+PLAYWRIGHT_FLAGS ?=
+.PHONY: browsers
+browsers: .venv  ## Install the Firefox of Playwright for the browser tests
+	@uv run playwright install $(PLAYWRIGHT_FLAGS) firefox
+
+# The JavaScript and CSS the pages load, from the npm packages in package.json: the exact
+# versions are in package-lock.json, so make vendor gives the same files every time. The
+# source maps are left out (their links too): the files would be too big for the repository.
+VENDOR = static/vendor
+.PHONY: vendor
+vendor:  ## Copy the JavaScript and CSS of the pages from node_modules into static/vendor
+	@npm ci --no-audit --no-fund
+	@mkdir -p $(VENDOR)/bootstrap $(VENDOR)/chartjs $(VENDOR)/sortable $(VENDOR)/htmx
+	@cp node_modules/bootstrap/dist/css/bootstrap.min.css $(VENDOR)/bootstrap/
+	@cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js $(VENDOR)/bootstrap/
+	@cp node_modules/bootstrap/LICENSE $(VENDOR)/bootstrap/LICENSE.txt
+	@cp node_modules/chart.js/dist/chart.umd.js $(VENDOR)/chartjs/
+	@cp node_modules/chartjs-chart-matrix/dist/chartjs-chart-matrix.min.js $(VENDOR)/chartjs/
+	@cp node_modules/chart.js/LICENSE.md $(VENDOR)/chartjs/LICENSE.md
+	@cp node_modules/sortablejs/Sortable.min.js $(VENDOR)/sortable/
+	@cp node_modules/sortablejs/LICENSE $(VENDOR)/sortable/LICENSE.txt
+	@cp node_modules/htmx.org/dist/htmx.min.js $(VENDOR)/htmx/
+	@cp node_modules/htmx.org/LICENSE $(VENDOR)/htmx/LICENSE.txt
+	@sed -i -e '/^\/\*# sourceMappingURL=.*\*\/$$/d' -e '/^\/\/# sourceMappingURL=/d' $(VENDOR)/*/*.js $(VENDOR)/*/*.css
+	@echo "static/vendor is updated; list new versions in static/vendor/vendor.json and REUSE.toml"
 
 .PHONY: clean-python
 clean-python:
@@ -29,10 +57,10 @@ migrate: .venv  ## Create or update the database
 	@uv run python manage.py migrate
 
 .PHONY: run-prepare
-run-prepare: migrate  ## Prepare the database of the test site: superuser admin (password admin) and a demo project
+run-prepare: migrate  ## Prepare the database of the test site: superuser admin@example.com (password admin) and a demo project
 	@uv run python manage.py invalidate_cachalot -v0
-	@uv run python manage.py ensure_superuser admin:admin
-	@uv run python manage.py demo_data admin
+	@uv run python manage.py ensure_superuser admin@example.com:admin
+	@uv run python manage.py demo_data admin@example.com
 
 .PHONY: run
 run: run-prepare  ## Run the server on $(PORT), fetches in a thread of it (FETCH_WORKER=internal); data in ./data like make docker-run
@@ -47,16 +75,38 @@ test: .venv  ## Run the Python tests, with coverage, and check that no migration
 test-performance: .venv  ## Measure the speed: statistics on large made up data, and reading GitHub with $$GITHUB_TOKEN
 	@uv run pytest -m performance -s -p no:cacheprovider
 
+.PHONY: check-vendor
+check-vendor:  ## Check that static/vendor is what make vendor copies from package-lock.json
+	@rm -rf .cache/vendor
+	@$(MAKE) --no-print-directory vendor VENDOR=.cache/vendor
+	@diff -r --exclude=vendor.json .cache/vendor static/vendor
+
+.PHONY: check-site-links
+check-site-links: .venv  ## Check every link of the running site, signed in, with linkchecker
+	@./tests/linkchecker/check-site.sh
+
+GITHUB_SCHEMA ?= .cache/github-schema.graphql
+
+.PHONY: check-graphql
+check-graphql: .venv  ## Validate every GraphQL query of the site against the schema GitHub publishes
+	@mkdir -p $(dir $(GITHUB_SCHEMA))
+	@curl -sSfL -o $(GITHUB_SCHEMA) https://docs.github.com/public/fpt/schema.docs.graphql
+	@GITHUB_SCHEMA=$(GITHUB_SCHEMA) uv run pytest -q -p no:cacheprovider tests/github/test_github_schema.py
+
 .PHONY: test-js
-test-js:  ## Run the tests of the JavaScript with node
+test-js: node_modules  ## Run the tests of the JavaScript with node (jsdom from package-lock.json)
 	@npm test
 
+node_modules: package.json package-lock.json
+	@npm ci --no-audit --no-fund
+	@touch node_modules
+
 .PHONY: test-browser
-test-browser: .venv  ## Run the browser tests with Firefox (WINDOW=375x812 for a phone)
-	@uv run python manage.py behave -D window="$(WINDOW)"
+test-browser: .venv  ## Run the browser tests with Firefox and Playwright (WINDOW=375x812 for a phone)
+	@WINDOW="$(WINDOW)" uv run pytest -m browser tests/browser --browser firefox -p no:cacheprovider $(BROWSER_FLAGS)
 
 .PHONY: test-all
-test-all: lint typecheck test test-js test-browser build docs vale linkcheck reuse zizmor  ## Run all tests and checks
+test-all: lint typecheck test test-js test-browser check-graphql check-site-links check-vendor build docs vale linkcheck reuse zizmor  ## Run all tests and checks
 
 .PHONY: worker
 worker: migrate  ## Run the fetch worker alone, as with FETCH_WORKER=external-separate-container
@@ -147,14 +197,14 @@ docker-build-all: version  ## Build the container for amd64 and arm64, like the 
 docker-test: docker-build  ## Run the container and check that it is healthy
 	@docker rm -f community-insights-test >/dev/null 2>&1 || true
 	@docker run -d --name community-insights-test -p 5099:5000 -e PRODUCTION=false \
-		-e DEFAULT_SUPERUSER=admin:admin community-insights >/dev/null
+		-e DEFAULT_SUPERUSER=admin@example.com:admin community-insights >/dev/null
 	@for i in $$(seq 60); do curl -sf http://localhost:5099/health/ >/dev/null && echo healthy && break; sleep 1; done; \
 	healthy=$$(curl -sf http://localhost:5099/health/ >/dev/null && echo yes); \
 	[ "$$healthy" = yes ] || docker logs community-insights-test; \
 	docker rm -f community-insights-test >/dev/null; [ "$$healthy" = yes ]
 
 .PHONY: docker-run
-docker-run: docker-build  ## Run the container on $(PORT) with the database of make run (./data) and the superuser admin
+docker-run: docker-build  ## Run the container on $(PORT) with the database of make run (./data) and the superuser admin@example.com
 	@mkdir -p data
 	docker run --rm -p "$(PORT):5000" -v "$(CURDIR)/data:/app/data" --user "$$(id -u):$$(id -g)" \
-		-e DEFAULT_SUPERUSER=admin:admin -e PRODUCTION=false $(if $(wildcard .env),--env-file .env) community-insights
+		-e DEFAULT_SUPERUSER=admin@example.com:admin -e PRODUCTION=false $(if $(wildcard .env),--env-file .env) community-insights

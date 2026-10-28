@@ -4,7 +4,7 @@ Classes of people
 
 A class has a name, a colour and rules. Somebody who responded belongs to the **first** class, from the top of the list, with a rule that matches. The first response of each class counts, so a bot that answers fast does not hide the first human response.
 
-On the page **Classes**, drag a class by its handle ⠿ to another place, or move it with the arrows. The name and the colour are fields at the top of each class: change them and press **Save**. Each of your classes has its own name.
+Each account has its own classes; their order, names and colours are changed on the page **Classes** (see :ref:`use-classes`). The id of a class in shared addresses is made of its name and a number, such as ``maintainer-3``.
 
 Kinds of rules
 ==============

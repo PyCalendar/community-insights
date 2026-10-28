@@ -1,7 +1,9 @@
-"""When one person was active."""
+"""When one person was active, grouped by month, weekday and hour with pandas."""
 
-from collections import defaultdict
 from datetime import datetime
+from typing import cast
+
+import pandas as pd
 
 from ..models import Commit, Event, Item
 from .selection import events_in
@@ -42,6 +44,21 @@ def activity_of(
     return result
 
 
+def local_times(times, tz) -> pd.Series:
+    """Times as a pandas series in the time zone.
+
+    Args:
+        times: Aware times.
+        tz: The time zone.
+
+    Returns:
+        The times, converted.
+    """
+    return pd.Series(
+        pd.to_datetime(list(times), utc=True), dtype="datetime64[ns, UTC]"
+    ).dt.tz_convert(tz)
+
+
 def by_hour_and_weekday(times: list[datetime], tz) -> list[list[int]]:
     """A 7 x 24 grid (Monday first) of the number of times in the timezone.
 
@@ -51,12 +68,16 @@ def by_hour_and_weekday(times: list[datetime], tz) -> list[list[int]]:
 
     Returns:
         The grid.
+
+    Examples:
+        >>> from datetime import UTC
+        >>> grid = by_hour_and_weekday([datetime(2026, 1, 5, 23, tzinfo=UTC)], UTC)
+        >>> grid[0][23], sum(map(sum, grid))
+        (1, 1)
     """
-    grid = [[0] * 24 for _ in range(7)]
-    for time in times:
-        local = time.astimezone(tz)
-        grid[local.weekday()][local.hour] += 1
-    return grid
+    local = local_times(times, tz)
+    grid = pd.crosstab(local.dt.weekday, local.dt.hour)
+    return grid.reindex(index=range(7), columns=range(24), fill_value=0).astype(int).values.tolist()
 
 
 def by_month_and_kind(
@@ -70,11 +91,22 @@ def by_month_and_kind(
 
     Returns:
         The number of each kind by (year, month).
+
+    Examples:
+        >>> from datetime import UTC
+        >>> by_month_and_kind([(datetime(2026, 1, 31, 23, tzinfo=UTC), "commit")], UTC)
+        {(2026, 1): {'commit': 1}}
     """
-    months: dict[tuple[int, int], dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    for time, kind in activity:
-        local = time.astimezone(tz)
-        months[(local.year, local.month)][kind] += 1
+    if not activity:
+        return {}
+    local = local_times([time for time, _ in activity], tz)
+    frame = pd.DataFrame(
+        {"year": local.dt.year, "month": local.dt.month, "kind": [kind for _, kind in activity]}
+    )
+    months: dict[tuple[int, int], dict[str, int]] = {}
+    for key, count in frame.groupby(["year", "month", "kind"]).size().items():
+        year, month, kind = cast(tuple, key)  # grouped by three columns
+        months.setdefault((int(year), int(month)), {})[str(kind)] = int(count)
     return months
 
 
@@ -107,10 +139,19 @@ def responses_by_month(
     for event in events.order_by("at"):
         if event.item.author.lower() != login.lower():
             first.setdefault(event.item_id, event)
-    months: dict[tuple[int, int], list[float]] = defaultdict(list)
-    for event in first.values():
-        local = event.at.astimezone(tz)
-        months[(local.year, local.month)].append(
-            max((event.at - event.item.created_at).total_seconds(), 0)
-        )
+    if not first:
+        return {}
+    responses = list(first.values())
+    local = local_times([event.at for event in responses], tz)
+    frame = pd.DataFrame(
+        {
+            "year": local.dt.year,
+            "month": local.dt.month,
+            "seconds": [max((e.at - e.item.created_at).total_seconds(), 0) for e in responses],
+        }
+    )
+    months: dict[tuple[int, int], list[float]] = {}
+    for key, group in frame.groupby(["year", "month"]):
+        year, month = cast(tuple, key)  # grouped by two columns
+        months[(int(year), int(month))] = group["seconds"].tolist()
     return months

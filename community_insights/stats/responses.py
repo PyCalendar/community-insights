@@ -48,14 +48,10 @@ def response_entries(
     return response_times(repositories, classifier, since, until)[0]
 
 
-def response_times(
+def response_rows(
     repositories, classifier, since: datetime | None = None, until: datetime | None = None
-) -> tuple[dict[str, list[Times]], dict[str, list[float]]]:
-    """The response times and how long each item was observed.
-
-    The entries of response_entries, and per kind for each item the seconds it was observed:
-    until it was closed, or until now. An item without a response of a class waited at least
-    that long for it (censored data).
+) -> dict[str, list[tuple[datetime, Times, float]]]:
+    """For each item: when it was created, its response times and how long it was observed.
 
     Args:
         repositories: The repositories.
@@ -64,7 +60,9 @@ def response_times(
         until: The end of the time range, excluded; None for now.
 
     Returns:
-        The entries by kind, and the seconds each item was observed by kind.
+        By kind, for each item the time it was created, the seconds until the first response
+        of each class (see ``response_entries``) and the seconds it was observed: until it was
+        closed, or until now.
     """
     now = timezone.now()
     items = items_in(repositories, since, until)
@@ -87,11 +85,33 @@ def response_times(
         if person_class is None or actor.lower() == author:
             continue
         found[pk].setdefault(person_class.name, max((at - created).total_seconds(), 0))
-    result: dict[str, list[Times]] = {Item.PR: [], Item.ISSUE: []}
-    observed: dict[str, list[float]] = {Item.PR: [], Item.ISSUE: []}
+    rows: dict[str, list[tuple[datetime, Times, float]]] = {Item.PR: [], Item.ISSUE: []}
     for pk, (kind, _, created, closed) in info.items():
-        result[kind].append(found[pk])
-        observed[kind].append(max(((closed or now) - created).total_seconds(), 0))
+        rows[kind].append((created, found[pk], max(((closed or now) - created).total_seconds(), 0)))
+    return rows
+
+
+def response_times(
+    repositories, classifier, since: datetime | None = None, until: datetime | None = None
+) -> tuple[dict[str, list[Times]], dict[str, list[float]]]:
+    """The response times and how long each item was observed.
+
+    The entries of response_entries, and per kind for each item the seconds it was observed:
+    until it was closed, or until now. An item without a response of a class waited at least
+    that long for it (censored data).
+
+    Args:
+        repositories: The repositories.
+        classifier: Decides the class of each actor.
+        since: The start of the time range, None for the beginning.
+        until: The end of the time range, excluded; None for now.
+
+    Returns:
+        The entries by kind, and the seconds each item was observed by kind.
+    """
+    rows = response_rows(repositories, classifier, since, until)
+    result = {kind: [times for _, times, _ in found] for kind, found in rows.items()}
+    observed = {kind: [seconds for _, _, seconds in found] for kind, found in rows.items()}
     return result, observed
 
 

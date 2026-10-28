@@ -191,3 +191,34 @@ def test_the_thread_makes_the_document(world, user, rf, monkeypatch):
     documents.run_in_thread(document.pk)
     document.refresh_from_db()
     assert document.status == Document.DONE
+
+
+def test_htmx_shows_the_state_of_a_document(world, signed_in):
+    """While a document is made, htmx asks every second; when ready, the download shows."""
+    pk = world["project"].pk
+    document = started(signed_in, f"/s/{pk}/data/responses.ods")
+    htmx = {"HTTP_HX_REQUEST": "true"}
+    ready = signed_in.get(f"/documents/{document.pk}/progress.json", **htmx).content.decode()
+    assert ready.lstrip().startswith('<div class="card-body" id="document-state"')
+    assert "hx-get" not in ready and f"/documents/{document.pk}/download/" in ready
+    Document.objects.filter(pk=document.pk).update(status=Document.RUNNING, progress=40)
+    running = signed_in.get(f"/documents/{document.pk}/progress.json", **htmx).content.decode()
+    assert 'hx-trigger="every 1s"' in running and "40 %" in running
+    assert "/download/" not in running
+    page = signed_in.get(f"/documents/{document.pk}/").content.decode()
+    assert f'hx-get="/documents/{document.pk}/progress.json"' in page
+    assert "document-progress.js" not in page
+
+
+def test_htmx_shows_why_a_document_failed(world, signed_in):
+    """A failed document shows its message and what to do, and is not asked again."""
+    pk = world["project"].pk
+    document = started(signed_in, f"/s/{pk}/data/responses.ods")
+    Document.objects.filter(pk=document.pk).update(
+        status=Document.FAILED, message="broken", error_code="GitHubUnreachable"
+    )
+    page = signed_in.get(
+        f"/documents/{document.pk}/progress.json", HTTP_HX_REQUEST="true"
+    ).content.decode()
+    assert "The file could not be made." in page and "broken" in page
+    assert "What to do" in page and "hx-get" not in page

@@ -1,8 +1,23 @@
 version = 1
 
-# Everything of the project
+# Everything of the project, but not the files of other projects in static/vendor/: each
+# of those has its own entry below, and a new one without an entry fails make reuse
 [[annotations]]
-path = "**"
+path = [
+    "*",
+    ".claude/**",
+    ".github/**",
+    ".prompts/**",
+    "community_insights/**",
+    "docker/**",
+    "docs/**",
+    "locale/**",
+    "news/**",
+    "tests/**",
+    "static/*",
+    "static/js/**",
+    "static/vendor/vendor.json",
+]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Contributor Community Insights contributors"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
@@ -23,3 +38,24 @@ SPDX-FileCopyrightText = [
     "2026 Contributor Community Insights contributors",
 ]
 SPDX-License-Identifier = "BSD-2-Clause"
+
+# Chart.js and its matrix plugin for the heat map, bundled like Bootstrap (make vendor)
+[[annotations]]
+path = "static/vendor/chartjs/**"
+precedence = "override"
+SPDX-FileCopyrightText = ["2014-2022 Chart.js Contributors", "2023 Jukka Kurkela"]
+SPDX-License-Identifier = "MIT"
+
+# Sortable.js, to reorder by drag and drop (make vendor)
+[[annotations]]
+path = "static/vendor/sortable/**"
+precedence = "override"
+SPDX-FileCopyrightText = "2019 All contributors to Sortable"
+SPDX-License-Identifier = "MIT"
+
+# htmx, for the parts of pages that update themselves (make vendor)
+[[annotations]]
+path = "static/vendor/htmx/**"
+precedence = "override"
+SPDX-FileCopyrightText = "2020 Big Sky Software"
+SPDX-License-Identifier = "0BSD"

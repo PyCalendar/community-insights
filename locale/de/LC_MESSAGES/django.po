@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 18:32+0000\n"
+"POT-Creation-Date: 2026-10-27 23:39+0000\n"
 "PO-Revision-Date: 2026-10-27 10:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: German\n"
@@ -13,6 +13,28 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "time until the first response"
+msgstr "Zeit bis zur ersten Antwort"
+
+msgid "responses"
+msgstr "Antworten"
+
+#, python-format
+msgid "%(title)s (%(items)s, %(silent)s without a response)"
+msgstr "%(title)s (%(items)s, %(silent)s ohne Antwort)"
+
+msgid "activities (number)"
+msgstr "Aktivitäten (Anzahl)"
+
+msgid "time of the day (your time zone)"
+msgstr "Tageszeit (Deine Zeitzone)"
+
+msgid "weekday"
+msgstr "Wochentag"
+
+msgid "median time until the first response"
+msgstr "Median der Zeit bis zur ersten Antwort"
 
 msgid "Mon"
 msgstr "Mo"
@@ -54,33 +76,21 @@ msgstr "Commit"
 msgid "%(title)s: no responses yet"
 msgstr "%(title)s: noch keine Antworten"
 
-#, python-format
-msgid "%(title)s (%(items)s, %(silent)s without a response)"
-msgstr "%(title)s (%(items)s, %(silent)s ohne Antwort)"
-
-msgid "time until the first response"
-msgstr "Zeit bis zur ersten Antwort"
-
-msgid "responses"
-msgstr "Antworten"
-
 msgid "nobody matches the query"
 msgstr "niemand passt zur Abfrage"
-
-msgid "time of the day (your time zone)"
-msgstr "Tageszeit (Deine Zeitzone)"
-
-msgid "activities (number)"
-msgstr "Aktivitäten (Anzahl)"
-
-msgid "weekday"
-msgstr "Wochentag"
 
 msgid "no responses to others"
 msgstr "keine Antworten an andere"
 
-msgid "median time until the first response"
-msgstr "Median der Zeit bis zur ersten Antwort"
+#, python-format
+msgid "%(title)s (%(items)s): still waiting for a response"
+msgstr "%(title)s (%(items)s): warten noch auf eine Antwort"
+
+msgid "time since opened"
+msgstr "Zeit seit dem Öffnen"
+
+msgid "without a response"
+msgstr "ohne Antwort"
 
 msgid "no activity"
 msgstr "keine Aktivität"
@@ -122,6 +132,9 @@ msgstr "Die Einstellungen der Seite"
 
 msgid "Unknown mode of the fetch worker"
 msgstr "Unbekannter Modus des Fetch-Workers"
+
+msgid "Invalid superuser"
+msgstr "Ungültiger Superuser"
 
 msgid "The fetch stopped"
 msgstr "Das Lesen wurde angehalten"
@@ -294,6 +307,9 @@ msgstr "Ungültige Farbe"
 msgid "Invalid order of the classes"
 msgstr "Ungültige Reihenfolge der Gruppen"
 
+msgid "Invalid order of the tokens"
+msgstr "Ungültige Reihenfolge der Tokens"
+
 msgid "Unknown table"
 msgstr "Unbekannte Tabelle"
 
@@ -324,6 +340,16 @@ msgstr "Es gibt keine Tabelle %(name)s."
 
 msgid "What to do"
 msgstr "Was zu tun ist"
+
+#, python-format
+msgid ""
+"DEFAULT_SUPERUSER must be \"email:password\"; %(email)s is no email address."
+msgstr ""
+"DEFAULT_SUPERUSER muss \"E-Mail:Passwort\" sein; %(email)s ist keine E-Mail-"
+"Adresse."
+
+msgid "DEFAULT_SUPERUSER must be \"email:password\"; the password is missing."
+msgstr "DEFAULT_SUPERUSER muss \"E-Mail:Passwort\" sein; das Passwort fehlt."
 
 msgid "handles (space separated names)"
 msgstr "Handles (durch Leerzeichen getrennte Namen)"
@@ -538,30 +564,6 @@ msgstr "Dieses Diagramm teilen"
 msgid "Data"
 msgstr "Daten"
 
-msgid "Data read from GitHub"
-msgstr "Von GitHub gelesene Daten"
-
-#, python-format
-msgid "%(percent)s%% of the data (%(items)s of %(total)s items)"
-msgstr "%(percent)s%% der Daten (%(items)s von %(total)s Einträgen)"
-
-#, python-format
-msgid "%(percent)s%% of the data"
-msgstr "%(percent)s%% der Daten"
-
-#, python-format
-msgid ", complete in about %(left)s"
-msgstr ", vollständig in etwa %(left)s"
-
-msgid ", read from GitHub to complete it"
-msgstr ", lies von GitHub, um sie zu vervollständigen"
-
-msgid "Read from GitHub"
-msgstr "Von GitHub lesen"
-
-msgid "Data and sources"
-msgstr "Daten und Quellen"
-
 msgid "Data sources"
 msgstr "Datenquellen"
 
@@ -601,6 +603,28 @@ msgstr "Wie Du die Zahlen mit scipy prüfst"
 msgid "Sources shown"
 msgstr "Gezeigte Quellen"
 
+msgid "The file is ready."
+msgstr "Die Datei ist bereit."
+
+msgid "The file could not be made."
+msgstr "Die Datei konnte nicht erstellt werden."
+
+msgid ""
+"The file is being made from the data on this site. You can leave this page; "
+"the file waits here for a week."
+msgstr ""
+"Die Datei wird aus den Daten dieser Seite erstellt. Du kannst diese Seite "
+"verlassen; die Datei wartet hier eine Woche."
+
+msgid "A message tells you when it is ready."
+msgstr "Eine Nachricht sagt Dir, wenn sie bereit ist."
+
+msgid "Progress of the file"
+msgstr "Fortschritt der Datei"
+
+msgid "Download"
+msgstr "Herunterladen"
+
 msgid "Started for:"
 msgstr "Gestartet für:"
 
@@ -623,6 +647,33 @@ msgstr "Wird angehalten…"
 
 msgid "Cancel"
 msgstr "Abbrechen"
+
+msgid "Data read from GitHub"
+msgstr "Von GitHub gelesene Daten"
+
+#, python-format
+msgid "%(percent)s%% of the data (%(items)s of %(total)s items)"
+msgstr "%(percent)s%% der Daten (%(items)s von %(total)s Einträgen)"
+
+#, python-format
+msgid "%(percent)s%% of the data"
+msgstr "%(percent)s%% der Daten"
+
+#, python-format
+msgid ", complete in about %(left)s"
+msgstr ", vollständig in etwa %(left)s"
+
+msgid ", reading"
+msgstr ", wird gelesen"
+
+msgid ", read from GitHub to complete it"
+msgstr ", lies von GitHub, um sie zu vervollständigen"
+
+msgid "Read from GitHub"
+msgstr "Von GitHub lesen"
+
+msgid "Data and sources"
+msgstr "Daten und Quellen"
 
 #, python-format
 msgid "%(count)s repository"
@@ -851,8 +902,12 @@ msgstr "Urheberrecht"
 msgid "Python packages on the server"
 msgstr "Python-Pakete auf dem Server"
 
-msgid "Read from the packages installed on this server."
-msgstr "Gelesen aus den Paketen, die auf diesem Server installiert sind."
+msgid ""
+"Read by pip-licenses from the packages installed on this server. The license"
+" links to its text."
+msgstr ""
+"Von pip-licenses aus den Paketen gelesen, die auf diesem Server installiert "
+"sind. Die Lizenz verlinkt ihren Text."
 
 msgid "Package"
 msgstr "Paket"
@@ -895,6 +950,9 @@ msgstr "Cache"
 
 msgid "GitHub access"
 msgstr "GitHub-Zugang"
+
+msgid "Profile"
+msgstr "Profil"
 
 msgid "Admin"
 msgstr "Admin"
@@ -1208,15 +1266,6 @@ msgstr "Abfrage ausführen"
 msgid "Reset"
 msgstr "Zurücksetzen"
 
-msgid "Download as CSV"
-msgstr "Als CSV herunterladen"
-
-msgid "With the data the result was counted from"
-msgstr "Mit den Daten, aus denen das Ergebnis gezählt wurde"
-
-msgid "Download as ODS"
-msgstr "Als ODS herunterladen"
-
 msgid "Variables"
 msgstr "Variablen"
 
@@ -1235,6 +1284,15 @@ msgstr ""
 
 msgid "All variables, operators and groups in the documentation"
 msgstr "Alle Variablen, Operatoren und Gruppierungen in der Dokumentation"
+
+msgid "Download as CSV"
+msgstr "Als CSV herunterladen"
+
+msgid "With the data the result was counted from"
+msgstr "Mit den Daten, aus denen das Ergebnis gezählt wurde"
+
+msgid "Download as ODS"
+msgstr "Als ODS herunterladen"
 
 msgid "Saved:"
 msgstr "Gespeichert:"
@@ -1345,28 +1403,6 @@ msgstr "Vor %(ago)s gelesen."
 
 msgid "Refresh from GitHub"
 msgstr "Von GitHub aktualisieren"
-
-msgid "The file is ready."
-msgstr "Die Datei ist bereit."
-
-msgid "The file could not be made."
-msgstr "Die Datei konnte nicht erstellt werden."
-
-msgid ""
-"The file is being made from the data on this site. You can leave this page; "
-"the file waits here for a week."
-msgstr ""
-"Die Datei wird aus den Daten dieser Seite erstellt. Du kannst diese Seite "
-"verlassen; die Datei wartet hier eine Woche."
-
-msgid "A message tells you when it is ready."
-msgstr "Eine Nachricht sagt Dir, wenn sie bereit ist."
-
-msgid "Progress of the file"
-msgstr "Fortschritt der Datei"
-
-msgid "Download"
-msgstr "Herunterladen"
 
 msgid "Your messages"
 msgstr "Deine Nachrichten"
@@ -1763,9 +1799,6 @@ msgstr "von Kim"
 msgid "Add the token"
 msgstr "Token hinzufügen"
 
-msgid "Profile"
-msgstr "Profil"
-
 msgid "Suggested limit of API points when a fetch needs more than this"
 msgstr ""
 "Vorgeschlagenes Limit an API-Punkten, wenn ein Abruf mehr als das braucht"
@@ -1857,6 +1890,13 @@ msgstr ""
 msgid "%(title)s: first response times"
 msgstr "%(title)s: Zeiten bis zur ersten Antwort"
 
+#, python-format
+msgid "%(title)s: share still waiting for a response (Kaplan-Meier)"
+msgstr "%(title)s: Anteil, der noch auf eine Antwort wartet (Kaplan-Meier)"
+
+msgid "How to read the Kaplan-Meier curve"
+msgstr "Wie man die Kaplan-Meier-Kurve liest"
+
 msgid "Statistic"
 msgstr "Statistik"
 
@@ -1902,6 +1942,42 @@ msgstr ""
 
 msgid "How to read the response times"
 msgstr "Wie man die Antwortzeiten liest"
+
+msgid "Trend: too few responses to tell whether they get faster or slower."
+msgstr ""
+"Trend: zu wenige Antworten, um zu sagen, ob sie schneller oder langsamer "
+"werden."
+
+#, python-format
+msgid ""
+"Trend: no clear change of the time until the first response over time (p = "
+"%(p)s, %(n)s responses)."
+msgstr ""
+"Trend: keine klare Änderung der Zeit bis zur ersten Antwort über die Zeit (p"
+" = %(p)s, %(n)s Antworten)."
+
+#, python-format
+msgid ""
+"Trend: the first responses get <strong>%(size)s %% faster</strong> per month"
+" (95 %% confidence interval %(low)s %% to %(high)s %%, p = %(p)s, %(n)s "
+"responses)."
+msgstr ""
+"Trend: die ersten Antworten werden pro Monat <strong>%(size)s %% "
+"schneller</strong> (95-%%-Konfidenzintervall %(low)s %% bis %(high)s %%, p ="
+" %(p)s, %(n)s Antworten)."
+
+#, python-format
+msgid ""
+"Trend: the first responses get <strong>%(size)s %% slower</strong> per month"
+" (95 %% confidence interval %(low)s %% to %(high)s %%, p = %(p)s, %(n)s "
+"responses)."
+msgstr ""
+"Trend: die ersten Antworten werden pro Monat <strong>%(size)s %% "
+"langsamer</strong> (95-%%-Konfidenzintervall %(low)s %% bis %(high)s %%, p ="
+" %(p)s, %(n)s Antworten)."
+
+msgid "How the trend is computed"
+msgstr "Wie der Trend berechnet wird"
 
 msgid "Badges"
 msgstr "Badges"
@@ -2012,6 +2088,71 @@ msgstr "Über die Woche und den Tag"
 msgid "Heat map of the weekday and hour"
 msgstr "Heatmap von Wochentag und Stunde"
 
+#, python-format
+msgid "Signed in as <strong>%(name)s</strong>."
+msgstr "Angemeldet als <strong>%(name)s</strong>."
+
+msgid "What you can change here"
+msgstr "Was Du hier ändern kannst"
+
+msgid "Email addresses"
+msgstr "E-Mail-Adressen"
+
+msgid "primary"
+msgstr "primär"
+
+msgid "confirmed"
+msgstr "bestätigt"
+
+msgid "not confirmed"
+msgstr "nicht bestätigt"
+
+msgid "Send the confirmation again"
+msgstr "Bestätigung erneut senden"
+
+msgid "No email address yet."
+msgstr "Noch keine E-Mail-Adresse."
+
+msgid "Add, remove or choose the primary address"
+msgstr "Adressen hinzufügen, entfernen oder die primäre wählen"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Change the password"
+msgstr "Passwort ändern"
+
+msgid "Set a password"
+msgstr "Passwort festlegen"
+
+msgid "Reset the password by email"
+msgstr "Passwort per E-Mail zurücksetzen"
+
+msgid "GitHub"
+msgstr "GitHub"
+
+#, python-format
+msgid "Linked with the GitHub account <strong>%(login)s</strong>."
+msgstr "Verknüpft mit dem GitHub-Konto <strong>%(login)s</strong>."
+
+msgid "No GitHub account is linked."
+msgstr "Kein GitHub-Konto ist verknüpft."
+
+msgid "GitHub tokens"
+msgstr "GitHub-Tokens"
+
+msgid "expired"
+msgstr "abgelaufen"
+
+msgid "expires soon"
+msgstr "läuft bald ab"
+
+msgid "No token yet."
+msgstr "Noch kein Token."
+
+msgid "Add, order, test and share tokens"
+msgstr "Tokens hinzufügen, ordnen, testen und teilen"
+
 msgid "Share a chart"
 msgstr "Ein Diagramm teilen"
 
@@ -2072,6 +2213,9 @@ msgstr ""
 "Organisationen, wie Plone, lehnen Tokens ohne Ablaufdatum ab: ihre "
 "Repositories sind damit nicht lesbar."
 
+msgid "The order does not name each of your tokens once."
+msgstr "Die Reihenfolge nennt nicht jedes Deiner Tokens genau einmal."
+
 msgid "The token was deleted."
 msgstr "Das Token wurde gelöscht."
 
@@ -2107,6 +2251,12 @@ msgstr "Zeiten bis zur ersten Antwort auf Pull Requests"
 
 msgid "first response times of issues"
 msgstr "Zeiten bis zur ersten Antwort auf Issues"
+
+msgid "pull requests still waiting for a response"
+msgstr "Pull Requests, die noch auf eine Antwort warten"
+
+msgid "issues still waiting for a response"
+msgstr "Issues, die noch auf eine Antwort warten"
 
 msgid "how fast they respond to others, per month"
 msgstr "wie schnell sie anderen antworten, pro Monat"
