@@ -154,7 +154,8 @@ livehtml:  ## Show the documentation while editing it, rebuilt on every change
 
 .PHONY: linkcheck
 linkcheck:  ## Check that the links of the documentation work (needs the internet)
-	@uv run --extra docs sphinx-build -W --keep-going -b linkcheck docs docs/_build/linkcheck
+	@uv run --extra docs sphinx-build -W --keep-going -b linkcheck docs docs/_build/linkcheck \
+		|| uv run python -m tests.linkchecker.docs docs/_build/linkcheck/output.json
 
 .PHONY: changelog
 changelog:  ## Check that there is a news fragment compared to BASE (default origin/main)

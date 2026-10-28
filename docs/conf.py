@@ -69,4 +69,5 @@ linkcheck_allowed_redirects = {
     r"https://[\w-]+\.readthedocs\.io/": r"https://[\w-]+\.readthedocs\.io/en/latest/",
 }
 linkcheck_retries = 3
+linkcheck_timeout = 60  # seconds; servers answer the runners of GitHub slowly at times
 linkcheck_report_timeouts_as_broken = False
