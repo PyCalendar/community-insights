@@ -54,4 +54,4 @@ def test_mail_settings(settings):
     from django.conf import settings as live
 
     assert live.EMAIL_BACKEND.endswith(("console.EmailBackend", "locmem.EmailBackend"))
-    assert live.EMAIL_PORT == 587 and live.EMAIL_USE_TLS
+    assert live.EMAIL_PORT == 587 and live.EMAIL_USE_TLS and not live.EMAIL_USE_SSL

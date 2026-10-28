@@ -35,6 +35,8 @@ For confirmation and password mails, add your mail server to ``.env``:
     DEFAULT_FROM_EMAIL=community@example.org
     ACCOUNT_EMAIL_VERIFICATION=mandatory
 
+The port chooses the encryption: 587 switches to TLS with STARTTLS, 465 speaks TLS from the start. If the mail server closes the connection (``SMTPServerDisconnected``), the port and the encryption do not fit; see ``EMAIL_USE_TLS`` and ``EMAIL_USE_SSL`` in :doc:`../reference/configuration`.
+
 Add an administrator
 ====================
 

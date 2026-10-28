@@ -136,6 +136,9 @@ msgstr "Unbekannter Modus des Fetch-Workers"
 msgid "Invalid superuser"
 msgstr "Ungültiger Superuser"
 
+msgid "Two encryptions for the mail server"
+msgstr "Zwei Verschlüsselungen für den Mailserver"
+
 msgid "The fetch stopped"
 msgstr "Das Lesen wurde angehalten"
 

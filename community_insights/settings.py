@@ -13,6 +13,8 @@ from pathlib import Path
 
 import environ
 
+from community_insights import mail_encryption
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 DATA_DIR = Path(env("DATA_DIR", default=str(BASE_DIR / "data")))
@@ -179,7 +181,11 @@ EMAIL_BACKEND = (
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL, EMAIL_USE_TLS = mail_encryption.encryption(
+    EMAIL_PORT,
+    env.bool("EMAIL_USE_SSL", default=None),
+    env.bool("EMAIL_USE_TLS", default=None),
+)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="webmaster@localhost")
 SOCIALACCOUNT_PROVIDERS = {
     "github": {

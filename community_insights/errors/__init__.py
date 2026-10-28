@@ -6,7 +6,12 @@ documentation (``CommunityError.docs_url``). Any other exception is translated i
 """
 
 from .base import DOCS_URL, CommunityError, UnexpectedError
-from .configuration import ConfigurationError, InvalidDefaultSuperuser, UnknownWorkerMode
+from .configuration import (
+    ConfigurationError,
+    EmailEncryptionConflict,
+    InvalidDefaultSuperuser,
+    UnknownWorkerMode,
+)
 from .fetching import (
     AllTokensUsedUp,
     FetchCancelled,
@@ -128,6 +133,7 @@ __all__ = [
     "UnknownRuleKind",
     "UnknownTable",
     "UnknownVariable",
+    "EmailEncryptionConflict",
     "InvalidDefaultSuperuser",
     "UnknownWorkerMode",
     "UnsupportedComparison",

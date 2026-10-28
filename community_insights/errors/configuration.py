@@ -45,3 +45,18 @@ class InvalidDefaultSuperuser(ConfigurationError):
     title = _("Invalid superuser")
     guide = "reference/configuration.html"
     guide_title = _("The settings of the site")
+
+
+class EmailEncryptionConflict(ConfigurationError):
+    """EMAIL_USE_SSL and EMAIL_USE_TLS are both on, but a mail server speaks only one.
+
+    Port 465 speaks TLS from the first byte: set ``EMAIL_USE_SSL=true`` or nothing. Port
+    587 starts in plain text and switches with STARTTLS: set ``EMAIL_USE_TLS=true`` or
+    nothing. Remove the other one from ``.env``.
+
+    The settings of the site: :doc:`/reference/configuration`.
+    """
+
+    title = _("Two encryptions for the mail server")
+    guide = "reference/configuration.html"
+    guide_title = _("The settings of the site")

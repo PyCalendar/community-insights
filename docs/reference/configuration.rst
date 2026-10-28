@@ -74,9 +74,12 @@ The application reads its settings from environment variables. With Docker, put 
    * - ``ACCOUNT_EMAIL_VERIFICATION``
      - ``optional``
      - ``none``, ``optional`` or ``mandatory``: whether people must confirm their email address.
-   * - ``EMAIL_HOST``, ``EMAIL_PORT``, ``EMAIL_HOST_USER``, ``EMAIL_HOST_PASSWORD``, ``EMAIL_USE_TLS``, ``DEFAULT_FROM_EMAIL``
-     - none, ``587``, none, none, ``true``, ``webmaster@localhost``
+   * - ``EMAIL_HOST``, ``EMAIL_PORT``, ``EMAIL_HOST_USER``, ``EMAIL_HOST_PASSWORD``, ``DEFAULT_FROM_EMAIL``
+     - none, ``587``, none, none, ``webmaster@localhost``
      - The mail server for confirmation and password mails. Without ``EMAIL_HOST`` mails are written to the log.
+   * - ``EMAIL_USE_TLS``, ``EMAIL_USE_SSL``
+     - from ``EMAIL_PORT``
+     - How the connection to the mail server is encrypted. ``EMAIL_USE_TLS`` starts in plain text and switches with STARTTLS, as port 587 does; ``EMAIL_USE_SSL`` speaks TLS from the start, as port 465 does. Without them, port 465 uses ``EMAIL_USE_SSL`` and every other port ``EMAIL_USE_TLS``. Both ``true`` stops the start (``EmailEncryptionConflict`` in :doc:`errors`). ``EMAIL_USE_TLS=false`` without ``EMAIL_USE_SSL`` sends without encryption, for a mail server on the same machine. The wrong one for the port fails with ``SMTPServerDisconnected: Connection unexpectedly closed``.
    * - ``PRODUCTION``
      - ``true``
      - A site others can reach. The container does not start while a superuser has a default password (``admin``, ``password``, or their own name). Set ``PRODUCTION=false`` for local test sites only. This is not ``DEBUG``.
