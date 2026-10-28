@@ -365,3 +365,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Deploy to Sencho
+    needs: [push]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update deployment
+        run: |
+          curl --request POST --fail-with-body --url https://sencho.pycal.org/api/stacks/community-insights/update --header 'Authorization: Bearer ${{ secrets.SENCHO_TOKEN }}'
