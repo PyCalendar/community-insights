@@ -405,3 +405,6 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] REUSE.toml: the entry of the project leaves out static/vendor/, so a file of another project there without its own entry fails `make reuse`; entries for Chart.js, chartjs-chart-matrix, Sortable (MIT) and htmx (0BSD, LICENSES/0BSD.txt)
 - [x] The CI job "make linkcheck" failed on GitHub with `[Errno 101] Network is unreachable` for www.gnu.org: a server the machine cannot reach at all is listed but does not fail the check (tests/linkchecker/docs.py); broken links and timeouts are listed and still fail; a link gets 60 s
 - [x] Checked the deployment step of the push job: curl is on ubuntu-latest; suggested `--fail-with-body` and a newline at the end of the file.
+- [x] CI failed (040b2ce): the new job "deploy" was missing from the jobs the push does not wait for (tests/quality/test_ci.py); a test checks that deploy needs push and runs only for pushes
+- [x] CI failed: the browser tests at 375x812 timed out on the first page on a slow runner (reproduced on one busy CPU); pages get 60 s to load, actions and expect 30 s
+- [ ] Log gh in (`gh auth login`), so that the logs of the CI can be read with `gh run view --log-failed`

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 import pytest
+from playwright.sync_api import expect
 
 from tests.fakes import FakeClient
 
@@ -23,6 +24,10 @@ os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Tokyo")
 WINDOW = os.environ.get("WINDOW") or "1280x900"
 HERE = Path(__file__).parent
+# milliseconds; the runners of GitHub can be much slower than a computer of a developer
+TIMEOUT = 30_000
+NAVIGATION_TIMEOUT = 60_000  # the first page also starts Django's templates and static files
+expect.set_options(timeout=TIMEOUT)
 
 
 def pytest_collection_modifyitems(items):
@@ -82,7 +87,8 @@ def site(page, live_server, fake):
     Returns:
         The site to use in the page.
     """
-    page.set_default_timeout(15000)
+    page.set_default_timeout(TIMEOUT)
+    page.set_default_navigation_timeout(NAVIGATION_TIMEOUT)
     return Site(page, live_server.url, fake, TIME_ZONE)
 
 

@@ -15,8 +15,9 @@ RUN_IN_CI = set(re.findall(r"run: make ([\w-]+)", WORKFLOW))
 TARGETS = set(re.findall(r"^([\w-]+):", MAKEFILE, re.MULTILINE))
 JOBS = re.findall(r"^  ([\w-]+):\n", WORKFLOW.split("\njobs:\n", 1)[-1], re.MULTILINE)
 NEEDED_FOR_PUSH = re.search(r"needs: \[([^\]]*)\]", WORKFLOW)
-# changelog: only for pull requests; linkcheck and graphql: other sites can be down
-NOT_NEEDED_FOR_PUSH = {"changelog", "linkcheck", "graphql", "push"}
+# changelog: only for pull requests; linkcheck and graphql: other sites can be down;
+# deploy: runs after push
+NOT_NEEDED_FOR_PUSH = {"changelog", "linkcheck", "graphql", "push", "deploy"}
 
 
 def test_test_all_lists_the_checks():
@@ -62,6 +63,14 @@ def test_the_image_is_pushed_only_after_the_tests():
     assert NEEDED_FOR_PUSH
     needed = {job.strip() for job in NEEDED_FOR_PUSH.group(1).split(",")}
     assert needed == set(JOBS) - NOT_NEEDED_FOR_PUSH
+
+
+def test_the_deployment_waits_for_the_pushed_image():
+    """The deployment starts only after the image of the passed tests is pushed."""
+    deploy = re.search(r"^  deploy:\n(.*?)(?=^  \w|\Z)", WORKFLOW, re.MULTILINE | re.DOTALL)
+    assert deploy
+    assert "needs: [push]" in deploy.group(1)
+    assert "if: github.event_name == 'push'" in deploy.group(1)
 
 
 def test_every_step_has_a_name():
