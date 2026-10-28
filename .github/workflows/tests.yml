@@ -371,7 +371,15 @@ jobs:
     needs: [push]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    # the secret SENCHO_TOKEN belongs to this environment of the repository
+    environment:
+      name: insight.pycal.org
+      url: https://insight.pycal.org
     steps:
       - name: Update deployment
-        run: |
-          curl --request POST --fail-with-body --url https://sencho.pycal.org/api/stacks/community-insights/update --header 'Authorization: Bearer ${{ secrets.SENCHO_TOKEN }}'
+        run: >-
+          curl --request POST --fail-with-body
+          --url https://sencho.pycal.org/api/stacks/community-insights/update
+          --header "Authorization: Bearer $SENCHO_TOKEN"
+        env:
+          SENCHO_TOKEN: ${{ secrets.SENCHO_TOKEN }}

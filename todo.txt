@@ -408,3 +408,4 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] CI failed (040b2ce): the new job "deploy" was missing from the jobs the push does not wait for (tests/quality/test_ci.py); a test checks that deploy needs push and runs only for pushes
 - [x] CI failed: the browser tests at 375x812 timed out on the first page on a slow runner (reproduced on one busy CPU); pages get 60 s to load, actions and expect 30 s
 - [ ] Log gh in (`gh auth login`), so that the logs of the CI can be read with `gh run view --log-failed`
+- [x] The deployment had no token ("Authentication required"): the job deploy names the environment insight.pycal.org, whose secret SENCHO_TOKEN it passes to curl through env

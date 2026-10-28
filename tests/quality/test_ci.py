@@ -71,6 +71,9 @@ def test_the_deployment_waits_for_the_pushed_image():
     assert deploy
     assert "needs: [push]" in deploy.group(1)
     assert "if: github.event_name == 'push'" in deploy.group(1)
+    # the secret SENCHO_TOKEN is only given to jobs of its environment
+    assert "name: insight.pycal.org" in deploy.group(1)
+    assert "${{ secrets.SENCHO_TOKEN }}" in deploy.group(1)
 
 
 def test_every_step_has_a_name():
