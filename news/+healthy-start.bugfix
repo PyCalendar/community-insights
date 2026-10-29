@@ -1,0 +1,1 @@
+The container starts faster: the steps before it serves run in one process (``manage.py prepare``), and failed health checks while it starts no longer make it unhealthy, so a deploy that waits for a healthy container does not fail.

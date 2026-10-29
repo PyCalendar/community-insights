@@ -22,6 +22,6 @@ Update an installation with Compose:
     docker compose pull
     docker compose up -d
 
-The database is migrated when the container starts. Read the :doc:`../changelog` first, and back up ``data/``.
+The database is migrated when the container starts (``manage.py prepare``). Until the site answers, Docker shows the container as *starting*, not *unhealthy*: failed health checks of the first five minutes do not count, so that tools which deploy and wait for a healthy container do not give up. Read the :doc:`../changelog` first, and back up ``data/``.
 
 To run the newest code without Docker, see :doc:`develop`.

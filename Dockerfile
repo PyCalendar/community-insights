@@ -43,5 +43,8 @@ COPY docker/nginx.conf docker/nginx.conf
 RUN SECRET_KEY=build SALT_KEY=build python manage.py collectstatic --noinput
 
 VOLUME /app/data
-HEALTHCHECK CMD python -c "import urllib.request,os;urllib.request.urlopen('http://127.0.0.1:%s/health/' % os.environ['PORT'])"
+# the start migrates and loads the libraries of the statistics: checks that fail in
+# the first minutes do not count, so that a deploy does not see an unhealthy container
+HEALTHCHECK --start-period=300s --start-interval=5s --interval=30s --timeout=30s --retries=3 \
+    CMD python -c "import urllib.request,os;urllib.request.urlopen('http://127.0.0.1:%s/health/' % os.environ['PORT'])"
 ENTRYPOINT ["/bin/sh", "start-service.sh"]

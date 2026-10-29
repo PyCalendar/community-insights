@@ -5,10 +5,9 @@
 # worker runs here as a process of its own, started again if it stops; with
 # external-separate-container it runs in the worker service of the compose file.
 set -e
-python manage.py migrate --noinput
-python manage.py invalidate_cachalot -v0  # the cache of the statistics starts fresh
-python manage.py ensure_superuser  # DEFAULT_SUPERUSER, email:password, each start
-python manage.py check_production  # stops the container if a default password is used
+# migrate, empty the cache of the statistics, DEFAULT_SUPERUSER, and stop if a
+# superuser has a default password: in one process, which starts faster
+python manage.py prepare
 if [ "$FETCH_WORKER" = "external-http-container" ]; then
     (while true; do python manage.py fetch_worker || true; sleep 5; done) &
 fi
