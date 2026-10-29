@@ -34,3 +34,35 @@ test("Enter runs the query unless a suggestion was chosen with the arrows", () =
   assert.equal(complete.takes("Tab", -1, 0), false, "nothing to take");
   assert.equal(complete.takes("a", 0, 3), false);
 });
+
+function page(value, focused) {
+  const { JSDOM } = require("jsdom");
+  const dom = new JSDOM(
+    '<form><div><input id="where" data-complete-words="prs_merged prs_total user_class"></div></form>'
+  );
+  const input = dom.window.document.getElementById("where");
+  if (focused) input.focus();
+  input.value = value;
+  input.setSelectionRange(value.length, value.length);
+  return { input, list: complete.setup(input) };
+}
+
+test("setup suggests for what was typed before the script ran", () => {
+  const { input, list } = page("prs_mer", true);
+  assert.equal(list.hidden, false);
+  assert.equal(list.textContent, "prs_merged");
+  assert.equal(input.getAttribute("aria-expanded"), "true");
+});
+
+test("setup suggests nothing for a field without focus or text", () => {
+  assert.equal(page("prs_mer", false).list.hidden, true);
+  assert.equal(page("", true).list.hidden, true);
+});
+
+test("setup suggests while typing", () => {
+  const { input, list } = page("", true);
+  input.value = "prs_";
+  input.setSelectionRange(4, 4);
+  input.dispatchEvent(new input.ownerDocument.defaultView.Event("input"));
+  assert.equal(list.textContent, "prs_mergedprs_total");
+});

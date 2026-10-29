@@ -422,5 +422,6 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] hours_to_respond is shown as a time with days, hours and minutes (query.DURATIONS); queries compare hours
 - [x] "pull requests opened and merged" -> "pull requests merged" (also closed, still open, issues); the column titles start without "the"; German updated
 - [x] All shared links open without a sign in (Scope.shared): Share (data-copy-url), Share this chart (image and page) and the page of the badge name the public repositories of a project, with the time range, the query and the classes; a project without public repositories stays private with the warning
+- [x] CI failed (make test-browser, 1280x900): the query field missed what was typed before query-complete.js ran; it now suggests for it (jsdom tests)
 - [ ] Decide: lazy imports of matplotlib, lifelines and statsmodels, so that a worker that only serves kept images and pages stays smaller
 - [ ] Measure the memory of the fetch worker during a large fetch (82 MB when idle)

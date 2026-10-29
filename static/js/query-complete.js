@@ -90,12 +90,14 @@
       if (active >= 0) input.setAttribute("aria-activedescendant", list.id + "-" + active);
     }
 
-    input.addEventListener("input", function () {
+    function suggest() {
       word = wordAt(input.value, input.selectionStart);
       shown = suggestions(words, word.word);
       active = -1;
       draw();
-    });
+    }
+
+    input.addEventListener("input", suggest);
     input.addEventListener("keydown", function (event) {
       if (list.hidden) return;
       if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -112,6 +114,8 @@
       }
     });
     input.addEventListener("blur", close);
+    // typed before the script ran, while the page was still loading
+    if (doc.activeElement === input && input.value) suggest();
     return list;
   }
 
