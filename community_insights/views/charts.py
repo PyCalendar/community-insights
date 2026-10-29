@@ -7,7 +7,6 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.cache import never_cache
 
 from .. import chart_data, charts, query, stats
 from ..models import (
@@ -15,6 +14,7 @@ from ..models import (
 )
 from .contributors import CHART_TOP, query_parameters, run_query
 from .scope import scope_of, scope_view
+from .stamped import stamped
 
 # the charts and what they show, for the page to share them
 CHARTS = {
@@ -98,7 +98,7 @@ def draw(request, scope, name, drawing):
 
 
 @scope_view
-@never_cache
+@stamped
 def chart(request, scope, name):
     """A chart as SVG; ?theme=dark for a dark page.
 
@@ -114,7 +114,7 @@ def chart(request, scope, name):
 
 
 @scope_view
-@never_cache
+@stamped
 def chart_json(request, scope, name):
     """The data of a chart for Chart.js (static/js/charts.js); ?theme=dark for a dark page.
 

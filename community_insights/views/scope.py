@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from .. import pipeline
+from .. import data_stamp, pipeline, stats
 from ..classify import Classifier, class_list, classes_by_ids, differs_from_default
 from ..errors import (
     DatesInWrongOrder,
@@ -172,11 +172,12 @@ class Scope:
             found["until"] = (self.until - timedelta(days=1)).date().isoformat()
         return found
 
-    @property
+    @functools.cached_property
     def carried(self) -> dict[str, str]:
         """The classes that links carry, so that a shared address shows the same numbers.
 
-        Those of the address, or the own ones when they differ from the default ones.
+        Those of the address, or the own ones when they differ from the default ones. Read
+        once per page: a page has hundreds of links.
         """
         if self.chosen is not None:
             return {"classes": " ".join(c.ident for c in self.chosen)}
@@ -234,8 +235,35 @@ class Scope:
         return [c for c in self.classes() if not c.hidden]
 
     def touch(self):
-        """Remember that the repositories were used now."""
-        self.repositories.update(last_used_at=timezone.now())
+        """Remember that the repositories were used now, at most once an hour."""
+        Repository.touch_all(self.repositories)
+
+    def contributors(self, classified: bool = True) -> list:
+        """The contributors of the scope, kept until the data changes (data_stamp.kept).
+
+        Args:
+            classified: Whether to give each one a class of people.
+
+        Returns:
+            The contributors (stats.Contributor).
+        """
+        return data_stamp.kept(
+            "contributors",
+            [
+                sorted(self.repositories.values_list("pk", flat=True)),
+                classified,
+                self.user.pk if self.user.is_authenticated else "",
+                [c.pk for c in self.chosen] if self.chosen is not None else None,
+                self.since,
+                self.until,
+            ],
+            lambda: stats.contributors(
+                self.repositories,
+                self.classifier() if classified else None,
+                since=self.since,
+                until=self.until,
+            ),
+        )
 
     def classifier(self) -> Classifier:
         """The classes of people of the user (the defaults for visitors), with locations.

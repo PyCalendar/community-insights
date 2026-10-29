@@ -97,11 +97,9 @@ def person(request, scope, login):
     if not stats.activity_of(scope.repositories, login):
         raise Http404("No activity")
     people = [
-        p
-        for p in stats.contributors(scope.repositories, since=scope.since, until=scope.until)
-        if p.login.lower() == login.lower()
+        p for p in scope.contributors(classified=False) if p.login.lower() == login.lower()
     ] or [stats.Contributor(login)]  # nothing in the time range
-    Person.objects.filter(login__iexact=login).update(last_used_at=timezone.now())
+    Person.touch_all(Person.objects.filter(login__iexact=login))
     return stats_page(
         request,
         scope,

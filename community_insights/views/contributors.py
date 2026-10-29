@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 
-from .. import export, query, stats
+from .. import export, query
 from ..errors import InvalidQuery
 from ..feedback import show_error
 from ..models import (
@@ -142,9 +142,7 @@ def run_query(scope, parameters: dict) -> query.Result:
     Returns:
         The result of the query.
     """
-    people = stats.contributors(
-        scope.repositories, scope.classifier(), since=scope.since, until=scope.until
-    )
+    people = scope.contributors()
     return query.run(
         people,
         timezone.now(),
@@ -192,9 +190,7 @@ def contributors(request, scope):
         show_error(request, error)
         result = None
     else:
-        Person.objects.filter(login__in=[c.login for c in result.contributors]).update(
-            last_used_at=timezone.now()
-        )
+        Person.touch_all(Person.objects.filter(login__in=[c.login for c in result.contributors]))
     chart = parameters["chart"] if parameters["chart"] in query.NUMBERS else "activity_total"
     return stats_page(
         request,

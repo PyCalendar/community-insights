@@ -1,0 +1,1 @@
+A test runs the fetch worker in a process of its own and fails when it imports a package that is not on its list, such as pandas or matplotlib, so the worker stays small next to gunicorn.

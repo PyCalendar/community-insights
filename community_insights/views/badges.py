@@ -2,14 +2,13 @@ import math
 
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from django.views.decorators.cache import never_cache
 
 from .. import badges, stats
 from ..classify import Classifier, class_list, classes_by_ids
 from ..errors import UnknownClasses
-from ..models import Item, Project
+from ..models import Item, Project, Repository
 from .scope import PROJECTS, public_repositories
+from .stamped import stamped
 
 LABEL_LENGTH = 60  # the longest left side of a badge
 
@@ -48,7 +47,7 @@ def badge_of(request, repositories, user) -> HttpResponse:
     model = request.GET.get("model") or "measured"
     if model not in stats.MODELS:
         raise Http404("No such model")
-    repositories.update(last_used_at=timezone.now())
+    Repository.touch_all(repositories.all())
     entries, observed = stats.response_times(repositories.all(), Classifier(user, chosen=chosen))
     seconds, counted = stats.model_percentile(
         entries[kind], observed[kind], wanted or None, p, model
@@ -72,7 +71,7 @@ def badge_of(request, repositories, user) -> HttpResponse:
     return response
 
 
-@never_cache
+@stamped
 def badge(request, token):
     """The badge of a project: the secret token is the access. Never calls GitHub.
 
@@ -87,7 +86,7 @@ def badge(request, token):
     return badge_of(request, project.repositories, project.user)
 
 
-@never_cache
+@stamped
 def public_badge(request, scope):
     """The badge of public repositories, with the default classes. Never calls GitHub.
 

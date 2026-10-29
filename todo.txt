@@ -410,3 +410,11 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [ ] Log gh in (`gh auth login`), so that the logs of the CI can be read with `gh run view --log-failed`
 - [x] The deployment had no token ("Authentication required"): the job deploy names the environment insight.pycal.org, whose secret SENCHO_TOKEN it passes to curl through env
 - [x] Mail over port 465 (smtp.zoho.com) failed with SMTPServerDisconnected: EMAIL_USE_SSL is read; port 465 chooses it, other ports EMAIL_USE_TLS; both true stops the start (EmailEncryptionConflict, community.E002); in .env.example and the docs
+- [x] Images kept until the data changes, with ETags: a stamp of the data from the notes of django-cachalot per table, the hour and the version (data_stamp.py); charts, chart data and badges are kept and answer 304 (views/stamped.py); the contributors are kept (Scope.contributors)
+- [x] Looking at pages wrote last_used_at each time, which emptied the cache of cachalot and moved the stamp: written at most once an hour (Cached.touch_all)
+- [x] The contributors page read the classes of the user for each of its 735 links (Scope.carried is computed once): 10 s → 0.5 s
+- [x] `make benchmark`: each page and image of a project twice, the second load under a second, with the peak memory of the server per request (tests/performance/site_speed.py); measured with collective/icalendar
+- [x] Memory: a web process holds about 300 MB of libraries (pandas, matplotlib, lifelines, statsmodels), calculations add up to 14 MB; the image starts one gunicorn worker (WORKERS=1) to fit into 600 MB
+- [x] A test of the CI runs the fetch worker with a job in its own process and allows only listed packages and parts of the site, so it stays minimal: no pandas, numpy, matplotlib, lifelines, statsmodels (tests/fetching/test_worker_imports.py)
+- [ ] Decide: lazy imports of matplotlib, lifelines and statsmodels, so that a worker that only serves kept images and pages stays smaller
+- [ ] Measure the memory of the fetch worker during a large fetch (82 MB when idle)

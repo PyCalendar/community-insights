@@ -96,8 +96,8 @@ The application reads its settings from environment variables. With Docker, put 
      - ``5000``
      - Port of gunicorn in the container.
    * - ``WORKERS``
-     - ``2``
-     - gunicorn worker processes.
+     - ``1``
+     - gunicorn worker processes. Each one needs about 300 MB, because it holds the libraries of the statistics; the fetch worker needs about 80 MB more. One worker with ``THREADS`` serves a small site. Measure a change with ``make benchmark`` (see :ref:`run-the-tests`).
    * - ``THREADS``
      - ``4``
      - gunicorn threads per worker.

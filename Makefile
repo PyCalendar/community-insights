@@ -2,6 +2,7 @@
 SHELL         = bash
 PYTHONVERSION = >=3.13,<3.15
 PORT         ?= 5000
+SCOPE        ?= 3
 WINDOW       ?= 1280x900
 BASE         ?= origin/main
 ZIZMOR        = zizmor==1.30.1
@@ -74,6 +75,10 @@ test: .venv  ## Run the Python tests, with coverage, and check that no migration
 .PHONY: test-performance
 test-performance: .venv  ## Measure the speed: statistics on large made up data, and reading GitHub with $$GITHUB_TOKEN
 	@uv run pytest -m performance -s -p no:cacheprovider
+
+.PHONY: benchmark
+benchmark: .venv  ## Measure how fast pages and images of the site of make run load again (SCOPE=3)
+	@uv run python -m tests.performance.site_speed --scope "$(SCOPE)" --url "http://localhost:$(PORT)"
 
 .PHONY: check-vendor
 check-vendor:  ## Check that static/vendor is what make vendor copies from package-lock.json

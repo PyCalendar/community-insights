@@ -1,0 +1,1 @@
+Charts, their data and badges are kept until the data changes, with an ``ETag``: a browser that has the image gets ``304 Not Modified``. The contributors are computed once per change of the data, and looking at a page no longer writes to the database, so the contributors page of collective/icalendar loads in 0.4 instead of 10 seconds.

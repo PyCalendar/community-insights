@@ -1,0 +1,1 @@
+``make benchmark`` measures how fast each page and image of a project loads again, and how much memory each request needs.

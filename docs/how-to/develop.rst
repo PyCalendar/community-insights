@@ -80,6 +80,18 @@ Check the links and the queries
 Measure the speed
 -----------------
 
+``make benchmark`` signs in to the site of ``make run``, opens every page of a project and every image and chart data it shows, twice, and fails if a second load takes a second or longer. Images are also asked for with their ETag, as a browser does. On Linux it shows how much each request raised the peak memory of the server:
+
+.. code-block:: bash
+
+    make benchmark                       # the project 3 as admin@example.com
+    make benchmark SCOPE=collective~icalendar
+    uv run python -m tests.performance.site_speed --email you@example.org --scope 2
+
+``make run`` has ``DEBUG`` on, and with it the debug toolbar, which records every query and template of a request: measure the time and the memory on a server without ``DEBUG``, such as ``make docker-run`` with ``--server gunicorn`` or ``PRODUCTION=false uv run python manage.py runserver 5001 --insecure`` with ``--url http://localhost:5001 --server "runserver 5001"``.
+
+The fetch worker runs next to gunicorn, so it is kept small: ``tests/fetching/test_worker_imports.py`` runs ``manage.py fetch_worker`` with one job in a process of its own and fails when it imports a package or a part of the site that is not on its lists, such as pandas, matplotlib or the statistics. Import such a module where the pages need it; list it only if the worker needs it and it is small.
+
 ``make test-performance`` measures the statistics with 5000 made up items and reads a public repository from GitHub with ``$GITHUB_TOKEN`` (or the token of ``~/.config/community-insights/config.yaml``), twice, to see that the second read asks almost nothing. If the token has few points left, it waits 10 minutes and looks again. ``PERFORMANCE_REPOSITORY`` chooses another repository.
 
 Check the documentation

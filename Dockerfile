@@ -6,7 +6,8 @@ COPY LICENSE /LICENSE
 # server environment variables
 EXPOSE 5000
 ENV PORT=5000
-ENV WORKERS=2
+# one process holds pandas, matplotlib, lifelines and statsmodels: about 300 MB
+ENV WORKERS=1
 ENV THREADS=4
 # the fetch worker runs as a process of its own in this container
 # (docker/start-service.sh); external-separate-container for its own container

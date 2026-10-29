@@ -44,3 +44,4 @@ statsmodels
 pytest
 matplotlib
 htmx
+ETag
