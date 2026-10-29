@@ -1,4 +1,5 @@
 from allauth.socialaccount.models import SocialAccount
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,6 +23,7 @@ from ..models import (
 )
 from ..tokens import ask_one
 from ..tokens.access import mirror_linked_account
+from ..tokens.new import MONTH, YEAR, new_token_url
 
 EXPIRY_WARNING_DAYS = 14
 
@@ -260,5 +262,14 @@ def github_access(request):
             "account": SocialAccount.objects.filter(user=user, provider="github").first(),
             "tokens": tokens,
             "profile": profile,
+            "new_tokens": [
+                (
+                    label,
+                    new_token_url(
+                        days, request.get_host(), now.date(), settings.PRIVATE_REPOSITORIES
+                    ),
+                )
+                for label, days in ((_("Token for a month"), MONTH), (_("Token for a year"), YEAR))
+            ],
         },
     )

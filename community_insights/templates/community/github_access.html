@@ -26,6 +26,8 @@
 </div></div>
 
 <p class="mb-2">{% translate 'Create a <a href="https://github.com/settings/personal-access-tokens/new">fine-grained token</a> with an expiration date. Public repositories need no permissions.' %} {% if private_repositories %}{% translate "Private ones need read access to <em>Pull requests</em>, <em>Issues</em> and <em>Metadata</em>." %}{% else %}{% translate "For now only public repositories are read." %}{% endif %} <a href="{{ links.documentation }}how-to/tokens.html">{% translate "Step by step, with an example" %}</a>.</p>
+<p class="d-flex flex-wrap align-items-center gap-2 mb-2"><span class="small">{% translate "GitHub fills in the form; check it and press Generate token:" %}</span>
+  {% for label, address in new_tokens %}<a class="btn btn-sm btn-outline-primary" href="{{ address }}" target="_blank" rel="noopener">{{ label }}</a>{% endfor %}</p>
 <div class="card mb-3"><div class="card-header"><strong>{% translate "2. Tokens" %}</strong></div>
   <form method="post" id="token-order" hidden>{% csrf_token %}<input type="hidden" name="action" value="order"></form>
   <ul class="list-group list-group-flush" data-sort-list data-sort-form="token-order">

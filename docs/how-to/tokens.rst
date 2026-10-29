@@ -7,7 +7,9 @@ Data is read from GitHub with your linked GitHub account and with tokens, in the
 Create a token, step by step
 ============================
 
-This example creates a token that reads public repositories for 90 days. It takes about two minutes.
+The quickest way: on **GitHub access**, press **Token for a month** or **Token for a year**. GitHub opens its form for a new token, already filled in with a name, a description, the expiration and, if the installation reads private repositories, the permissions. Check it, press **Generate token**, and add the token as described in the last steps below.
+
+This example creates a token by hand that reads public repositories for 90 days. It takes about two minutes.
 
 #. Sign in to GitHub and open `new fine-grained token <https://github.com/settings/personal-access-tokens/new>`_. GitHub reaches this page through *Settings*, *Developer settings*, *Personal access tokens*, *Fine-grained tokens*, *Generate new token*.
 #. **Token name**: a name that says where the token is used, such as ``community-insights``.

@@ -424,7 +424,8 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] All shared links open without a sign in (Scope.shared): Share (data-copy-url), Share this chart (image and page) and the page of the badge name the public repositories of a project, with the time range, the query and the classes; a project without public repositories stays private with the warning
 - [x] CI failed (make test-browser, 1280x900): the query field missed what was typed before query-complete.js ran; it now suggests for it (jsdom tests)
 - [x] Sencho: "health gate failed, container unhealthy" after each deploy: the start ran four manage.py, each loading the libraries for about 5 s, before gunicorn; one process (manage.py prepare) and a start period of the HEALTHCHECK (5 min, checked every 5 s)
-- [ ] Enter in the query field submits the query; the page scrolls down so that the query is at the top
-- [ ] From / To / days below "Read from GitHub"
+- [x] Enter in the query field submits the query (it did, also with suggestions open; the result appeared out of sight); running it scrolls the query to the top (query-scroll.js)
+- [x] From / To / days below "Read from GitHub"
+- [x] Sign up with GitHub: easy to get a token in the settings that reads for the user for a month or a year: buttons on GitHub access open the form of GitHub filled in (template URL of fine-grained tokens: name, description, expires_in, permissions for private repositories)
 - [ ] Decide: lazy imports of matplotlib, lifelines and statsmodels, so that a worker that only serves kept images and pages stays smaller
 - [ ] Measure the memory of the fetch worker during a large fetch (82 MB when idle)

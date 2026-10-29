@@ -87,7 +87,7 @@ def test_dark_and_light_pages_with_charts_in_the_same_colours(read):
 
 
 def test_write_a_query_with_the_names_of_the_variables_and_run_it_with_enter(read):
-    """The query field completes the names; Enter runs the query without loading the page."""
+    """The query field completes the names; Enter runs the query and scrolls it to the top."""
     read.click("Contributors")
     field = read.page.locator("#where")
     field.press_sequentially("prs_mer")
@@ -98,6 +98,10 @@ def test_write_a_query_with_the_names_of_the_variables_and_run_it_with_enter(rea
     field.press("Enter")
     read.address_has_query("prs_merged >= 0")
     read.see("people")
+    read.page.wait_for_function(
+        "() => Math.abs(document.querySelector('.query-form').getBoundingClientRect().top) < 2"
+    )
+    expect(field).to_be_in_viewport()
 
 
 def test_choose_the_columns_of_the_contributors(read):

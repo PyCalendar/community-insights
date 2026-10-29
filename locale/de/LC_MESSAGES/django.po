@@ -1725,6 +1725,15 @@ msgstr "Vorerst werden nur öffentliche Repositories gelesen."
 msgid "Step by step, with an example"
 msgstr "Schritt für Schritt, mit einem Beispiel"
 
+msgid "GitHub fills in the form; check it and press Generate token:"
+msgstr "GitHub füllt das Formular aus; prüfe es und drücke Generate token:"
+
+msgid "Token for a month"
+msgstr "Token für einen Monat"
+
+msgid "Token for a year"
+msgstr "Token für ein Jahr"
+
 msgid "2. Tokens"
 msgstr "2. Tokens"
 

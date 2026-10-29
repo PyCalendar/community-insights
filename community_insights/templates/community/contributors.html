@@ -4,7 +4,7 @@
 {% block content %}
 {% include "community/_scope_nav.html" with active="contributors" %}
 
-<form method="get" class="card card-body mb-3 query-form" aria-label="{% translate "Query" %}" hx-get="{{ request.path }}" hx-trigger="submit, change from:#group, change from:#chart" hx-target="#query-result" hx-select="#query-result" hx-swap="outerHTML" hx-push-url="true" hx-select-oob="#messages">
+<form method="get" class="card card-body mb-3 query-form" data-scroll-on-submit aria-label="{% translate "Query" %}" hx-get="{{ request.path }}" hx-trigger="submit, change from:#group, change from:#chart" hx-target="#query-result" hx-select="#query-result" hx-swap="outerHTML" hx-push-url="true" hx-select-oob="#messages">
   {% for name, value in scope.range.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% for name, value in scope.carried.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   <div class="row g-2">
@@ -89,6 +89,7 @@
 <script src="{% static 'vendor/sortable/Sortable.min.js' %}" defer></script>
 <script src="{% static 'js/columns.js' %}" defer></script>
 <script src="{% static 'js/query-complete.js' %}" defer></script>
+<script src="{% static 'js/query-scroll.js' %}" defer></script>
 <script src="{% static 'js/column-names.js' %}" defer></script>
 {% include "community/_chart_scripts.html" %}
 {% endblock %}

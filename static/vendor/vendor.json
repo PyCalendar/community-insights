@@ -77,6 +77,7 @@
       "js/copy.js",
       "js/fit-select.js",
       "js/query-complete.js",
+      "js/query-scroll.js",
       "js/share.js",
       "js/sortable-order.js",
       "js/sources.js",

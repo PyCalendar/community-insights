@@ -11,6 +11,7 @@
     {% if scope.repositories.count > 1 %}<a class="btn btn-sm {% if active == 'compare' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'compare' scope.text %}{{ scope.query }}">{% translate "Compare repositories" %}</a>{% endif %}
   </div>
 </div>
+{% include "community/_data.html" %}
 <form method="get" class="row g-2 align-items-end mb-3 date-range" aria-label="{% translate "Time range" %}">
   {% for name, value in keep_parameters %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% for name, value in scope.carried.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
@@ -27,4 +28,3 @@
   <div class="col-12 small text-muted">{% if scope.range %}{% if scope.range.last %}{% blocktranslate count days=scope.last %}Pull requests and issues created, and activity, in the last {{ days }} day.{% plural %}Pull requests and issues created, and activity, in the last {{ days }} days.{% endblocktranslate %}{% elif scope.range.since and scope.range.until %}{% blocktranslate with since=scope.range.since until=scope.range.until %}Pull requests and issues created, and activity, from {{ since }} until {{ until }}.{% endblocktranslate %}{% elif scope.range.since %}{% blocktranslate with since=scope.range.since %}Pull requests and issues created, and activity, from {{ since }}.{% endblocktranslate %}{% else %}{% blocktranslate with until=scope.range.until %}Pull requests and issues created, and activity, until {{ until }}.{% endblocktranslate %}{% endif %}{% else %}{% translate "All time." %}{% endif %}</div>
 </form>
 {% if scope.borrowed %}<div class="alert alert-info small" role="note">{% translate "Classes of people of the shared address:" %} {% for c in scope.classes %}{% if not c.hidden %}<span class="badge text-bg-secondary">{{ c.name }}</span> {% endif %}{% endfor %}<a href="{{ request.path }}{{ scope.own_classes_query }}">{% translate "Use my own classes" %}</a></div>{% endif %}
-{% include "community/_data.html" %}
