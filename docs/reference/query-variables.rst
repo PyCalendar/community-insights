@@ -38,16 +38,16 @@ The column headers of the table link here. Each variable is a column, can be com
      - Median days until their pull requests were merged
    * - :ref:`hours_to_respond <variable-hours_to_respond>`
      - number
-     - Median hours until their first response on items of others
+     - Median time until their first response on items of others
    * - :ref:`issues_closed <variable-issues_closed>`
      - number
-     - Issues opened and closed
+     - Issues closed
    * - :ref:`issues_commented <variable-issues_commented>`
      - number
      - Issues of others commented on
    * - :ref:`issues_open <variable-issues_open>`
      - number
-     - Issues opened and still open
+     - Issues still open
    * - :ref:`issues_opened <variable-issues_opened>`
      - number
      - Issues opened
@@ -56,13 +56,13 @@ The column headers of the table link here. Each variable is a column, can be com
      - Months with any activity
    * - :ref:`prs_closed <variable-prs_closed>`
      - number
-     - Pull requests opened and closed, merged or not
+     - Pull requests closed, merged or not
    * - :ref:`prs_commented <variable-prs_commented>`
      - number
      - Pull requests of others commented on
    * - :ref:`prs_merged <variable-prs_merged>`
      - number
-     - Pull requests opened and merged
+     - Pull requests merged
    * - :ref:`prs_open <variable-prs_open>`
      - number
      - Pull requests still open
@@ -74,31 +74,31 @@ The column headers of the table link here. Each variable is a column, can be com
      - Pull requests opened
    * - :ref:`prs_unmerged <variable-prs_unmerged>`
      - number
-     - Pull requests opened and closed without merging
+     - Pull requests closed without merging
    * - :ref:`user_association <variable-user_association>`
      - text
-     - The most privileged status seen, such as member or contributor
+     - Most privileged status seen, such as member or contributor
    * - :ref:`user_bot <variable-user_bot>`
      - bool
      - True for bots
    * - :ref:`user_class <variable-user_class>`
      - text
-     - The class of people
+     - Class of people
    * - :ref:`user_country <variable-user_country>`
      - text
-     - The country of the location (ISO code, such as DE)
+     - Country of the location (ISO code, such as DE)
    * - :ref:`user_handle <variable-user_handle>`
      - text
-     - The GitHub handle
+     - GitHub handle
    * - :ref:`user_horizon_europe <variable-user_horizon_europe>`
      - bool
      - True for locations in Horizon Europe
    * - :ref:`user_location <variable-user_location>`
      - text
-     - The location in the GitHub profile
+     - Location in the GitHub profile
    * - :ref:`user_name <variable-user_name>`
      - text
-     - The name in the GitHub profile
+     - Name in the GitHub profile
 
 .. _variable-actions_merges:
 
@@ -168,16 +168,16 @@ The median of the days from opening to merging of the pull requests of the perso
 hours_to_respond
 ----------------
 
-*number*: Median hours until their first response on items of others.
+*number*: Median time until their first response on items of others.
 
-The median of the hours until the person's first response, a comment or review, on items of others: half of their first responses came faster. Infinite, shown as ``-``, for people who never responded to others.
+The median of the hours until the person's first response, a comment or review, on items of others: half of their first responses came faster. Infinite, shown as ``-``, for people who never responded to others. The table shows it as a time, such as ``2d 4h`` or ``3h 12min``; a query compares the hours, such as ``hours_to_respond <= 24``.
 
 .. _variable-issues_closed:
 
 issues_closed
 -------------
 
-*number*: Issues opened and closed.
+*number*: Issues closed.
 
 Of the issues the person opened, those that are closed, shown as a part of ``issues_opened``.
 
@@ -195,7 +195,7 @@ How many issues of others the person commented on in the time range; several com
 issues_open
 -----------
 
-*number*: Issues opened and still open.
+*number*: Issues still open.
 
 Of the issues the person opened, those that are still open, shown as a part of ``issues_opened``.
 
@@ -222,7 +222,7 @@ In how many months the person did anything: opened, commented, reviewed or commi
 prs_closed
 ----------
 
-*number*: Pull requests opened and closed, merged or not.
+*number*: Pull requests closed, merged or not.
 
 Of the pull requests the person opened, those that are closed, merged or not: ``prs_merged`` and ``prs_unmerged`` together, shown as a part of ``prs_total``.
 
@@ -240,7 +240,7 @@ How many pull requests of others the person commented on in the time range; seve
 prs_merged
 ----------
 
-*number*: Pull requests opened and merged.
+*number*: Pull requests merged.
 
 Of the pull requests the person opened, those that were merged. The table shows it as a part of ``prs_total``, such as ``3/5``: three of five merged.
 
@@ -276,7 +276,7 @@ The pull requests the person opened in the time range.
 prs_unmerged
 ------------
 
-*number*: Pull requests opened and closed without merging.
+*number*: Pull requests closed without merging.
 
 Of the pull requests the person opened, those that were closed without merging, shown as a part of ``prs_total``.
 
@@ -285,7 +285,7 @@ Of the pull requests the person opened, those that were closed without merging, 
 user_association
 ----------------
 
-*text*: The most privileged status seen, such as member or contributor.
+*text*: Most privileged status seen, such as member or contributor.
 
 The status of the person in the repositories, as GitHub tells it with their comments and reviews, in lowercase: the most privileged one seen, in this order: ``owner``, ``member``, ``collaborator``, ``contributor``, ``first_timer``, ``first_time_contributor``, ``mannequin``, ``none``. Empty if they only opened items.
 
@@ -303,7 +303,7 @@ True for the people in the class *bot*, and for handles that end with ``[bot]``.
 user_class
 ----------
 
-*text*: The class of people.
+*text*: Class of people.
 
 The class of people the person belongs to: the first class whose rules match, see :doc:`classes`.
 
@@ -312,7 +312,7 @@ The class of people the person belongs to: the first class whose rules match, se
 user_country
 ------------
 
-*text*: The country of the location (ISO code, such as DE).
+*text*: Country of the location (ISO code, such as DE).
 
 The country of the location as a two-letter code, such as ``DE``; empty if the location names none. :doc:`locations` explains how the country is found.
 
@@ -321,7 +321,7 @@ The country of the location as a two-letter code, such as ``DE``; empty if the l
 user_handle
 -----------
 
-*text*: The GitHub handle.
+*text*: GitHub handle.
 
 The handle on GitHub, such as ``octocat``. The table links it to the page of the person.
 
@@ -339,7 +339,7 @@ True for locations in a country of Horizon Europe, see :doc:`locations`.
 user_location
 -------------
 
-*text*: The location in the GitHub profile.
+*text*: Location in the GitHub profile.
 
 The location the person wrote in their GitHub profile, as they wrote it, such as ``Berlin, Germany`` or ``the internet``.
 
@@ -348,7 +348,7 @@ The location the person wrote in their GitHub profile, as they wrote it, such as
 user_name
 ---------
 
-*text*: The name in the GitHub profile.
+*text*: Name in the GitHub profile.
 
 The name the person wrote in their GitHub profile; empty if there is none, or if the repositories were read without a token.
 

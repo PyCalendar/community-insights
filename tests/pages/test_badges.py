@@ -53,7 +53,7 @@ def test_the_overview_builds_the_badge_with_all_formats(synced, signed_in):
     assert 'data-badge="label"' in page
     for name in ("markdown", "rst", "html", "link"):
         assert f'data-copy="#badge-{name}"' in page
-    assert f'data-share-link="http://testserver/s/{pk}/"' in page
+    assert 'data-share-link="http://testserver/s/o~r/"' in page, "opens without a sign in"
     assert page.index("js/share.js") < page.index("js/badge.js"), "badge.js uses share.js"
 
 

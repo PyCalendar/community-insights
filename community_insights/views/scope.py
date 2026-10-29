@@ -1,14 +1,14 @@
 import functools
 import re
 from datetime import date, datetime, time, timedelta
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -217,6 +217,54 @@ class Scope:
         """The time range and the classes after other parameters: "&since=..." or ""."""
         found = self.range | self.carried
         return f"&{urlencode(found)}" if found else ""
+
+    @functools.cached_property
+    def public_text(self) -> str | None:
+        """The scope as visitors can open it: the public repositories, ``owner~name+...``.
+
+        Returns:
+            The text of the scope; the scope itself if it is public, None if none of its
+            repositories is public.
+        """
+        if self.public:
+            return self.text
+        return scope_text(self.repositories.filter(is_private=False).order_by("full_name")) or None
+
+    def shared(self, path: str) -> str:
+        """The address of a page of this scope to share: it opens without a sign in.
+
+        The projects are replaced by their public repositories (``public_text``), and the
+        address gets the time range and the classes of the page if it does not name them, so
+        that others see the same numbers. ``from`` and ``theme`` are left out.
+
+        Args:
+            path: The address on this site, such as ``/s/3/contributors/?sort=-prs_total``.
+
+        Returns:
+            The address to share; a path that is no page of a scope stays as it is, without
+            ``from`` and ``theme``.
+        """
+        parts = urlsplit(path)
+        parameters = [
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key not in ("from", "theme")
+        ]
+        given = {key for key, _ in parameters}
+        if not given & {"since", "until", "last"}:
+            parameters += list(self.range.items())
+        if "classes" not in given:
+            parameters += list(self.carried.items())
+        try:
+            match = resolve(parts.path)
+        except Resolver404:
+            page = parts.path
+        else:
+            kwargs = dict(match.kwargs)
+            if kwargs.get("scope") == self.text and self.public_text:
+                kwargs["scope"] = self.public_text
+            page = reverse(match.view_name, kwargs=kwargs)
+        return page + (f"?{urlencode(parameters)}" if parameters else "")
 
     def classes(self) -> list:
         """The classes of people of the page: those of the address, or the own ones.

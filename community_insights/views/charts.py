@@ -139,7 +139,8 @@ def chart_share(request, scope, name):
     """The page to share a chart: its code for Markdown, reStructuredText, HTML and its address.
 
     The code links the chart to the page it was shown on (the parameter ``from``), so people who
-    see it find where it comes from.
+    see it find where it comes from. Both addresses open without a sign in (``Scope.shared``):
+    a project is shown as its public repositories, with the time range and the classes.
 
     Args:
         request: The request, with the parameters of the chart and ``from``.
@@ -164,11 +165,14 @@ def chart_share(request, scope, name):
     image = reverse("chart", args=[scope.text, name])
     if parameters:
         image += "?" + urlencode(parameters)
-    page = request.GET.get("from", "")
-    if not page.startswith("/") or not url_has_allowed_host_and_scheme(
-        page, allowed_hosts={request.get_host()}
+    back = request.GET.get("from", "")
+    if not back.startswith("/") or not url_has_allowed_host_and_scheme(
+        back, allowed_hosts={request.get_host()}
     ):
-        page = reverse("overview", args=[scope.text]) + scope.query
+        back = reverse("overview", args=[scope.text]) + scope.query
+    # what is shared opens without a sign in: the public repositories, the range, the classes
+    shared = scope.shared(image)
+    page = scope.shared(back)
     alt = f"{scope.title}: {CHARTS[name]}"
     if request.GET.get("login"):
         alt += f" ({request.GET['login']})"
@@ -177,9 +181,10 @@ def chart_share(request, scope, name):
         "community/share.html",
         {
             "scope": scope,
-            "image": request.build_absolute_uri(image),
-            "preview": image,  # the page loads it from this site
+            "image": request.build_absolute_uri(shared),
+            "preview": shared,  # the page loads it from this site
             "page": request.build_absolute_uri(page),
+            "back": back,
             "alt": alt,
         },
     )

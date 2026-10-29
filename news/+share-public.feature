@@ -1,0 +1,1 @@
+Shared addresses open without a sign in: **Share**, **Share this chart** and the link of a badge name the public repositories of a project instead of the project, with the time range, the query and the classes of people, so others see the same page.

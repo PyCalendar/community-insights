@@ -206,6 +206,7 @@ def contributors(request, scope):
             "sorting": sort_links(scope, parameters, result.columns if result else []),
             "examples": example_queries(scope),
             "numbers": query.NUMBERS,
+            "durations": query.DURATIONS,
             "groups": query.GROUPS,
             "saved": request.user.queries.all() if request.user.is_authenticated else [],
             "can_save": request.user.is_authenticated,

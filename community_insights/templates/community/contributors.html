@@ -67,7 +67,7 @@
 <h2 class="h6">{% translate "Groups" %}</h2>
 <div class="table-responsive"><table class="table table-sm table-hover">
   <thead><tr><th>{{ parameters.group }}</th><th class="text-end">{% translate "people" %}</th>{% for n in numbers %}<th class="text-end"><a href="{{ links.documentation }}reference/query-variables.html#{{ n|anchor }}" target="_blank" rel="noopener" title="{{ variables|get:n|first }}">{{ n }}</a></th>{% endfor %}</tr></thead>
-  <tbody>{% for label, people, sums in result.groups %}<tr><td>{{ label }}</td><td class="text-end">{{ people }}</td>{% for n in numbers %}<td class="text-end">{{ sums|get:n|floatformat:"-1" }}{% with total=sums|fraction_total:n %}{% if total is not None %}/{{ total }}{% endif %}{% endwith %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  <tbody>{% for label, people, sums in result.groups %}<tr><td>{{ label }}</td><td class="text-end">{{ people }}</td>{% for n in numbers %}<td class="text-end">{% if n in durations %}{{ sums|get:n|cell:n }}{% else %}{{ sums|get:n|floatformat:"-1" }}{% endif %}{% with total=sums|fraction_total:n %}{% if total is not None %}/{{ total }}{% endif %}{% endwith %}</td>{% endfor %}</tr>{% endfor %}</tbody>
 </table></div>
 {% endif %}
 
@@ -78,7 +78,7 @@
   <tbody>{% for person, row in result.contributors|zip:result.rows %}<tr>
     {% for c, cell in result.columns|zip:row %}
       {% if c == "user_handle" %}<td><a href="{% url 'person' scope.text person.login %}{{ scope.query }}">{{ cell }}</a>{% if person.name %}<div class="small text-muted">{{ person.name }}</div>{% endif %}</td>
-      {% elif c in numbers %}<td class="text-end">{{ cell|number }}{% with total=person|fraction_total:c %}{% if total is not None %}<span class="text-muted">/{{ total }}</span>{% endif %}{% endwith %}</td>
+      {% elif c in numbers %}<td class="text-end">{{ cell|cell:c }}{% with total=person|fraction_total:c %}{% if total is not None %}<span class="text-muted">/{{ total }}</span>{% endif %}{% endwith %}</td>
       {% elif c == "user_location" %}<td>{{ cell|default:"-" }}{% if show_horizon_europe %}{% include "community/_horizon_europe.html" with location=cell %}{% endif %}</td>
       {% else %}<td>{{ cell|default:"-" }}</td>{% endif %}
     {% endfor %}

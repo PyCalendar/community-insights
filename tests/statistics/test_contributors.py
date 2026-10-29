@@ -1,12 +1,14 @@
 """What people did: counts, contributors, commits."""
 
+import re
 from datetime import UTC
 
 import pytest
 
-from community_insights import export, stats
+from community_insights import export, query, stats
 from community_insights.classify import Classifier
 from community_insights.models import Repository
+from community_insights.query import FRACTIONS
 from community_insights.sync import read_repository, store_repository
 
 from ..fakes import FakeClient, repo
@@ -102,6 +104,78 @@ def test_parts_are_shown_with_their_total(synced, signed_in):
     assert "/" in grouped[grouped.index("<h2") :]
 
 
+@pytest.mark.parametrize("column", sorted(FRACTIONS))
+def test_each_part_is_shown_with_its_total_alone(synced, signed_in, column):
+    """Each part shows its total also when the total is not a column of the table."""
+    from community_insights.models import Project
+
+    pk = Project.objects.get().pk
+    page = signed_in.get(f"/s/{pk}/contributors/?columns=user_handle+{column}").content.decode()
+    start = page.index('id="contributors-table"')
+    table = page[start : page.index("</tbody>", start)]
+    assert '<span class="text-muted">/' in table, f"{column} without /{FRACTIONS[column]}"
+
+
+def test_pull_requests_merged_show_the_pull_requests_opened(synced, signed_in):
+    """bob opened one pull request and it was merged: 1/1, as in the columns of the issue."""
+    from community_insights.models import Project
+
+    pk = Project.objects.get().pk
+    columns = "user_handle user_class commits_total prs_merged issues_opened comments_total"
+    page = signed_in.get(
+        f"/s/{pk}/contributors/", {"columns": columns, "where": "prs_total > 0"}
+    ).content.decode()
+    row = page[page.index(">bob<") : page.index("</tr>", page.index(">bob<"))]
+    assert '1<span class="text-muted">/1</span>' in row
+
+
+def test_the_time_to_respond_is_shown_as_a_time(synced, signed_in):
+    """hours_to_respond is shown in days, hours and minutes, also in the sums of groups."""
+    from community_insights.models import Project
+
+    pk = Project.objects.get().pk
+    page = signed_in.get(
+        f"/s/{pk}/contributors/", {"columns": "user_handle hours_to_respond"}
+    ).content.decode()
+    start = page.index('id="contributors-table"')
+    cells = re.findall(r'<td class="text-end">([^<]*)</td>', page[start:])
+    assert cells and all(re.fullmatch(r"-|(\d+d)? ?(\d+h)? ?(\d+min)?", c.strip()) for c in cells)
+    assert any(c.strip() != "-" for c in cells), cells
+    grouped = signed_in.get(
+        f"/s/{pk}/contributors/", {"columns": "user_handle hours_to_respond", "group": "user_class"}
+    ).content.decode()
+    assert re.search(r'<td class="text-end">\d+(d|h|min)', grouped)
+
+
+def test_the_hours_to_respond_are_compared_in_hours(synced, signed_in):
+    """The time is only shown as a time: a query still compares hours."""
+    from community_insights.models import Project
+
+    pk = Project.objects.get().pk
+
+    def people(where):
+        """The people the query shows."""
+        page = signed_in.get(f"/s/{pk}/contributors/", {"where": where}).content.decode()
+        return int(re.search(r"(\d+) of \d+ people", page).group(1))
+
+    everyone = people("hours_to_respond >= 0")
+    assert everyone > 0
+    assert people("hours_to_respond <= 1000000") == everyone - people("hours_to_respond > 1000000")
+    assert people("hours_to_respond < 0") == 0
+
+
+def test_the_column_titles_start_without_the(synced, signed_in):
+    """The column titles in words name the variable, without "the" in front."""
+    from community_insights.models import Project
+
+    pk = Project.objects.get().pk
+    columns = " ".join(query.VARIABLES)
+    page = signed_in.get(f"/s/{pk}/contributors/", {"columns": columns}).content.decode()
+    titles = re.findall(r'<span class="name-words">([^<]*)</span>', page)
+    assert len(titles) == len(query.VARIABLES)
+    assert [t for t in titles if t.lower().startswith("the ")] == []
+
+
 def test_the_headers_explain_the_variables_in_a_new_tab(synced, signed_in):
     """The headers explain the variables in a new tab."""
     from community_insights.models import Project
@@ -112,7 +186,7 @@ def test_the_headers_explain_the_variables_in_a_new_tab(synced, signed_in):
         'href="https://community-insights.readthedocs.io/en/latest/reference/query-variables.html'
         '#hours-to-respond" target="_blank" rel="noopener"' in page
     )
-    assert 'title="Sort by: pull requests opened and merged"' in page
+    assert 'title="Sort by: pull requests merged"' in page
 
 
 def test_the_headers_sort_the_table(synced, signed_in):
@@ -140,7 +214,7 @@ def test_the_names_of_the_columns_switch_to_words(synced, signed_in):
     page = signed_in.get(f"/s/{Project.objects.get().pk}/contributors/").content.decode()
     assert 'data-column-names="#contributors-table"' in page
     assert 'id="contributors-table" data-names="variables"' in page
-    assert '<span class="name-words">pull requests opened and merged</span>' in page
+    assert '<span class="name-words">pull requests merged</span>' in page
     assert "js/column-names.js" in page
 
 

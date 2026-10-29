@@ -23,6 +23,12 @@ test("textOf copies the address of the page or the value of a field", () => {
   assert.equal(copy.textOf(button({ "data-copy": "#t" }), { querySelector: () => text }, location), "plain");
 });
 
+test("textOf copies the address to share that the page gives", () => {
+  const location = { href: "https://example.org/s/3/?last=30" };
+  const shared = "https://example.org/s/o~r/?last=30";
+  assert.equal(copy.textOf(button({ "data-copy-url": shared }), {}, location), shared);
+});
+
 test("copy uses the clipboard and fails without one", async () => {
   const written = [];
   await copy.copy("abc", { writeText: async (t) => { written.push(t); } });

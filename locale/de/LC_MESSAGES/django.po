@@ -399,29 +399,29 @@ msgstr "normal"
 msgid "low"
 msgstr "niedrig"
 
-msgid "the GitHub handle"
-msgstr "der GitHub-Name"
+msgid "GitHub handle"
+msgstr "GitHub-Name"
 
-msgid "the name in the GitHub profile"
-msgstr "der Name im GitHub-Profil"
+msgid "name in the GitHub profile"
+msgstr "Name im GitHub-Profil"
 
-msgid "the location in the GitHub profile"
-msgstr "der Ort im GitHub-Profil"
+msgid "location in the GitHub profile"
+msgstr "Ort im GitHub-Profil"
 
-msgid "the country of the location (ISO code, such as DE)"
-msgstr "das Land des Orts (ISO-Code, zum Beispiel DE)"
+msgid "country of the location (ISO code, such as DE)"
+msgstr "Land des Orts (ISO-Code, zum Beispiel DE)"
 
 msgid "True for locations in Horizon Europe"
 msgstr "True für Orte in Horizon Europe"
 
-msgid "the class of people"
-msgstr "die Gruppe von Personen"
+msgid "class of people"
+msgstr "Gruppe von Personen"
 
 msgid "True for bots"
 msgstr "True für Bots"
 
-msgid "the most privileged status seen, such as member or contributor"
-msgstr "der höchste gesehene Status, zum Beispiel member oder contributor"
+msgid "most privileged status seen, such as member or contributor"
+msgstr "höchster gesehener Status, zum Beispiel member oder contributor"
 
 msgid "commits"
 msgstr "Commits"
@@ -429,14 +429,14 @@ msgstr "Commits"
 msgid "pull requests opened"
 msgstr "eröffnete Pull Requests"
 
-msgid "pull requests opened and merged"
-msgstr "eröffnete und gemergte Pull Requests"
+msgid "pull requests merged"
+msgstr "gemergte Pull Requests"
 
-msgid "pull requests opened and closed without merging"
-msgstr "eröffnete und ohne Merge geschlossene Pull Requests"
+msgid "pull requests closed without merging"
+msgstr "ohne Merge geschlossene Pull Requests"
 
-msgid "pull requests opened and closed, merged or not"
-msgstr "eröffnete und geschlossene Pull Requests, gemergt oder nicht"
+msgid "pull requests closed, merged or not"
+msgstr "geschlossene Pull Requests, gemergt oder nicht"
 
 msgid "pull requests still open"
 msgstr "noch offene Pull Requests"
@@ -450,11 +450,11 @@ msgstr "reviewte Pull Requests anderer"
 msgid "issues opened"
 msgstr "eröffnete Issues"
 
-msgid "issues opened and still open"
-msgstr "eröffnete und noch offene Issues"
+msgid "issues still open"
+msgstr "noch offene Issues"
 
-msgid "issues opened and closed"
-msgstr "eröffnete und geschlossene Issues"
+msgid "issues closed"
+msgstr "geschlossene Issues"
 
 msgid "issues of others commented on"
 msgstr "kommentierte Issues anderer"
@@ -468,8 +468,8 @@ msgstr "von ihnen gemergte Pull Requests"
 msgid "pull requests, issues, comments, reviews and commits"
 msgstr "Pull Requests, Issues, Kommentare, Reviews und Commits"
 
-msgid "median hours until their first response on items of others"
-msgstr "Median der Stunden bis zu ihrer ersten Antwort auf Einträge anderer"
+msgid "median time until their first response on items of others"
+msgstr "Median der Zeit bis zu ihrer ersten Antwort auf Einträge anderer"
 
 msgid "median days until their pull requests were merged"
 msgstr "Median der Tage, bis ihre Pull Requests gemergt wurden"
@@ -2175,6 +2175,14 @@ msgid ""
 msgstr ""
 "Dieses Diagramm zeigt Deine eigenen Projekte: Nur Du siehst es, nachdem Du "
 "Dich angemeldet hast. Andere sehen nur Diagramme öffentlicher Repositories."
+
+#, python-format
+msgid ""
+"The code shows the public repositories of your projects, so that others can "
+"open the chart and its page without signing in: %(repositories)s"
+msgstr ""
+"Der Code zeigt die öffentlichen Repositories Deiner Projekte, damit andere "
+"das Diagramm und seine Seite ohne Anmeldung öffnen können: %(repositories)s"
 
 msgid "Back to the page of the chart"
 msgstr "Zurück zur Seite des Diagramms"

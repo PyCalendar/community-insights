@@ -75,15 +75,15 @@ def hours(seconds: float | None) -> float:
 # command line tool before (git history, 239c258): grouped by a prefix, the unit first
 # (user_, commits_, prs_, issues_, comments_, actions_, activity_, hours_, days_, months_).
 VARIABLES: dict[str, tuple[Any, str, Callable]] = {
-    "user_handle": (gettext_lazy("the GitHub handle"), "text", lambda c, now: c.login),
-    "user_name": (gettext_lazy("the name in the GitHub profile"), "text", lambda c, now: c.name),
+    "user_handle": (gettext_lazy("GitHub handle"), "text", lambda c, now: c.login),
+    "user_name": (gettext_lazy("name in the GitHub profile"), "text", lambda c, now: c.name),
     "user_location": (
-        gettext_lazy("the location in the GitHub profile"),
+        gettext_lazy("location in the GitHub profile"),
         "text",
         lambda c, now: c.location,
     ),
     "user_country": (
-        gettext_lazy("the country of the location (ISO code, such as DE)"),
+        gettext_lazy("country of the location (ISO code, such as DE)"),
         "text",
         lambda c, now: locations.country_of(c.location) or "",
     ),
@@ -92,31 +92,31 @@ VARIABLES: dict[str, tuple[Any, str, Callable]] = {
         "bool",
         lambda c, now: locations.in_horizon_europe(c.location),
     ),
-    "user_class": (gettext_lazy("the class of people"), "text", lambda c, now: c.klass),
+    "user_class": (gettext_lazy("class of people"), "text", lambda c, now: c.klass),
     "user_bot": (
         gettext_lazy("True for bots"),
         "bool",
         lambda c, now: c.klass == "bot" or c.login.endswith("[bot]"),
     ),
     "user_association": (
-        gettext_lazy("the most privileged status seen, such as member or contributor"),
+        gettext_lazy("most privileged status seen, such as member or contributor"),
         "text",
         lambda c, now: c.association,
     ),
     "commits_total": (gettext_lazy("commits"), "number", lambda c, now: c.commits),
     "prs_total": (gettext_lazy("pull requests opened"), "number", lambda c, now: c.prs_opened),
     "prs_merged": (
-        gettext_lazy("pull requests opened and merged"),
+        gettext_lazy("pull requests merged"),
         "number",
         lambda c, now: c.prs_merged,
     ),
     "prs_unmerged": (
-        gettext_lazy("pull requests opened and closed without merging"),
+        gettext_lazy("pull requests closed without merging"),
         "number",
         lambda c, now: c.prs_closed,
     ),
     "prs_closed": (
-        gettext_lazy("pull requests opened and closed, merged or not"),
+        gettext_lazy("pull requests closed, merged or not"),
         "number",
         lambda c, now: c.prs_merged + c.prs_closed,
     ),
@@ -133,12 +133,12 @@ VARIABLES: dict[str, tuple[Any, str, Callable]] = {
     ),
     "issues_opened": (gettext_lazy("issues opened"), "number", lambda c, now: c.issues_opened),
     "issues_open": (
-        gettext_lazy("issues opened and still open"),
+        gettext_lazy("issues still open"),
         "number",
         lambda c, now: c.issues_open,
     ),
     "issues_closed": (
-        gettext_lazy("issues opened and closed"),
+        gettext_lazy("issues closed"),
         "number",
         lambda c, now: c.issues_closed,
     ),
@@ -163,7 +163,7 @@ VARIABLES: dict[str, tuple[Any, str, Callable]] = {
         lambda c, now: c.activity,
     ),
     "hours_to_respond": (
-        gettext_lazy("median hours until their first response on items of others"),
+        gettext_lazy("median time until their first response on items of others"),
         "number",
         lambda c, now: hours(c.median_response),
     ),
@@ -209,6 +209,8 @@ GROUPS = (
     "user_horizon_europe",
     "user_bot",
 )
+# numbers of hours shown as a time, such as 2d 4h; queries compare the hours
+DURATIONS = {"hours_to_respond": 3600}
 # variables that are a part of another one: shown as "part/total", such as 3/5 merged
 FRACTIONS = {
     "prs_merged": "prs_total",

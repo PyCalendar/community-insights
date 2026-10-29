@@ -59,7 +59,7 @@ The overview has a badge builder. Choose pull requests or issues, the percentile
 Share
 =====
 
-**Share** at the top of a statistics page copies its address, with the time range and the query. **Share this chart** under a chart gives the code to show it elsewhere, linked to its page.
+**Share** at the top of a statistics page copies its address, with the time range, the query and your classes of people. **Share this chart** under a chart gives the code to show it elsewhere, linked to its page. Both open without a sign in: your projects are shared as their public repositories.
 
 Colours
 =======

@@ -64,7 +64,9 @@ def overview(request, scope):
             ],
             "fits": FITS,
             "classes": classes,
-            "page_url": request.build_absolute_uri(reverse("overview", args=[scope.text])),
+            "page_url": request.build_absolute_uri(
+                scope.shared(reverse("overview", args=[scope.text]))
+            ),
             "badge_url": request.build_absolute_uri(
                 (
                     reverse("public_badge", args=[scope.text])

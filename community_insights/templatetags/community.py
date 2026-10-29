@@ -3,6 +3,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from django import template
 from django.urls import Resolver404, resolve, reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
@@ -192,6 +193,52 @@ def chart_share_url(context, src: str) -> str:
     return reverse("chart_share", kwargs=match.kwargs) + "?" + urlencode(parameters)
 
 
+@register.simple_tag(takes_context=True)
+def shared_url(context) -> str:
+    """The address of the page shown, to share: it opens without a sign in (``Scope.shared``).
+
+    Args:
+        context: The context of the template, with the request and the scope.
+
+    Returns:
+        The absolute address, "" without a request or a scope (the button copies the address
+        of the browser then).
+    """
+    request, scope = context.get("request"), context.get("scope")
+    if request is None or scope is None or not hasattr(scope, "shared"):
+        return ""
+    return request.build_absolute_uri(scope.shared(request.get_full_path()))
+
+
+@register.filter
+def cell(value, column: str):
+    """A number of the contributors table: a time for the hours of DURATIONS, else the number.
+
+    Args:
+        value: The value of the column, a number, None or infinite.
+        column: The name of the variable.
+
+    Returns:
+        The text to show, such as ``2d 4h`` for 52 hours, or the number (see ``number``).
+
+    Examples:
+        >>> cell(52, "hours_to_respond")
+        '2d 4h'
+        >>> cell(0.5, "hours_to_respond")
+        '30min'
+        >>> cell(float("inf"), "hours_to_respond")
+        '-'
+        >>> cell(3.0, "prs_merged")
+        3
+    """
+    from ..query import DURATIONS
+
+    shown = number(value)
+    if column not in DURATIONS or shown == "-":
+        return shown
+    return format_duration(value * DURATIONS[column])
+
+
 @register.filter
 def fraction_total(person, column: str):
     """The total a column is a part of, such as the pull requests opened for those merged.
@@ -208,15 +255,19 @@ def fraction_total(person, column: str):
         5
         >>> fraction_total({"prs_total": 5}, "prs_reviewed") is None
         True
+        >>> from community_insights.stats import Contributor
+        >>> fraction_total(Contributor("bob", prs_opened=5, prs_merged=3), "prs_merged")
+        5
     """
-    from ..query import FRACTIONS
+    from ..query import FRACTIONS, value
 
     total = FRACTIONS.get(column)
     if total is None:
         return None
     if isinstance(person, dict):
         return number(person.get(total))
-    return getattr(person, total, None)
+    # the variable, not an attribute: prs_total is the attribute prs_opened
+    return number(value(person, total, timezone.now()))
 
 
 @register.filter

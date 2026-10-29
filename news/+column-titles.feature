@@ -1,0 +1,1 @@
+The contributors table shows hours_to_respond as a time, such as 2d 4h or 3h 12min; queries still compare hours. The column titles in words start without "the", and "pull requests opened and merged" is "pull requests merged" (also closed and still open).

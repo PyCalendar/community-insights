@@ -5,11 +5,11 @@
 <h1 class="h3">{% translate "Share a chart" %}</h1>
 <p>{{ alt }}</p>
 <p class="small text-muted">{% blocktranslate %}The code shows the chart as it is now and links it to <a href="{{ page }}">the page it comes from</a>. The chart is drawn from the data of this site when it is opened; it never asks GitHub.{% endblocktranslate %}</p>
-{% if not scope.public %}<div class="alert alert-warning" role="alert">{% translate "This chart is of your own projects: only you can see it after you sign in. Others see the chart of public repositories only." %}</div>{% endif %}
+{% if not scope.public %}{% if scope.public_text %}<div class="alert alert-info" role="note">{% blocktranslate with repositories=scope.public_text %}The code shows the public repositories of your projects, so that others can open the chart and its page without signing in: {{ repositories }}{% endblocktranslate %}</div>{% else %}<div class="alert alert-warning" role="alert">{% translate "This chart is of your own projects: only you can see it after you sign in. Others see the chart of public repositories only." %}</div>{% endif %}{% endif %}
 <div class="card"><div class="card-body" data-share-image="{{ image }}" data-share-link="{{ page }}" data-share-alt="{{ alt }}">
   <div class="chart"><img src="{{ preview }}" alt="{{ alt }}"></div>
   {% include "community/_share_code.html" with prefix="chart" %}
 </div></div>
-<p class="mt-3"><a href="{{ page }}">{% translate "Back to the page of the chart" %}</a></p>
+<p class="mt-3"><a href="{{ back }}">{% translate "Back to the page of the chart" %}</a></p>
 <script src="{% static 'js/share.js' %}" defer></script>
 {% endblock %}

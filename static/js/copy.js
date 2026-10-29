@@ -1,5 +1,6 @@
 /* Copy buttons: data-copy="#id" copies the value or the text of that element,
-   data-copy-url copies the address of the page. The button says "Copied" for a
+   data-copy-url copies its value, the address to share, or else the address of
+   the page. The button says "Copied" for a
    moment. */
 (function () {
   "use strict";
@@ -11,7 +12,7 @@
 
   /* The text a button copies. */
   function textOf(button, doc, location) {
-    if (button.hasAttribute("data-copy-url")) return String(location.href);
+    if (button.hasAttribute("data-copy-url")) return button.getAttribute("data-copy-url") || String(location.href);
     var target = doc.querySelector(button.getAttribute("data-copy"));
     if (!target) return "";
     return target.value !== undefined ? target.value : target.textContent;
