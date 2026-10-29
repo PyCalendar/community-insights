@@ -43,7 +43,7 @@ The application reads its settings from environment variables. With Docker, put 
      - ``false`` turns the cache of the statistics off.
    * - ``DATABASE_URL``
      - ``sqlite:///data/db.sqlite3``
-     - Any database address understood by `dj-database-url <https://github.com/jazzband/dj-database-url>`_, such as ``postgres://user:password@host/name``.
+     - Any database address understood by `dj-database-url <https://github.com/django-commons/dj-database-url>`_, such as ``postgres://user:password@host/name``.
    * - ``DATA_DIR``
      - ``./data`` (``/app/data`` in Docker)
      - Directory of the SQLite file and the secret key.
