@@ -49,9 +49,7 @@ def bot_class(user) -> PersonClass | None:
     Returns:
         The class.
     """
-    return next(
-        (c for c, rules in classes_of(user) if any(r.kind == ClassRule.BOT for r in rules)), None
-    )
+    return Classifier(user).bot_class()
 
 
 def add_handle(person_class: PersonClass, login: str) -> ClassRule:
@@ -235,6 +233,16 @@ class Classifier:
             self.classes = [(c, list(c.rules.all())) for c in chosen]
         self.locations = locations or {}
         self.cache: dict[tuple, PersonClass | None] = {}
+
+    def bot_class(self) -> PersonClass | None:
+        """The first class with the rule "is a bot", None if there is none.
+
+        Returns:
+            The class.
+        """
+        return next(
+            (c for c, rules in self.classes if any(r.kind == ClassRule.BOT for r in rules)), None
+        )
 
     def __call__(self, login: str, association: str, is_bot: bool) -> PersonClass | None:
         """The class of an actor; remembered, as the same actors come again and again."""

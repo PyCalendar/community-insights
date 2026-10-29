@@ -416,5 +416,7 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] `make benchmark`: each page and image of a project twice, the second load under a second, with the peak memory of the server per request (tests/performance/site_speed.py); measured with collective/icalendar
 - [x] Memory: a web process holds about 300 MB of libraries (pandas, matplotlib, lifelines, statsmodels), calculations add up to 14 MB; the image starts one gunicorn worker (WORKERS=1) to fit into 600 MB
 - [x] A test of the CI runs the fetch worker with a job in its own process and allows only listed packages and parts of the site, so it stays minimal: no pandas, numpy, matplotlib, lifelines, statsmodels (tests/fetching/test_worker_imports.py)
+- [x] collective/icalendar#2030 showed 0min as its first response: the comment of the bot github-actions after 11 s hid the review of a member; the list of pull requests and issues leaves out the bots of the classes (the first class with the rule "is a bot"), as the statistics do; reviews count
+- [x] .env.example names all configuration variables, in sections, each explained; PRIVATE_REPOSITORIES, SOURCE_URL and DOCS_URL also in docs/reference/configuration.rst; tests/quality/test_configuration.py checks both against settings.py and the Dockerfile
 - [ ] Decide: lazy imports of matplotlib, lifelines and statsmodels, so that a worker that only serves kept images and pages stays smaller
 - [ ] Measure the memory of the fetch worker during a large fetch (82 MB when idle)

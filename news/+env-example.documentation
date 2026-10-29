@@ -1,0 +1,1 @@
+`.env.example` lists every configuration variable in sections, each with an explanation and its default; the configuration reference adds `PRIVATE_REPOSITORIES`, `SOURCE_URL` and `DOCS_URL`.

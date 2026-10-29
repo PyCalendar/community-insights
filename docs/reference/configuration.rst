@@ -92,6 +92,12 @@ The application reads its settings from environment variables. With Docker, put 
    * - ``GITHUB_API``
      - ``https://api.github.com``
      - The API address, for GitHub Enterprise.
+   * - ``PRIVATE_REPOSITORIES``
+     - ``false``
+     - Private repositories are refused for now; ``true`` allows them.
+   * - ``SOURCE_URL``, ``DOCS_URL``
+     - ``https://github.com/PyCalendar/community-insights``, ``https://community-insights.readthedocs.io/en/latest/``
+     - Where the code and the documentation of the running version are, for the links of the pages and the license; change them for a fork.
    * - ``PORT``
      - ``5000``
      - Port of gunicorn in the container.

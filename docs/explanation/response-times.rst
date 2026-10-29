@@ -7,7 +7,7 @@ The overview of a project shows how long pull requests and issues waited for the
 What is counted
 ===============
 
-A response is a comment or a review by somebody other than the author of the pull request or issue. For each item, the site takes the first response of each class of people (see :doc:`../reference/classes`): the first response of a bot does not hide the first response of a maintainer. The time is from the creation of the item to that response.
+A response is a comment or a review by somebody other than the author of the pull request or issue. For each item, the site takes the first response of each class of people (see :doc:`../reference/classes`): the first response of a bot does not hide the first response of a maintainer. The time is from the creation of the item to that response. The list of pull requests and issues shows one first response for each: the first comment or review by somebody other than the author and not by a bot, that is, not by somebody of the first class with the rule *is a bot*. Without such a rule, bots count as everyone else.
 
 Some items never got a response of a class: they were closed without one, or they still wait. The statistics treat them differently, see below.
 

@@ -20,7 +20,10 @@ def items(request, scope):
     """
     scope = scope_of(request, scope)
     found = ItemFilter(
-        request.GET, queryset=items_with_responses(scope.repositories, scope.since, scope.until)
+        request.GET,
+        queryset=items_with_responses(
+            scope.repositories, scope.since, scope.until, scope.classifier()
+        ),
     )
     table = ItemTable(found.qs)
     # django-tables2 takes the options of the paginator; its type hints say only bool

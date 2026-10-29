@@ -1,0 +1,1 @@
+The list of pull requests and issues no longer shows the comment of a bot, such as github-actions, as the first response: the first comment or review of a person counts, as in the statistics.
