@@ -49,7 +49,7 @@ The application reads its settings from environment variables. With Docker, put 
      - Directory of the SQLite file and the secret key.
    * - ``ALLOWED_HOSTS``
      - ``*``
-     - Comma separated host names.
+     - Comma separated host names. The health check of the container asks the site with the first of them, as Django refuses other hosts with 400.
    * - ``CSRF_TRUSTED_ORIGINS``
      - none
      - Comma separated origins like ``https://community.example.org``. Needed behind a TLS proxy.

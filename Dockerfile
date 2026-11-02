@@ -37,14 +37,15 @@ COPY manage.py REUSE.toml ./
 COPY community_insights community_insights
 COPY static static
 COPY locale locale
-COPY docker/start-service.sh .
+COPY docker/start-service.sh docker/healthcheck.py ./
 COPY docker/nginx.conf docker/nginx.conf
 # throwaway keys: nothing secret is written into the image
 RUN SECRET_KEY=build SALT_KEY=build python manage.py collectstatic --noinput
 
 VOLUME /app/data
 # the start migrates and loads the libraries of the statistics: checks that fail in
-# the first minutes do not count, so that a deploy does not see an unhealthy container
+# the first minutes do not count, so that a deploy does not see an unhealthy container;
+# healthcheck.py sends a host of ALLOWED_HOSTS, which Django needs
 HEALTHCHECK --start-period=300s --start-interval=5s --interval=30s --timeout=30s --retries=3 \
-    CMD python -c "import urllib.request,os;urllib.request.urlopen('http://127.0.0.1:%s/health/' % os.environ['PORT'])"
+    CMD python healthcheck.py
 ENTRYPOINT ["/bin/sh", "start-service.sh"]

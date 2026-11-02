@@ -427,5 +427,7 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] Enter in the query field submits the query (it did, also with suggestions open; the result appeared out of sight); running it scrolls the query to the top (query-scroll.js)
 - [x] From / To / days below "Read from GitHub"
 - [x] Sign up with GitHub: easy to get a token in the settings that reads for the user for a month or a year: buttons on GitHub access open the form of GitHub filled in (template URL of fine-grained tokens: name, description, expires_in, permissions for private repositories)
+- [x] Sencho still unhealthy: the HEALTHCHECK asked http://127.0.0.1:5000/health/ and Django refused the host with 400, as ALLOWED_HOSTS names only insight.pycal.org; docker/healthcheck.py sends the first host of ALLOWED_HOSTS; make docker-test runs with ALLOWED_HOSTS and waits for the health status of Docker
+- [x] The health check imports only the standard library (a test, as for the fetch worker)
 - [ ] Decide: lazy imports of matplotlib, lifelines and statsmodels, so that a worker that only serves kept images and pages stays smaller
 - [ ] Measure the memory of the fetch worker during a large fetch (82 MB when idle)
