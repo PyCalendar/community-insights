@@ -1,5 +1,7 @@
 """Accounts and GitHub access: people sign up with an email address and add tokens."""
 
+from playwright.sync_api import expect
+
 
 def test_somebody_new_is_asked_for_github_access(alice):
     """A new account is asked to link GitHub or to add a token."""
@@ -47,10 +49,9 @@ def test_the_tokens_can_be_dragged_into_another_order(alice):
     items = alice.page.locator("[data-sort-list] [data-sort-id]")
     first = items.nth(0).get_attribute("data-sort-id")
     items.nth(1).locator("[data-sort-handle]").drag_to(items.nth(0).locator("[data-sort-handle]"))
-    alice.page.wait_for_load_state()
-    assert (
-        alice.page.locator("[data-sort-list] [data-sort-id]").nth(1).get_attribute("data-sort-id")
-        == first
+    # the drop sends the order and the page is loaded again: wait until it shows it
+    expect(alice.page.locator("[data-sort-list] [data-sort-id]").nth(1)).to_have_attribute(
+        "data-sort-id", first
     )
 
 
