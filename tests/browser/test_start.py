@@ -38,7 +38,9 @@ def test_the_time_zone_of_the_browser_is_sent_to_the_server(site):
 def test_switch_the_language_in_the_footer(site):
     """German and back to English."""
     site.open("/")
+    site.page.wait_for_load_state("load")  # the choice sends the form with a script
     site.page.select_option("#language-choice", "de")
     site.see("Noch kein Repository")
+    site.page.wait_for_load_state("load")
     site.page.select_option("#language-choice", "en")
     site.see("No repository yet")
