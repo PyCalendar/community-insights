@@ -48,11 +48,15 @@ def test_the_tokens_can_be_dragged_into_another_order(alice):
     alice.see("2. ")
     items = alice.page.locator("[data-sort-list] [data-sort-id]")
     first = items.nth(0).get_attribute("data-sort-id")
+    size = alice.page.viewport_size
+    # both tokens in view, also on a phone, where each is taller than half the window
+    alice.page.set_viewport_size({"width": size["width"], "height": 2400})
     items.nth(1).locator("[data-sort-handle]").drag_to(items.nth(0).locator("[data-sort-handle]"))
     # the drop sends the order and the page is loaded again: wait until it shows it
     expect(alice.page.locator("[data-sort-list] [data-sort-id]").nth(1)).to_have_attribute(
         "data-sort-id", first
     )
+    alice.page.set_viewport_size(size)
 
 
 def test_the_menu_works_on_any_screen(alice):
