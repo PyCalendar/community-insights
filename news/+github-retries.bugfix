@@ -1,1 +1,0 @@
-A fetch no longer stops when GitHub answers a query with a server error (502, 504) or something unreadable, as when a query took it too long: the request is tried again, 1, 2 and 4 seconds later.

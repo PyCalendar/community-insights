@@ -1,1 +1,0 @@
-The replies of one person (``/s/<scope>/replies/<login>/``) list all their pull requests with their titles, those without reply first, and why the others need none; the badge links to this page, and its page has the code to copy it.

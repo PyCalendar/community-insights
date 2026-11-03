@@ -1,1 +1,0 @@
-Read from GitHub reads at once, the same on every page and on the cards of the dashboard and of Explore, and always all the pages need: also the commits and closers of pull requests read before these were read. Its drop-down opens the page Fetch to choose what and how much is read.

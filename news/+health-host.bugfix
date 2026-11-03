@@ -1,1 +1,0 @@
-The container is healthy with ALLOWED_HOSTS set: its health check sent the host 127.0.0.1, which Django refused with 400, so Docker and Sencho saw it unhealthy.

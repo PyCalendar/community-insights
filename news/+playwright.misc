@@ -1,1 +1,0 @@
-The browser tests run with pytest and Playwright instead of behave and selenium.
