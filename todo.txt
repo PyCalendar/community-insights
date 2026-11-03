@@ -485,6 +485,7 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] The version in the footer is just "Version 0.0.1.dev8", without the hash
 - [x] Commit, push, fix the CI until it is green so that it deploys (asked by the person): 377f843 and three fixes of browser tests that raced in CI; run 41695390067 green, deployed (Version 0.0.1.dev27)
 - [x] Release 0.1.0 (asked by the person): changelog built by towncrier, tag v0.1.0
+- [x] The deploy of main failed with 409 "already updating" while the deploy of the tag v0.1.0 ran: re-run, and the deploy job runs one at a time (concurrency group)
 - [ ] Install Trivy on the Sencho node, so its post-deploy scan runs (on the server: not possible from here)
 - [x] The tests failed with "disk I/O error": the test database data/test-db.sqlite3 of the interrupted run is broken (4 KB with an old -shm); the tests pass with DATA_DIR in the scratchpad. Ask before deleting data/test-db.sqlite3*
 - [ ] Decide: "only those that do not reply at all should have a column": now the columns are filled for yellow and red rows; green rows show "-"

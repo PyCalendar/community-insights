@@ -373,6 +373,11 @@ jobs:
     needs: [push]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    # one deploy at a time: a release tag and main pushed together would both update the
+    # stack, and Sencho refuses the second one while the first runs (409)
+    concurrency:
+      group: deploy-sencho
+      cancel-in-progress: false
     # the secret SENCHO_TOKEN belongs to this environment of the repository
     environment:
       name: insight.pycal.org
