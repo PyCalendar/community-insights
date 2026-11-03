@@ -3,7 +3,8 @@ import math
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 
-from .. import badges, stats
+from .. import stats
+from ..badge_spec import BadgeSpec
 from ..classify import Classifier, class_list, classes_by_ids
 from ..errors import UnknownClasses
 from ..models import Item, Project, Repository
@@ -13,7 +14,7 @@ from .stamped import stamped
 LABEL_LENGTH = 60  # the longest left side of a badge
 
 
-def badge_of(request, repositories, user) -> HttpResponse:
+def badge_of(request, repositories, user, extension: str = "svg") -> HttpResponse:
     """A badge of the response time of the repositories, from the database.
 
     Args:
@@ -23,9 +24,10 @@ def badge_of(request, repositories, user) -> HttpResponse:
             instead of the one made from the others).
         repositories: The repositories.
         user: Whose classes of people count; None for the default ones.
+        extension: ``svg``, ``png``, or ``json`` for its spec with what it counts.
 
     Returns:
-        The SVG, cached by browsers and proxies for 15 minutes.
+        The badge, cached by browsers and proxies for 15 minutes.
 
     Raises:
         Http404: If the class or the model does not exist.
@@ -63,43 +65,53 @@ def badge_of(request, repositories, user) -> HttpResponse:
         value = stats.format_duration(seconds)
     else:  # Kaplan-Meier: that share never got a response
         value = "not reached" if counted and model == "kaplan-meier" else "no data"
-    response = HttpResponse(
-        badges.badge(label, value, "#2a7de1" if seconds is not None else "#9f9f9f"),
-        content_type="image/svg+xml",
+    spec = BadgeSpec(
+        label,
+        value,
+        "#2a7de1" if seconds is not None else "#9f9f9f",
+        {
+            "kind": kind,
+            "percentile": p,
+            "class": wanted or None,
+            "model": model,
+            "seconds": seconds,
+            "counted": counted,
+        },
     )
-    response["Cache-Control"] = "public, max-age=900"
-    return response
+    return spec.response(extension, 900)
 
 
 @stamped
-def badge(request, token):
+def badge(request, token, extension="svg"):
     """The badge of a project: the secret token is the access. Never calls GitHub.
 
     Args:
         request: The request, with the parameters of the badge.
         token: The secret token of the project.
+        extension: ``svg``, ``png`` or ``json``.
 
     Returns:
-        The SVG.
+        The badge.
     """
     project = get_object_or_404(Project, badge_token=token)
-    return badge_of(request, project.repositories, project.user)
+    return badge_of(request, project.repositories, project.user, extension)
 
 
 @stamped
-def public_badge(request, scope):
+def public_badge(request, scope, extension="svg"):
     """The badge of public repositories, with the default classes. Never calls GitHub.
 
     Args:
         request: The request, with the parameters of the badge.
         scope: The text of a public scope.
+        extension: ``svg``, ``png`` or ``json``.
 
     Returns:
-        The SVG.
+        The badge.
 
     Raises:
         Http404: If the scope is no public one or none of it is known.
     """
     if PROJECTS.match(scope):
         raise Http404("Projects have badges with their secret token")
-    return badge_of(request, public_repositories(scope), None)
+    return badge_of(request, public_repositories(scope), None, extension)

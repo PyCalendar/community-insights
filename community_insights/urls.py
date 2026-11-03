@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
+from django.templatetags.static import static
 from django.urls import include, path
+from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 from health_check.views import HealthCheckView
 
@@ -21,6 +23,7 @@ from .views import (
     items,
     pages,
     profile,
+    replies,
     statistics,
 )
 
@@ -41,6 +44,8 @@ urlpatterns = [
         ),
         name="health",
     ),
+    # browsers ask for /favicon.ico on their own; the icon of pycal.org is a PNG
+    path("favicon.ico", RedirectView.as_view(url=static("img/favicon.png"), permanent=True)),
     path("", pages.home, name="home"),
     path("about/", pages.about, name="about"),
     path("about/licenses/<str:name>/", pages.license_text, name="license"),
@@ -67,6 +72,14 @@ urlpatterns = [
     path("s/<str:scope>/items/", items.items, name="items"),
     path("s/<str:scope>/compare/", compare.compare, name="compare"),
     path("s/<str:scope>/people/<str:login>/", statistics.person, name="person"),
+    path("s/<str:scope>/people/<str:login>/items/", replies.person_items, name="person_items"),
+    path("s/<str:scope>/replies/", replies.replies, name="replies"),
+    path("s/<str:scope>/replies/<str:login>/", replies.person_replies, name="person_replies"),
+    path(
+        "s/<str:scope>/replies/<str:login>/badge/",
+        replies.reply_badge_share,
+        name="reply_badge_share",
+    ),
     path("s/<str:scope>/chart/<str:name>.svg", charts.chart, name="chart"),
     path("s/<str:scope>/chart/<str:name>.json", charts.chart_json, name="chart_json"),
     path("s/<str:scope>/share/<str:name>/", charts.chart_share, name="chart_share"),
@@ -79,6 +92,24 @@ urlpatterns = [
     path("messages/<int:pk>/", documents.message_open, name="message_open"),
     path("badge/s/<str:scope>.svg", badges.public_badge, name="public_badge"),
     path("badge/<str:token>.svg", badges.badge, name="badge"),
+    path("badge/s/<str:scope>.<str:extension>", badges.public_badge, name="public_badge_as"),
+    path("badge/<str:token>.<str:extension>", badges.badge, name="badge_as"),
+    path(
+        "badge/s/<str:scope>/replies/<str:login>.svg",
+        replies.public_reply_badge,
+        name="public_reply_badge",
+    ),
+    path(
+        "badge/s/<str:scope>/replies/<str:login>.<str:extension>",
+        replies.public_reply_badge,
+        name="public_reply_badge_as",
+    ),
+    path("badge/<str:token>/replies/<str:login>.svg", replies.reply_badge, name="reply_badge"),
+    path(
+        "badge/<str:token>/replies/<str:login>.<str:extension>",
+        replies.reply_badge,
+        name="reply_badge_as",
+    ),
 ]
 if settings.DEBUG_TOOLBAR:
     from debug_toolbar.toolbar import debug_toolbar_urls

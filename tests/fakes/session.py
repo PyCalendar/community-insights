@@ -11,6 +11,8 @@ from community_insights.github.anonymous import AnonymousClient
 def router(responses, sent=None) -> respx.MockRouter:
     """A respx router that answers every request with the next of the responses.
 
+    The last one answers all requests after it, as a GitHub that stays down does.
+
     Args:
         responses: httpx answers, or exceptions to raise, in order.
         sent: A list to add each request to, as the address and its JSON, or None.
@@ -18,13 +20,13 @@ def router(responses, sent=None) -> respx.MockRouter:
     Returns:
         The router, to be the transport of a client.
     """
-    answers = iter(responses)
+    answers = list(responses)
 
     def answer(request: httpx.Request):
-        """The next prepared answer; the request is noted."""
+        """The next prepared answer, the last one again when none is left; the request is noted."""
         if sent is not None:
             sent.append((str(request.url), json.loads(request.content or b"null")))
-        found = next(answers)
+        found = answers.pop(0) if len(answers) > 1 else answers[0]
         if isinstance(found, Exception):
             raise found
         return found

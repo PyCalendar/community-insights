@@ -1,0 +1,36 @@
+{% extends "community/base.html" %}
+{% load i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Replies of {{ login }} in {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}{{ scope.query }}">{{ scope.title }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'replies' scope.text %}{{ scope.query }}">{% translate "Replies" %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ login }}</li></ol></nav>
+<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+  <h1 class="h3 mb-0">{% blocktranslate %}Replies of {{ login }}{% endblocktranslate %}{% if name %} <small class="text-muted">{{ name }}</small>{% endif %}</h1>
+  {% if preview %}<a href="{% url 'reply_badge_share' scope.text login %}{{ scope.query }}" title="{% translate "The badge to copy" %}"><img src="{{ preview }}" alt="{% translate "The badge to copy" %}"></a>{% endif %}
+  <a class="ms-auto" href="{% url 'person' scope.text login %}{{ scope.query }}">{% translate "Contributions" %}</a>
+</div>
+{% include "community/_data.html" %}
+{% if fetched %}<p class="small text-success">{% translate "What changed on GitHub was read just now." %}</p>{% endif %}
+<p class="small text-muted">{% translate "Merged pull requests and those the author closed need no reply and do not count." %} <a href="{{ links.documentation }}reference/replies.html#which-pull-requests-count">{% translate "Which pull requests count" %}</a></p>
+{% if person %}<p class="small">{% blocktranslate with answered=person.answered total=person.with_feedback merged=person.merged %}{{ answered }} of {{ total }} pull requests with feedback were replied to; {{ merged }} merged.{% endblocktranslate %}</p>{% endif %}
+<div class="table-responsive"><table class="table table-sm table-hover align-middle" id="pulls-table">
+  <thead><tr>
+    <th>{% translate "Pull request" %}</th>
+    <th>{% translate "Title" %}</th>
+    <th>{% translate "State" %}</th>
+    <th>{% translate "Opened" %}</th>
+    <th>{% translate "First feedback" %}</th>
+    <th>{% translate "Replied" %}</th>
+  </tr></thead>
+  <tbody>{% for pull in pulls %}<tr data-replied="{% if pull.merged %}merged{% elif pull.closed_by_author %}given-up{% elif pull.answered is None %}none{% elif pull.answered %}yes{% else %}no{% endif %}">
+    <td class="text-nowrap"><a href="https://github.com/{{ pull.repository }}/pull/{{ pull.number }}">{{ pull.repository }}#{{ pull.number }}</a></td>
+    <td>{{ pull.title }}</td>
+    <td>{% if pull.merged %}{% translate "merged" %}{% elif pull.state == "open" %}{% translate "open" %}{% elif pull.closed_by_others %}{% blocktranslate with who=pull.closed_by %}closed by {{ who }}{% endblocktranslate %}{% else %}{% translate "closed" %}{% endif %}</td>
+    <td class="text-nowrap">{{ pull.created_at|date:"Y-m-d" }}</td>
+    <td class="text-nowrap">{% if pull.first_feedback %}{{ pull.first_feedback|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
+    <td>{% if pull.merged %}<span class="text-muted">{% translate "merged: needs no reply" %}</span>{% elif pull.closed_by_author %}<span class="text-muted">{% translate "closed by the author: not counted" %}</span>{% elif pull.answered is None %}<span class="text-muted">{% translate "no feedback" %}</span>{% elif pull.answered %}<span class="badge text-bg-success">{% translate "replied" %}</span>{% else %}<span class="badge text-bg-danger">{% translate "not replied" %}</span>{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="6" class="text-muted">{% translate "No pull requests in this time." %}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

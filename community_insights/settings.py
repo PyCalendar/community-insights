@@ -220,6 +220,12 @@ VISITOR_FETCHES_PER_HOUR = env.int("VISITOR_FETCHES_PER_HOUR", default=5)
 USER_MAX_ITEMS = env.int("USER_MAX_ITEMS", default=100_000)
 FETCH_CONCURRENCY = env.int("FETCH_CONCURRENCY", default=4)  # jobs at the same time
 GITHUB_MAX_CONCURRENT = env.int("GITHUB_MAX_CONCURRENT", default=20)  # requests
+# the replies page and its badges fetch what changed first, waiting at most so many seconds
+# (0: they never fetch), for repositories not fetched for so many minutes
+AUTO_FETCH_TIMEOUT = env.float("AUTO_FETCH_TIMEOUT", default=10)
+# badges in a README are loaded through the image proxy of GitHub, which waits only seconds
+AUTO_FETCH_BADGE_TIMEOUT = env.float("AUTO_FETCH_BADGE_TIMEOUT", default=4)
+AUTO_FETCH_AFTER_MINUTES = env.float("AUTO_FETCH_AFTER_MINUTES", default=15)
 
 CACHE_KEEP_DAYS = env.int("CACHE_KEEP_DAYS", default=90)  # unused data is deleted after
 DATABASE_MAX_MB = env.float("DATABASE_MAX_MB", default=1024)  # 1 GB; 0: no limit
@@ -229,7 +235,7 @@ TZ_DETECT_COUNTRIES = ()  # the time zone of the browser is enough
 
 LANGUAGE_CODE = "en"
 # The languages of the pages; the browser chooses, or the switch in the footer.
-LANGUAGES = [("en", "English"), ("de", "Deutsch")]
+LANGUAGES = [("en", "English"), ("de", "Deutsch"), ("es", "Español")]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "UTC"
 USE_I18N = True

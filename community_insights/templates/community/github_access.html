@@ -59,11 +59,12 @@
         <input type="range" class="form-range" min="0" max="100" step="1" id="max-{{ t.pk }}" name="max_percent" value="{{ t.max_percent }}" data-slider="max">
         <div class="small text-muted mb-1" data-slider-text="max">{% blocktranslate with max=t.max_points limit=t.points_per_hour reserve=t.reserve %}{{ max }} of {{ limit }} points per hour, stopping when {{ reserve }} are left{% endblocktranslate %}</div>
         <label class="form-label small mb-0" for="shared-{{ t.pk }}">{% translate "Free for everybody else on this site" %}</label>
-        <input type="range" class="form-range" min="0" max="100" step="1" id="shared-{{ t.pk }}" name="shared_percent" value="{{ t.shared_percent }}" data-slider="shared">
-        <div class="small text-muted mb-1" data-slider-text="shared">{% blocktranslate with shared=t.shared_points max=t.max_points %}{{ shared }} of {{ max }} points per hour for others on this site{% endblocktranslate %}</div>
+        <input type="range" class="form-range" min="0" max="100" step="1" id="shared-{{ t.pk }}" name="shared_percent" value="{% if t.everybody %}{{ t.everybody.percent }}{% else %}0{% endif %}" data-slider="shared">
+        <div class="small text-muted mb-1" data-slider-text="shared">{% if t.everybody %}{% blocktranslate with shared=t.everybody.points max=t.max_points %}{{ shared }} of {{ max }} points per hour for others on this site{% endblocktranslate %}{% else %}{% blocktranslate with shared=0 max=t.max_points %}{{ shared }} of {{ max }} points per hour for others on this site{% endblocktranslate %}{% endif %}</div>
         <button class="btn btn-sm btn-outline-primary">{% translate "Save" %}</button>
-        {% if t.used_in_hour %}<span class="small text-muted ms-2">{% blocktranslate with used=t.used_in_hour others=t.used_by_others_in_hour %}Used this hour: {{ used }}, by others {{ others }}.{% endblocktranslate %}</span>{% endif %}
+        {% if t.used_in_hour %}<span class="small text-muted ms-2">{% blocktranslate with used=t.used_in_hour others=t.used_by_others %}Used this hour: {{ used }}, by others {{ others }}.{% endblocktranslate %}</span>{% endif %}
       </form>
+      {% include "community/_token_grants.html" %}
     </li>
   {% empty %}
     <li class="list-group-item text-muted">{% translate "No tokens yet." %}</li>

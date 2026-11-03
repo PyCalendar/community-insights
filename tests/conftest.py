@@ -3,7 +3,7 @@ import socket
 import pytest
 from django.utils import translation
 
-from .data import signed_in, synced, user, world  # noqa: F401  (shared fixtures)
+from .data import replied, signed_in, synced, user, world  # noqa: F401  (shared fixtures)
 
 
 @pytest.fixture(autouse=True)

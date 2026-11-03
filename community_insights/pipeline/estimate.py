@@ -203,3 +203,31 @@ def seconds_per_point() -> float:
         (j.finished - j.started).total_seconds() for j in jobs if j.finished and j.started
     )
     return seconds / points if points >= 20 else SECONDS_PER_POINT
+
+
+def details_estimates(repositories) -> list[Estimate]:
+    """What reading the commits and closers of the pull requests read before costs.
+
+    One request reads ``sync.queries.DETAILS`` pull requests; the number comes from the
+    database, so nothing is asked from GitHub.
+
+    Args:
+        repositories: The repositories.
+
+    Returns:
+        An estimate for each repository with such pull requests: ``prs`` is how many.
+    """
+    from ..sync.queries import DETAILS
+
+    missing = dict(
+        Item.objects.filter(repository__in=repositories, kind=Item.PR, details__lt=Item.DETAILS)
+        .exclude(node_id="")
+        .values("repository")
+        .annotate(count=Count("id"))
+        .values_list("repository", "count")
+    )
+    return [
+        Estimate(r, prs=missing[r.pk], issues=0, cached=0, points=-(-missing[r.pk] // DETAILS))
+        for r in repositories
+        if missing.get(r.pk)
+    ]

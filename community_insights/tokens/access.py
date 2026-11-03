@@ -3,7 +3,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 
 from .. import github
 from ..github.anonymous import AnonymousClient
-from ..models import AccessToken, Profile
+from ..models import AccessToken, Profile, TokenGrant
 from .allowance import HourAllowance
 from .entry import Entry
 from .pool import TokenPool
@@ -37,23 +37,26 @@ def mirror_linked_account(user) -> AccessToken | None:
             user=user, token=social.token, login=login, label="linked GitHub account", linked=True
         )
         mirror.top()
+        TokenGrant.objects.create(token=mirror, kind=TokenGrant.EVERYBODY)  # as any new token
     elif mirror.token != social.token:
         mirror.token = social.token
         mirror.save(update_fields=["token"])
     return mirror
 
 
-def entries_for(user, make_client=None, shared: bool = True) -> list[Entry]:
+def entries_for(user, make_client=None, shared: bool = True, use=None) -> list[Entry]:
     """The tokens a user may use, in their order.
 
     The tokens a user may use, in this order: the linked GitHub account, the own tokens, then
-    the points others share on this site.
+    the tokens of others through their grants: those for everybody, and those for the public
+    use of the fetch.
 
     Args:
         user: The user, or an anonymous one or None for a visitor: only the shared points.
         make_client: Makes the GitHub client of a token, ``github.Client`` if None; tests give a
             fake one.
         shared: Whether to add the points others share.
+        use: What the fetch is for (``Use``), for the grants of a public scope; None for none.
 
     Returns:
         The tokens.
@@ -67,13 +70,14 @@ def entries_for(user, make_client=None, shared: bool = True) -> list[Entry]:
         for stored in AccessToken.objects.filter(user=user):
             found.append(Entry(str(stored), make_client(stored.token), stored, allowance=allowance))
     if shared:
-        others = AccessToken.objects.filter(max_percent__gt=0, shared_percent__gt=0)
+        grants = TokenGrant.objects.filter(token__max_percent__gt=0, percent__gt=0)
         if signed_in:
-            others = others.exclude(user=user)
-        for stored in others.order_by("id"):
-            found.append(
-                Entry(f"shared by {stored.login}", make_client(stored.token), stored, shared=True)
-            )
+            grants = grants.exclude(token__user=user)
+        for grant in grants.select_related("token").order_by("token_id", "id"):
+            if grant.covers(use):
+                stored = grant.token
+                label = f"shared by {stored.login}"
+                found.append(Entry(label, make_client(stored.token), stored, grant=grant))
     return found
 
 

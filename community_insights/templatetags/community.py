@@ -137,7 +137,7 @@ def share_formats() -> list[tuple[str, str]]:
         ("markdown", "Markdown"),
         ("rst", "reStructuredText"),
         ("html", "HTML"),
-        ("link", _("Link")),
+        ("link", _("URL")),
     ]
 
 

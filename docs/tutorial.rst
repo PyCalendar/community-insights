@@ -55,7 +55,7 @@ Without any configuration people sign up with an email address and a password, a
 #. On the dashboard choose the tab **Add repositories** and press **Refresh from GitHub**: your repositories, those of your organisations and those you contributed to are listed.
 #. Type a part of a name to filter them, or type any ``owner/name`` or an organisation, and choose it.
 #. Open the project from its card. The bar at the top says that 0% of the data is there.
-#. Press **Read from GitHub**. The site estimates the API points and the time; press **Read from GitHub** again. The bar fills while the data comes in, and **Downloads** shows the fetch.
+#. Press **Update**. The site starts to read at once; the drop-down next to it opens the page that estimates the API points and the time and chooses what and how much to read. The bar fills while the data comes in, and **Downloads** shows the fetch.
 #. When the bar reaches 100%, the page shows the response times. Look at **Contributors**, open a person, and build a badge for your README at the bottom of the overview.
 
 You have your own installation, with a project and its statistics.

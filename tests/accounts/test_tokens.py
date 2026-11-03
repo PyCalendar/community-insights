@@ -32,9 +32,9 @@ def test_add_tokens_in_order_with_limits(world, signed_in, monkeypatch):  # noqa
     assert [t.token for t in world["user"].access_tokens.all()] == ["tok", "t", "a", "b"], (
         "the linked account first"
     )
-    assert (tokens[1].max_points, tokens[1].shared_points) == (2500, 500)
+    assert (tokens[1].max_points, tokens[1].grants.get().points) == (2500, 500)
     assert tokens[1].expires_at == expires
-    assert (tokens[2].max_percent, tokens[2].shared_percent) == (100, 10)  # the defaults
+    assert (tokens[2].max_percent, tokens[2].grants.get().percent) == (100, 10)  # the defaults
     signed_in.post("/dashboard/github/", {"action": "up", "id": tokens[2].pk})
     assert [t.token for t in world["user"].access_tokens.all()] == ["tok", "t", "b", "a"]
     signed_in.post(
@@ -42,7 +42,12 @@ def test_add_tokens_in_order_with_limits(world, signed_in, monkeypatch):  # noqa
         {"action": "share", "id": tokens[1].pk, "max_percent": "10", "shared_percent": "0"},
     )
     changed = AccessToken.objects.get(pk=tokens[1].pk)
-    assert (changed.max_points, changed.shared_points) == (500, 0)
+    assert changed.max_points == 500 and not changed.grants.exists(), "0 %: not shared"
+    signed_in.post(
+        "/dashboard/github/",
+        {"action": "share", "id": tokens[1].pk, "max_percent": "10", "shared_percent": "50"},
+    )
+    assert changed.grants.get().points == 250
 
 
 @pytest.mark.parametrize(
@@ -216,3 +221,68 @@ def test_the_tokens_can_be_ordered_by_dragging(world, signed_in):  # noqa: F811
     assert 'data-sort-list data-sort-form="token-order"' in page
     assert 'id="token-order"' in page and "data-sort-handle" in page
     assert "vendor/sortable/Sortable.min.js" in page and "js/sortable-order.js" in page
+
+
+def test_allow_change_and_remove_public_uses(world, signed_in):  # noqa: F811
+    """A token gets public uses on GitHub access: listed, changed and removed there."""
+    from community_insights.models import TokenGrant
+
+    token = world["user"].access_tokens.get(label="mine")
+    page = "/dashboard/github/"
+    signed_in.post(
+        page,
+        {
+            "action": "grant_add",
+            "id": token.pk,
+            "kind": "badges",
+            "scope": "collective",
+            "login": "",
+            "percent": "20",
+        },
+    )
+    signed_in.post(
+        page,
+        {
+            "action": "grant_add",
+            "id": token.pk,
+            "kind": "visitors",
+            "scope": "o/r",
+            "login": "ignored",
+            "percent": "5",
+        },
+    )
+    uses = token.grants.exclude(kind=TokenGrant.EVERYBODY).order_by("kind")
+    assert list(uses.values_list("kind", "scope", "login", "percent")) == [
+        ("badges", "collective", "", 20),
+        ("visitors", "o~r", "", 5),
+    ]
+    html = signed_in.get(page).content.decode()
+    assert "Public uses: 2" in html and "<code>collective</code>" in html
+    badges = uses.get(kind="badges")
+    signed_in.post(page, {"action": "grant_edit", "grant": badges.pk, "percent": "40"})
+    badges.refresh_from_db()
+    assert badges.percent == 40
+    signed_in.post(page, {"action": "grant_remove", "grant": badges.pk})
+    assert not TokenGrant.objects.filter(pk=badges.pk).exists()
+
+
+@pytest.mark.parametrize("scope", ["", "not a scope", "a/b/c", "-start"])
+def test_a_public_use_needs_a_public_scope(world, signed_in, scope):  # noqa: F811
+    """The scope of a public use is owner, owner~name or several joined with +."""
+    token = world["user"].access_tokens.get(label="mine")
+    response = signed_in.post(
+        "/dashboard/github/",
+        {"action": "grant_add", "id": token.pk, "kind": "pages", "scope": scope, "percent": "5"},
+        follow=True,
+    )
+    assert b"Invalid scope of a public use" in response.content
+    assert token.grants.count() == 1, "only the share for everybody"
+
+
+def test_grants_of_other_people_cannot_be_changed(world, signed_in):  # noqa: F811
+    """A grant of somebody else's token is not found: it stays."""
+    from tests.factories import AccessTokenFactory
+
+    theirs = AccessTokenFactory().grants.get()
+    signed_in.post("/dashboard/github/", {"action": "grant_remove", "grant": theirs.pk})
+    assert type(theirs).objects.filter(pk=theirs.pk).exists()

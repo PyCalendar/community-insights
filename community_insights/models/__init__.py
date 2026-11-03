@@ -13,6 +13,7 @@ from .document import Document
 from .event import Event
 from .fetch_job import FetchJob
 from .item import Item
+from .item_commit import ItemCommit
 from .message import Message
 from .person import Person
 from .person_class import PersonClass
@@ -20,6 +21,7 @@ from .profile import Profile
 from .project import Project
 from .repository import Repository
 from .saved_query import SavedQuery
+from .token_grant import TokenGrant
 
 __all__ = [
     "AccessToken",
@@ -30,6 +32,7 @@ __all__ = [
     "Event",
     "FetchJob",
     "Item",
+    "ItemCommit",
     "Message",
     "Person",
     "PersonClass",
@@ -37,4 +40,5 @@ __all__ = [
     "Project",
     "Repository",
     "SavedQuery",
+    "TokenGrant",
 ]

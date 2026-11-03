@@ -8,10 +8,11 @@
 <script src="{% static 'js/theme.js' %}"></script>
 <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
 <link href="{% static 'style.css' %}" rel="stylesheet">
+<link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png">
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <nav class="navbar navbar-expand-md navbar-gh navbar-dark">
-  <div class="container">
+  <div class="container-xxl">
     <a class="navbar-brand" href="{% url 'home' %}">Contributor Community Insights</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="{% translate "Menu" %}"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="menu">
@@ -49,14 +50,14 @@
     </div>
   </div>
 </nav>
-<main class="container py-3 py-md-4">
+<main class="container-xxl py-3 py-md-4">
   <div id="messages">{% for message in messages %}
   <div class="alert alert-{% if message.level_tag == 'error' %}danger{% else %}{{ message.level_tag }}{% endif %}" role="alert">{{ message }}</div>
   {% endfor %}</div>
   {% block content %}{% endblock %}
 </main>
 <footer class="site-footer mt-4 py-4">
-  <div class="container d-flex flex-wrap gap-3 justify-content-between align-items-center">
+  <div class="container-xxl d-flex flex-wrap gap-3 justify-content-between align-items-center">
     <nav aria-label="{% translate "Footer" %}"><ul class="list-inline mb-0">
       <li class="list-inline-item"><a href="{% url 'about' %}">{% translate "About" %}</a></li>
       <li class="list-inline-item"><a href="{{ links.documentation }}">{% translate "Documentation" %}</a></li>
@@ -66,11 +67,14 @@
     </ul></nav>
     <form action="{% url 'set_language' %}" method="post" class="d-flex gap-1 align-items-center" aria-label="{% translate "Language" %}">{% csrf_token %}
       <input name="next" type="hidden" value="{{ request.get_full_path }}">
-      {% get_available_languages as languages %}{% get_language_info_list for languages as infos %}{% for language in infos %}
-      <button class="btn btn-sm btn-link p-0 px-1{% if language.code == LANGUAGE_CODE %} fw-bold{% endif %}" name="language" value="{{ language.code }}" lang="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} aria-current="true"{% endif %}>{{ language.name_local }}</button>{% endfor %}
+      <label class="visually-hidden" for="language-choice">{% translate "Language" %}</label>
+      {% get_available_languages as languages %}{% get_language_info_list for languages as infos %}<select class="form-select form-select-sm w-auto" id="language-choice" name="language" data-submit-on-change>{% for language in infos %}
+        <option value="{{ language.code }}" lang="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected{% endif %}>{{ language.name_local }}</option>{% endfor %}
+      </select>
+      <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Change" %}</button></noscript>
     </form>
     <small class="text-muted">{% get_current_timezone as shown_zone %}<span class="me-2" data-time-zone="{{ shown_zone }}">{% blocktranslate %}Times in {{ shown_zone }}{% endblocktranslate %}</span>
-      <a href="{% url 'about' %}#version">{% blocktranslate with version=build.version %}Version {{ version }}{% endblocktranslate %}{% if build.commit %} ({{ build.commit }}){% endif %}</a> · AGPL-3.0-or-later</small>
+      <a href="{% url 'about' %}#version">{% blocktranslate with version=build.short %}Version {{ version }}{% endblocktranslate %}</a> · AGPL-3.0-or-later</small>
   </div>
 </footer>
 <script src="{% url 'javascript-catalog' %}"></script>
@@ -78,6 +82,7 @@
 <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
 <script src="{% static 'js/confirm.js' %}" defer></script>
 <script src="{% static 'js/copy.js' %}" defer></script>
+<script src="{% static 'js/submit-on-change.js' %}" defer></script>
 {% if not request.timezone_active %}<script src="{% static 'js/time-zone.js' %}" data-endpoint="{% url 'tz_detect__set' %}" data-csrf-token="{{ csrf_token }}" data-csrf-header="X-CSRFToken" defer></script>{% endif %}
 </body>
 </html>

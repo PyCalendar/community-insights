@@ -8,13 +8,22 @@ the data is.
 from asgiref.sync import async_to_sync
 
 from .completeness import ITEMS_PER_SECOND, Source, completeness, seconds_left, sources
-from .estimate import ASK_ABOVE, Estimate, cached_counts, estimate, points_for, seconds_per_point
+from .estimate import (
+    ASK_ABOVE,
+    Estimate,
+    cached_counts,
+    details_estimates,
+    estimate,
+    points_for,
+    seconds_per_point,
+)
 from .jobs import cancel, claim_next, enqueue, finish, requeue_stale
+from .refresh import has_points, refresh
 from .runner import JobRunner
 from .worker import run, start_worker, work, work_async
 
 
-def estimate_for(user, repositories) -> tuple[list[Estimate], list, int]:
+def estimate_for(user, repositories, use=None) -> tuple[list[Estimate], list, int]:
     """Estimate with the tokens of a user, from synchronous code.
 
     Estimate with the tokens of a user, from synchronous code: the estimates, the tokens in
@@ -23,6 +32,7 @@ def estimate_for(user, repositories) -> tuple[list[Estimate], list, int]:
     Args:
         user: The user, or an anonymous one, who uses the donated tokens.
         repositories: The repositories.
+        use: The public use of the fetch (``tokens.Use``), whose grants may read too.
 
     Returns:
         The estimates, the tokens in their order, and the points the estimate cost.
@@ -33,7 +43,7 @@ def estimate_for(user, repositories) -> tuple[list[Estimate], list, int]:
     from ..tokens import TokenPool, entries_for
 
     async def estimating():
-        entries = await sync_to_async(entries_for)(user)
+        entries = await sync_to_async(entries_for)(user, use=use)
         if not entries:  # the requests without a token of this server
             client = AnonymousClient()
             try:
@@ -60,11 +70,14 @@ __all__ = [
     "cancel",
     "claim_next",
     "completeness",
+    "details_estimates",
     "enqueue",
     "estimate",
     "estimate_for",
     "finish",
+    "has_points",
     "points_for",
+    "refresh",
     "requeue_stale",
     "run",
     "seconds_left",

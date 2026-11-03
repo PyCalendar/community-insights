@@ -67,7 +67,7 @@ see also [Contribute](https://community-insights.readthedocs.io/en/latest/contri
 - Run what the CI runs, with the same commands: `make lint`, `make typecheck`, `make test`,
   `make test-js`, `make test-browser` (also `WINDOW=375x812`), `make check-graphql`,
   `make check-site-links`, `make check-vendor`, `make build`, `make docs`,
-  `make vale`, `make linkcheck`, `make reuse`, `make zizmor`, `make docker-test`.
+  `make vale`, `make linkcheck`, `make reuse`, `make zizmor`, `make docker-test`, `make docker-scan`.
 - Report the results as they are: say what failed and what was not run.
 
 ## Licenses and attribution

@@ -115,3 +115,36 @@ def test_secondary_rate_limit_without_retry_after_backs_off(monkeypatch):
     client = answering(slow, slow, Response(body={"data": {}}))
     run(client.graphql, "query { x }")
     assert waited == [1, 2]
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [Response(502, text="Bad Gateway"), Response(504), Response(body=ValueError("<html>"))],
+)
+def test_a_server_error_is_tried_again(monkeypatch, failure):
+    """A query that took GitHub too long often works a moment later."""
+    waited = []
+
+    async def sleep(seconds):
+        """Note the wait instead of waiting."""
+        waited.append(seconds)
+
+    monkeypatch.setattr("community_insights.github.client.asyncio.sleep", sleep)
+    client = answering(failure, Response(body={"data": {"x": 1}}))
+    assert run(client.graphql, "query { x }") == {"x": 1}
+    assert waited == [1]
+
+
+def test_a_server_error_that_stays_ends_the_fetch(monkeypatch):
+    """After three more tries, waiting longer each time, the error is shown."""
+    waited = []
+
+    async def sleep(seconds):
+        """Note the wait instead of waiting."""
+        waited.append(seconds)
+
+    monkeypatch.setattr("community_insights.github.client.asyncio.sleep", sleep)
+    down = Response(504)
+    with pytest.raises(errors.GitHubUnreachable, match="504"):
+        run(answering(down, down, down, down).graphql, "query { x }")
+    assert waited == [1, 2, 4]

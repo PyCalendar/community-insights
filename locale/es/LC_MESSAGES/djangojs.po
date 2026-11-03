@@ -1,0 +1,65 @@
+# Spanish translation of Contributor Community Insights.
+# SPDX-License-Identifier: AGPL-3.0-or-later
+msgid ""
+msgstr ""
+"Project-Id-Version: community-insights\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-03 12:00+0000\n"
+"PO-Revision-Date: 2026-11-03 12:00+0000\n"
+"Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Add a column"
+msgstr "Añadir una columna"
+
+#, python-format
+msgid "Move %(name)s left"
+msgstr "Mover %(name)s a la izquierda"
+
+#, python-format
+msgid "Move %(name)s right"
+msgstr "Mover %(name)s a la derecha"
+
+#, python-format
+msgid "Remove %(name)s"
+msgstr "Quitar %(name)s"
+
+msgid "+ add a column"
+msgstr "+ añadir una columna"
+
+msgid "Copied"
+msgstr "Copiado"
+
+msgid "project"
+msgstr "proyecto"
+
+msgid "yours"
+msgstr "tuyo"
+
+msgid "organisation"
+msgstr "organización"
+
+msgid "contributed"
+msgstr "contribuiste"
+
+msgid "new"
+msgstr "nuevo"
+
+#, python-format
+msgid "Add %(target)s"
+msgstr "Añadir %(target)s"
+
+#, python-format
+msgid ""
+"%(max)s of %(limit)s points per hour, stopping when %(reserve)s are left"
+msgstr ""
+"%(max)s de %(limit)s puntos por hora, parando cuando quedan %(reserve)s"
+
+#, python-format
+msgid "%(shared)s of %(max)s points per hour for others on this site"
+msgstr "%(shared)s de %(max)s puntos por hora para otros en este sitio"

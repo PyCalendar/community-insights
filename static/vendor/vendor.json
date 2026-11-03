@@ -81,6 +81,7 @@
       "js/share.js",
       "js/sortable-order.js",
       "js/sources.js",
+      "js/submit-on-change.js",
       "js/theme.js",
       "js/time-zone.js",
       "js/token-sliders.js"

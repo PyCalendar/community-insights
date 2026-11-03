@@ -65,6 +65,9 @@ Build the image yourself
 
     make docker-build     # same as: docker build -t community-insights .
     make docker-run
+    make docker-scan      # Trivy: fails on critical vulnerabilities that have a fix
+
+The CI scans each image with ``make docker-scan`` before it is pushed. A server that scans what it deploys, such as Sencho after each deploy, needs Trivy on the server itself: install it as https://trivy.dev describes, or the scan says *Trivy is not available on this node*.
 
 The Dockerfile:
 

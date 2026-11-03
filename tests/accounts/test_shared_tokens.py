@@ -24,7 +24,7 @@ def test_shared_tokens_of_the_site(db, monkeypatch):
     get_user_model().objects.create_superuser("root", "root@example.org", "pw")
     call_command("add_shared_token", "root", "t", "--max-percent", "50")
     shared = AccessToken.objects.get(user__username="root")
-    assert (shared.max_points, shared.shared_points, shared.login) == (2500, 2500, "kim")
+    assert (shared.max_points, shared.grants.get().points, shared.login) == (2500, 2500, "kim")
     somebody = get_user_model().objects.get(username="plain")
     entries = entries_for(somebody, lambda token: FakeClient())
     assert [e.shared for e in entries] == [True], "everybody can use it"

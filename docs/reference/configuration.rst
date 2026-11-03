@@ -59,6 +59,15 @@ The application reads its settings from environment variables. With Docker, put 
    * - ``GITHUB_MAX_CONCURRENT``
      - ``20``
      - How many requests to GitHub the server sends at the same time, for all tokens together.
+   * - ``AUTO_FETCH_TIMEOUT``
+     - ``10``
+     - Seconds the :doc:`page of replies <replies>` and its badges wait for a fetch of what changed on GitHub before they show what is there; the fetch goes on after. ``0`` turns it off. They fetch with the tokens of the owner of the project (a badge with a secret token) or the points others share (public repositories), and do not fetch when these have no points left.
+   * - ``AUTO_FETCH_BADGE_TIMEOUT``
+     - ``4``
+     - Seconds the badges of replies wait for that fetch. GitHub loads the images of a README through its image proxy, which gives up after a few seconds; a badge that waits longer would not show.
+   * - ``AUTO_FETCH_AFTER_MINUTES``
+     - ``15``
+     - Repositories read longer ago than this are read again by the page of replies and its badges. Repositories never read need the page *Fetch*.
    * - ``FETCH_WORKER``
      - ``internal`` (development), ``external-http-container`` (the image)
      - Where the fetch worker runs, see :ref:`worker-modes`: ``internal`` (a thread of the web process), ``external-http-container`` (a process of its own in the web container), ``external-separate-container`` (only the ``worker`` service of the compose file; the web container runs none), ``inline`` (in the request, for tests). Another value stops the start with an error.
@@ -103,7 +112,7 @@ The application reads its settings from environment variables. With Docker, put 
      - Port of gunicorn in the container.
    * - ``WORKERS``
      - ``1``
-     - gunicorn worker processes. Each one needs about 300 MB, because it holds the libraries of the statistics; the fetch worker needs about 80 MB more. One worker with ``THREADS`` serves a small site. Measure a change with ``make benchmark`` (see :ref:`run-the-tests`).
+     - gunicorn worker processes. Each one starts with about 85 MB and grows to about 300 MB when it first shows statistics or charts, which load their libraries (matplotlib, pandas, scipy, lifelines, statsmodels); the fetch worker needs about 110 MB while it reads a large repository, such as the 1971 pull requests and issues of collective/icalendar. One worker with ``THREADS`` serves a small site. Measure a change with ``make benchmark`` (see :ref:`run-the-tests`).
    * - ``THREADS``
      - ``4``
      - gunicorn threads per worker.

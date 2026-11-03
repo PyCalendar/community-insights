@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 
 from ..demo import DEMO
 from ..errors import (
+    InvalidGrantScope,
     InvalidPercentage,
     InvalidTokenOrder,
     LimitNotANumber,
@@ -20,10 +21,12 @@ from ..models import (
     AccessToken,
     Profile,
     Repository,
+    TokenGrant,
 )
 from ..tokens import ask_one
 from ..tokens.access import mirror_linked_account
 from ..tokens.new import MONTH, YEAR, new_token_url
+from .scope import PUBLIC_PART
 
 EXPIRY_WARNING_DAYS = 14
 
@@ -82,6 +85,64 @@ def percent(text, default: int) -> int:
     return value
 
 
+def share_with_everybody(stored: AccessToken, text: str | None) -> TokenGrant | None:
+    """Set the share of a token for everybody on this site: its grant "everybody".
+
+    Args:
+        stored: The token.
+        text: The percentage of the slider; empty to keep it.
+
+    Returns:
+        The grant; None if the share is 0, which removes it.
+
+    Raises:
+        InvalidPercentage: If the slider is not between 0 and 100.
+    """
+    everybody = stored.grants.filter(kind=TokenGrant.EVERYBODY).first()
+    share = percent(text, everybody.percent if everybody else 0)
+    if not share:
+        stored.grants.filter(kind=TokenGrant.EVERYBODY).delete()
+        return None
+    if everybody is None:
+        return TokenGrant.objects.create(token=stored, kind=TokenGrant.EVERYBODY, percent=share)
+    everybody.percent = share
+    everybody.save(update_fields=["percent"])
+    return everybody
+
+
+def add_grant(stored: AccessToken, data) -> TokenGrant:
+    """Allow a public use of a token: badges, pages or visitors of a public scope.
+
+    Args:
+        stored: The token.
+        data: The form: ``kind``, ``scope``, ``login`` (for the badge of one person, else
+            empty) and ``percent``.
+
+    Returns:
+        The grant; one that exists already gets the new percent.
+
+    Raises:
+        InvalidGrantScope: If the scope is no public scope or the kind is unknown.
+        InvalidPercentage: If the percent is not between 0 and 100.
+    """
+    kind = data.get("kind", "")
+    scope = data.get("scope", "").strip().replace("/", "~")
+    parts = scope.split("+")
+    public = (TokenGrant.BADGES, TokenGrant.PAGES, TokenGrant.VISITORS)
+    if kind not in public or not scope or not all(PUBLIC_PART.match(p) for p in parts):
+        raise InvalidGrantScope(
+            gettext("%(scope)s is no public scope such as owner or owner~name.")
+            % {"scope": repr(scope)}
+        )
+    login = data.get("login", "").strip().lower() if kind == TokenGrant.BADGES else ""
+    grant, _created = TokenGrant.objects.get_or_create(
+        token=stored, kind=kind, scope=scope, login=login
+    )
+    grant.percent = percent(data.get("percent"), grant.percent)
+    grant.save(update_fields=["percent"])
+    return grant
+
+
 def add_token(request, user):
     """Check a token with GitHub and store it with its sliders; warn if it never expires.
 
@@ -110,12 +171,13 @@ def add_token(request, user):
         login=login,
         label=request.POST.get("label", "").strip()[:100],
         max_percent=max_percent,
-        shared_percent=shared_percent,
         expires_at=rate.expires_at,
         rate_limit=rate.limit,
         rate_remaining=rate.remaining,
         rate_reset_at=rate.reset_at,
     )
+    if shared_percent:
+        TokenGrant.objects.create(token=stored, kind=TokenGrant.EVERYBODY, percent=shared_percent)
     messages.success(request, _("The token of %(login)s was saved.") % {"login": login})
     if rate.expires_at is None:
         messages.warning(
@@ -210,15 +272,29 @@ def github_access(request):
             elif action == "share":
                 stored = get_object_or_404(AccessToken, pk=request.POST["id"], user=user)
                 stored.max_percent = percent(request.POST.get("max_percent"), stored.max_percent)
-                stored.shared_percent = percent(
-                    request.POST.get("shared_percent"), stored.shared_percent
-                )
                 stored.save()
+                everybody = share_with_everybody(stored, request.POST.get("shared_percent"))
                 messages.success(
                     request,
                     _("%(token)s: up to %(max)s points per hour, %(shared)s of them for others.")
-                    % {"token": stored, "max": stored.max_points, "shared": stored.shared_points},
+                    % {
+                        "token": stored,
+                        "max": stored.max_points,
+                        "shared": everybody.points if everybody else 0,
+                    },
                 )
+            elif action == "grant_add":
+                stored = get_object_or_404(AccessToken, pk=request.POST["id"], user=user)
+                add_grant(stored, request.POST)
+                messages.success(request, _("The public use was added."))
+            elif action == "grant_edit":
+                grant = get_object_or_404(TokenGrant, pk=request.POST["grant"], token__user=user)
+                grant.percent = percent(request.POST.get("percent"), grant.percent)
+                grant.save(update_fields=["percent"])
+                messages.success(request, _("Saved."))
+            elif action == "grant_remove":
+                get_object_or_404(TokenGrant, pk=request.POST["grant"], token__user=user).delete()
+                messages.success(request, _("The public use was removed."))
             elif action == "test":
                 stored = get_object_or_404(AccessToken, pk=request.POST["id"], user=user)
                 result = test_token(stored)
@@ -249,12 +325,16 @@ def github_access(request):
         return redirect("github_access")
     now = timezone.now()
     mirror_linked_account(user)
-    tokens = list(user.access_tokens.all())
+    tokens = list(user.access_tokens.prefetch_related("grants"))
     for token in tokens:
         token.expires_soon = bool(
             token.expires_at and (token.expires_at - now).days < EXPIRY_WARNING_DAYS
         )
         token.expired = bool(token.expires_at and token.expires_at <= now)
+        grants = list(token.grants.all())
+        token.everybody = next((g for g in grants if g.kind == TokenGrant.EVERYBODY), None)
+        token.public_uses = [g for g in grants if g.kind != TokenGrant.EVERYBODY]
+        token.used_by_others = sum(g.used(now) for g in grants)
     return render(
         request,
         "community/github_access.html",
@@ -262,6 +342,7 @@ def github_access(request):
             "account": SocialAccount.objects.filter(user=user, provider="github").first(),
             "tokens": tokens,
             "profile": profile,
+            "grant_kinds": [k for k in TokenGrant.KINDS if k[0] != TokenGrant.EVERYBODY],
             "new_tokens": [
                 (
                     label,

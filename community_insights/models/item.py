@@ -8,12 +8,14 @@ if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from .event import Event
+    from .item_commit import ItemCommit
 
 
 class Item(models.Model):
     """A pull request or an issue."""
 
     PR, ISSUE = "pr", "issue"
+    DETAILS = 1  # the version of the details that the page Replies needs
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="items")
     kind = models.CharField(max_length=5, choices=[(PR, "pull request"), (ISSUE, "issue")])
     number = models.IntegerField()
@@ -29,9 +31,13 @@ class Item(models.Model):
     closed_at = models.DateTimeField(null=True, blank=True)
     merged_by = models.CharField(max_length=100, blank=True)
     closed_by = models.CharField(max_length=100, blank=True)
+    # what of the details was read: 0 nothing, DETAILS the last commits, the closer and the
+    # states of the reviews
+    details = models.PositiveSmallIntegerField(default=0)
 
     if TYPE_CHECKING:  # the reverse relation, for the type checker
         events: RelatedManager[Event]
+        commits: RelatedManager[ItemCommit]
 
     class Meta:
         unique_together = [("repository", "kind", "number")]

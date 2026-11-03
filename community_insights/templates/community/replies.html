@@ -1,0 +1,44 @@
+{% extends "community/base.html" %}
+{% load community i18n static %}
+{% block title %}{% blocktranslate with title=scope.title %}Replies of contributors to {{ title }}{% endblocktranslate %}<script src="{% static 'vendor/sortable/Sortable.min.js' %}" defer></script>
+<script src="{% static 'js/sortable-order.js' %}" defer></script>
+{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="replies" %}
+<p class="text-muted small">{% translate "Did the authors of pull requests answer the comments and reviews they got? A pull request is answered when its author commented, reviewed or pushed a commit after the first feedback of somebody else, not of a bot. Only people with feedback on a pull request in the time range are listed." %} {% translate "Merged pull requests and those the author closed need no reply and do not count." %} <a href="{{ links.documentation }}reference/replies.html#which-pull-requests-count">{% translate "Which pull requests count" %}</a></p>
+{% if fetched %}<p class="small text-success">{% translate "What changed on GitHub was read just now." %}</p>{% endif %}
+{% if commits_unread %}<div class="alert alert-warning small d-flex flex-wrap align-items-center gap-2" role="note">{% blocktranslate count count=commits_unread %}{{ count }} pull request was read before commits were read: an answer by a commit is not seen there until it is read again.{% plural %}{{ count }} pull requests were read before commits were read: an answer by a commit is not seen there until they are read again.{% endblocktranslate %} {% include "community/_read_button.html" with target=scope.text back=request.path %}</div>{% endif %}
+<p class="small">{% blocktranslate with shown=people|length %}{{ shown }}/{{ authors }} contributors shown.{% endblocktranslate %}{% if people|length < authors %} <a href="{{ links.documentation }}reference/replies.html#which-pull-requests-count">{% translate "Why not all are shown" %}</a>{% endif %} {% blocktranslate with green=counts.green yellow=counts.yellow red=counts.red %}{{ green }} answered everything, {{ yellow }} did not answer their only pull request, {{ red }} did not answer some.{% endblocktranslate %}</p>
+<form method="get" id="reply-order" hidden>{% for name, value in scope.range.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}{% for name, value in scope.carried.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}</form>
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2 small" role="group" aria-label="{% translate "Order of the table" %}">
+  <span>{% translate "Sorted by, drag to change:" %}</span>
+  <ol class="list-group list-group-horizontal-md list-group-numbered" data-sort-list data-sort-form="reply-order">{% for key, name, up, down in sorting %}
+    <li class="list-group-item py-1 d-flex align-items-center gap-1" data-sort-id="{{ key }}"><span class="drag-handle" data-sort-handle title="{% translate "Drag to move" %}" aria-hidden="true">⠿</span>{{ name }}{% if up %} <a href="{{ up }}" class="text-decoration-none" aria-label="{% blocktranslate %}Sort by {{ name }} earlier{% endblocktranslate %}">&larr;</a>{% endif %}{% if down %} <a href="{{ down }}" class="text-decoration-none" aria-label="{% blocktranslate %}Sort by {{ name }} later{% endblocktranslate %}">&rarr;</a>{% endif %}</li>{% endfor %}
+  </ol>
+</div>
+<div class="table-responsive"><table class="table table-sm table-hover align-middle" id="replies-table">
+  <thead><tr>
+    <th class="d-none d-md-table-cell">{% translate "Badge" %}</th>
+    <th>{% translate "Person" %}</th>
+    <th class="text-end">{% translate "PRs replied to" %}</th>
+    <th class="text-end">{% translate "PRs merged" %}</th>
+    <th>{% translate "Not replied to and open" %}</th>
+    <th>{% translate "Not replied to and closed" %}</th>
+    <th class="text-end" title="{% translate "Pull requests of the person that somebody else closed without merging them" %}">{% translate "PRs closed by others" %}</th>
+    <th>{% translate "Links" %}</th>
+  </tr></thead>
+  <tbody>{% for person in people %}<tr data-status="{{ person.status }}">
+    <td class="d-none d-md-table-cell">{% include "community/_reply_label.html" %}</td>
+    <td><div class="d-md-none mb-1">{% include "community/_reply_label.html" %}</div><a class="login-cut" href="{% url 'person' scope.text person.login %}{{ scope.query }}" title="{{ person.login }}">{{ person.login }}</a></td>
+    <td class="text-end">{{ person.answered }}/{{ person.with_feedback }}</td>
+    <td class="text-end">{{ person.merged }}/{{ person.total }}</td>
+    {% if person.status == "green" %}<td>-</td><td>-</td><td class="text-end">-</td>
+    {% else %}<td>{% include "community/_pull_numbers.html" with found=person.unanswered_open %}</td>
+    <td>{% include "community/_pull_numbers.html" with found=person.unanswered_closed %}</td>
+    <td class="text-end">{{ person.closed_by_others }}</td>{% endif %}
+    <td class="text-nowrap"><a href="{% url 'person_items' scope.text person.login %}?kind=pr{{ scope.query_more }}">{% translate "pull requests" %}</a></td>
+  </tr>{% empty %}<tr><td colspan="8" class="text-muted">{% translate "Nobody got feedback on a pull request in this time." %}</td></tr>{% endfor %}</tbody>
+</table></div>
+<script src="{% static 'vendor/sortable/Sortable.min.js' %}" defer></script>
+<script src="{% static 'js/sortable-order.js' %}" defer></script>
+{% endblock %}

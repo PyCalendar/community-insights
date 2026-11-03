@@ -1,5 +1,14 @@
 from ...models import Repository
-from ..queries import FIELDS, INNER, MORE, PAGE, commits_query, list_query, more_query
+from ..queries import (
+    FIELDS,
+    INNER,
+    MORE,
+    PAGE,
+    commits_query,
+    details_query,
+    list_query,
+    more_query,
+)
 
 
 async def nothing() -> None:
@@ -20,6 +29,7 @@ class GraphQLSource:
     """
 
     replaces_events = True  # an item comes with all its comments and reviews
+    reads_details = True  # the commits and closers of pull requests read before
 
     def __init__(self, client):
         """Read repositories with GraphQL and tokens.
@@ -122,6 +132,18 @@ class GraphQLSource:
             found = answer["node"][field]
             nodes += found["nodes"]
         return nodes
+
+    async def details(self, ids: list[str]) -> list[dict | None]:
+        """The last commits and the closer of pull requests.
+
+        Args:
+            ids: The node ids of the pull requests, at most ``queries.DETAILS``.
+
+        Returns:
+            The pull requests as GitHub answers them; None for one it no longer has.
+        """
+        answer = await self.query(details_query(), ids=ids)
+        return answer["nodes"]
 
     async def people(self, logins: list[str]) -> dict:
         """Name, location and avatar of a batch of people.

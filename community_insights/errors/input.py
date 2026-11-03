@@ -467,3 +467,17 @@ class UnknownTable(InvalidInput):
     title = _("Unknown table")
     guide = "how-to/verify.html"
     guide_title = _("Check the numbers yourself")
+
+
+class InvalidGrantScope(InvalidInput):
+    """A public use of a token names no public scope.
+
+    A token can be allowed for the badges, pages or visitors of a public scope: ``owner``,
+    ``owner~name``, or several of them joined with ``+``, such as ``collective~icalendar``.
+
+    How to add GitHub tokens: :doc:`/how-to/tokens`.
+    """
+
+    title = _("Invalid scope of a public use")
+    guide = "how-to/tokens.html#public-uses"
+    guide_title = _("How to add GitHub tokens")

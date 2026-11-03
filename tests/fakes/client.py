@@ -43,6 +43,9 @@ class FakeClient:
                 "nodes": nodes,
             }
             return {"repository": {"defaultBranchRef": {"target": {"history": history}}}}
+        if "nodes(ids: $ids)" in query:
+            known = {i["id"]: i for i in self.prs}
+            return {"nodes": [known.get(i) for i in variables["ids"]]}
         if "node(id: $id)" in query:
             field = "comments" if "comments(" in query else "reviews"
             return {"node": {field: connection(*self.more.get((variables["id"], field), []))}}

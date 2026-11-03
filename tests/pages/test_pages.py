@@ -84,7 +84,7 @@ def test_dashboard_card_says_when_the_data_is_complete(world, signed_in):  # noq
 
 @pytest.mark.parametrize("url", ["/s/{pk}/", "/s/{pk}/contributors/", "/s/{pk}/items/"])
 def test_the_time_range_is_below_the_data_from_github(synced, signed_in, url):
-    """From, To and the last days come after the data and its link Read from GitHub."""
+    """From, To and the last days come after the data and its link Update."""
     pk = Project.objects.get().pk
     page = signed_in.get(url.format(pk=pk)).content.decode()
     assert 'class="data-panel' in page

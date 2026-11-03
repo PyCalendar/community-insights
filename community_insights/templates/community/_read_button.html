@@ -1,0 +1,9 @@
+{% load i18n %}{# Update: a click reads at once all the pages need; the drop-down chooses what and how much on the page Fetch. "target" is the scope, "back" the page to return to. #}{% url 'fetch' target as fetch_url %}
+<div class="btn-group">
+  <form method="post" action="{{ fetch_url }}" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="now"><input type="hidden" name="next" value="{{ back }}">
+    <button class="btn btn-sm btn-primary rounded-end-0">{% translate "Update" %}</button></form>
+  <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"><span class="visually-hidden">{% translate "Choose what to read" %}</span></button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><a class="dropdown-item" href="{{ fetch_url }}?next={{ back|urlencode }}">{% translate "Choose what and how much to read…" %}</a></li>
+  </ul>
+</div>

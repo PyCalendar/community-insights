@@ -84,3 +84,38 @@ def test_unknown_models_and_odd_percentiles(synced, client):
     for value in ("nan", "inf", "-inf", "1e400"):
         assert client.get(f"/badge/{token}.svg?percentile={value}").status_code == 200, value
     assert b"p50" in client.get(f"/badge/{token}.svg?percentile=nan").content
+
+
+def test_the_response_time_badge_in_each_format(synced, client):
+    """The same badge as svg, png and json; the JSON has what it counted."""
+    token = Project.objects.get().badge_token
+    query = "?kind=pr&percentile=95&class=bot"
+    assert client.get(f"/badge/{token}.png{query}")["Content-Type"] == "image/png"
+    found = client.get(f"/badge/{token}.json{query}").json()
+    assert {k: found[k] for k in ("schemaVersion", "label", "message", "color")} == {
+        "schemaVersion": 1,
+        "label": "PR response p95 (bot)",
+        "message": "10min",
+        "color": "#2a7de1",
+    }
+    assert (found["kind"], found["percentile"], found["class"], found["model"]) == (
+        "pr",
+        95.0,
+        "bot",
+        "measured",
+    )
+    assert found["seconds"] == 600 and found["counted"] >= 1
+    assert client.get(f"/badge/{token}.gif").status_code == 404
+
+
+def test_the_public_badge_in_each_format(synced, client):
+    """Public repositories have the formats too."""
+    assert client.get("/badge/s/o~r.json").json()["schemaVersion"] == 1
+    assert client.get("/badge/s/o~r.png")["Content-Type"] == "image/png"
+
+
+def test_the_overview_switches_the_format_and_links_the_json(synced, signed_in):
+    """The builder has the format and the link to the JSON."""
+    page = signed_in.get(f"/s/{Project.objects.get().pk}/").content.decode()
+    assert 'data-badge="format"' in page and '<option value="png">PNG</option>' in page
+    assert 'data-badge="json"' in page

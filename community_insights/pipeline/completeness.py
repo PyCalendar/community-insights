@@ -43,7 +43,28 @@ class Source:
             return 100 if read and not (self.prs or self.issues) else 0
         if self.total == 0:
             return 100
-        return min(100, round(100 * (self.prs + self.issues) / self.total))
+        return percent_of(self.prs + self.issues, self.total)
+
+
+def percent_of(part: int, total: int) -> int:
+    """How many percent the part is, rounded down: 100 only when nothing is missing.
+
+    Args:
+        part: The items read.
+        total: All items.
+
+    Returns:
+        0 to 100.
+
+    Examples:
+        >>> percent_of(1968, 1971), percent_of(1971, 1971), percent_of(1, 1000)
+        (99, 100, 0)
+        >>> percent_of(5, 4), percent_of(0, 0)
+        (100, 100)
+    """
+    if total <= 0:
+        return 100
+    return min(100, 100 * part // total)
 
 
 def sources(repositories) -> list[Source]:
@@ -88,9 +109,9 @@ def completeness(repositories) -> dict:
     if not found:
         percent = 100
     elif len(known) < len(found):
-        percent = round(sum(s.percent for s in found) / len(found))
+        percent = sum(s.percent for s in found) // len(found)
     else:
-        percent = 100 if total == 0 else min(100, round(100 * have / total))
+        percent = percent_of(have, total)
     jobs = list(
         FetchJob.objects.filter(repository__in=repositories, status__in=FetchJob.ACTIVE)
         .select_related("repository")

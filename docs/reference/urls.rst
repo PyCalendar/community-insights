@@ -15,6 +15,12 @@ URLs
      - contributors table; ``q``, ``class`` and ``sort`` filter it
    * - ``/s/<scope>/people/<login>/``
      - one person: contributions per month, hours of the day, weekday and hour heat map
+   * - ``/s/<scope>/people/<login>/items/``
+     - the pull requests and issues of one person; ``kind`` is ``pr``, ``issue`` or nothing for both, ``state`` filters
+   * - ``/s/<scope>/replies/``
+     - whether the authors of pull requests answered the feedback, see :doc:`replies`
+   * - ``/s/<scope>/replies/<login>/badge/``
+     - the badge of the replies of a person, with the code to copy
    * - ``/s/<scope>/chart/<chart>.svg``
      - a chart as SVG; ``.json`` gives its data for Chart.js, ``theme`` is ``light`` or ``dark``
    * - ``/s/<scope>/share/<chart>/``
@@ -40,6 +46,8 @@ URLs
    * - ``/dashboard/cache/``
      - cached repositories from the oldest use
    * - ``/badge/<token>.svg``
-     - :doc:`badges`
+     - :doc:`badges`; also ``.png`` and ``.json``
+   * - ``/badge/<token>/replies/<login>.svg``
+     - the badge of the replies of a person, see :doc:`replies`; ``/badge/s/<scope>/replies/<login>.svg`` for public repositories
 
 The ``<scope>`` is a project number, several joined by ``-`` (``1-3``) or ``all``: these need a sign in. Or public repositories for everybody: ``owner~name``, several joined by ``+``, or ``owner`` for all known public repositories of an owner. ``/explore/`` lists the public repositories; ``/badge/s/<scope>.svg`` is the badge of a public scope. Times are shown in the time zone of the browser, which sends it in the cookie ``tz``. Every statistics page takes the time range ``since``, ``until`` or ``last``, and ``classes``: the ids of the classes of people to use, see :ref:`shared-statistics`.

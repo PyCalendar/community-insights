@@ -32,6 +32,13 @@ class FetchJob(models.Model):
     ACTIVE = (QUEUED, RUNNING)
     LOW, NORMAL, HIGH = -10, 0, 10
     PRIORITIES = [(HIGH, _("high")), (NORMAL, _("normal")), (LOW, _("low"))]
+    # what a job reads: what changed since the last fetch, or the commits and closers of the
+    # pull requests that were read before these were read
+    CHANGES, DETAILS = "changes", "details"
+    WHATS = [
+        (CHANGES, _("what changed and what is missing")),
+        (DETAILS, _("the commits and closers of pull requests read before")),
+    ]
 
     # None: started by a visitor, with the tokens donated to the site
     user = models.ForeignKey(
@@ -40,6 +47,11 @@ class FetchJob(models.Model):
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="fetch_jobs")
     status = models.CharField(max_length=10, choices=STATUSES, default=QUEUED, db_index=True)
     priority = models.IntegerField(choices=PRIORITIES, default=NORMAL)
+    what = models.CharField(max_length=10, choices=WHATS, default=CHANGES)
+    # for a public use, the grants of tokens that cover it may read (tokens.Use); "" for none
+    use_kind = models.CharField(max_length=10, blank=True)
+    use_scope = models.CharField(max_length=300, blank=True)
+    use_login = models.CharField(max_length=100, blank=True)
     reason = models.CharField(max_length=300, blank=True)  # e.g. the page it was started from
     reason_url = models.CharField(max_length=300, blank=True)
     point_limit = models.PositiveIntegerField(null=True, blank=True)
@@ -68,4 +80,11 @@ class FetchJob(models.Model):
             return 100
         if not self.items_expected:
             return 0
-        return min(99, round(100 * self.items_done / self.items_expected))
+        return min(99, 100 * self.items_done // self.items_expected)  # rounded down
+
+    @property
+    def use(self):
+        """What the job is for, if it is a public use; None for an ordinary fetch."""
+        from ..tokens.use import Use
+
+        return Use(self.use_kind, self.use_scope, self.use_login) if self.use_kind else None

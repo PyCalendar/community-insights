@@ -1,0 +1,8 @@
+{% load i18n %}{# The format of a badge: SVG or PNG ("image_format", with the addresses svg_url and png_url), and the link to its JSON ("json_url"). #}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2 small">
+  <div class="btn-group btn-group-sm" role="group" aria-label="{% translate "Format of the badge" %}">
+    <a class="btn btn-outline-secondary{% if image_format == "svg" %} active" aria-current="true{% endif %}" href="{{ svg_url }}" data-badge-format="svg">SVG</a>
+    <a class="btn btn-outline-secondary{% if image_format == "png" %} active" aria-current="true{% endif %}" href="{{ png_url }}" data-badge-format="png">PNG</a>
+  </div>
+  {% if json_url %}<a href="{{ json_url }}" data-badge="json">{% translate "The badge as JSON" %}</a>{% endif %}
+</div>

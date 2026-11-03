@@ -32,8 +32,8 @@ def test_unknown_languages_are_english(client):
 def test_the_switch_in_the_footer(client):
     """The switch in the footer."""
     page = client.get("/explore/").content.decode()
-    assert 'name="language" value="de"' in page
-    assert ">Deutsch<" in page
+    assert 'name="language" data-submit-on-change' in page
+    assert '<option value="de" lang="de">Deutsch</option>' in page
     assert ">English<" in page
     response = client.post("/i18n/setlang/", {"language": "de", "next": "/about/"})
     assert response.status_code == 302
@@ -97,4 +97,12 @@ def test_the_languages_are_named_in_their_own_language(client):
     page = client.get("/explore/").content.decode()
     assert ">English<" in page
     assert ">Englisch<" not in page
-    assert 'aria-current="true">Deutsch<' in page
+    assert '<option value="de" lang="de" selected>Deutsch</option>' in page
+
+
+def test_the_pages_in_spanish(client):
+    """A browser that asks for Spanish gets the pages in Spanish, and can choose it."""
+    page = client.get("/explore/", headers={"accept-language": "es"}).content.decode()
+    assert '<html lang="es"' in page
+    assert ">Explorar<" in page
+    assert '<option value="es" lang="es" selected>español</option>' in page

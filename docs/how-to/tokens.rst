@@ -50,9 +50,29 @@ Each token has two sliders:
     0 to 100 % of the points GitHub gives the token per hour, shown as *4500 of 5000 points per hour, stopping when 500 are left*. The rest stays with GitHub, for whatever else the token is used for; the site does not use the token when GitHub reports fewer points left than that.
 
 **Free for everybody else on this site**
-    0 to 100 % of that maximum, 10 % by default: 500 of 5000 points. Other people on this site use these points after their own tokens. They are a part of the maximum, so lowering the maximum lowers them, too.
+    0 to 100 % of that maximum, 10 % by default: 500 of 5000 points. Other people on this site use these points after their own tokens. They are a part of the maximum, so lowering the maximum lowers them, too. This is the public use *everybody on this site* of the token; 0 removes it.
 
 Your own tokens are used first, then the points others share. Points used by others are counted on their own, so you can see them.
+
+.. _public-uses:
+
+Public uses
+===========
+
+Besides everybody on this site, a token can be allowed for the public uses of one public scope. Open **Public uses** under a token on **GitHub access**, choose what the token is for, the scope and its share, and press **Allow**:
+
+**badges of replies**
+    The badges of replies of the scope update with the token (see :doc:`../reference/replies`). With a handle in *Only the badge of*, only the badge of that person. The page of a badge allows the same: *Also with my token*.
+
+**public pages**
+    The public pages of the scope that read what changed on GitHub before they show it, such as *Replies*, read with the token.
+
+**fetches of visitors**
+    *Update* on the public pages of the scope, pressed by people without an account, reads with the token.
+
+The scope is ``owner``, ``owner~name`` or several of them joined with ``+``, such as ``collective`` or ``collective~icalendar``; ``owner/name`` works, too. An owner covers all its repositories. Each public use has its own share of the maximum of the token per hour and counts its own points, shown next to it; *everybody on this site* is the slider above. Change the share there, or **Remove** the use.
+
+Without a public use that has points left, public badges and pages read with the points shared for everybody; when those are used up, they show what is there and are not updated.
 
 Points and limits
 =================

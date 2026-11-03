@@ -11,7 +11,15 @@ from ..models import FetchJob
 
 
 def enqueue(
-    user, estimates, *, priority=FetchJob.NORMAL, point_limit=None, reason="", reason_url=""
+    user,
+    estimates,
+    *,
+    priority=FetchJob.NORMAL,
+    point_limit=None,
+    reason="",
+    reason_url="",
+    what=FetchJob.CHANGES,
+    use=None,
 ) -> list[FetchJob]:
     """Queue a job per repository, unless one is queued or running, and start the worker.
 
@@ -24,6 +32,8 @@ def enqueue(
         point_limit: The most points all jobs together may use, None for no limit.
         reason: Why the jobs run, shown on the page Downloads.
         reason_url: The page they were started from.
+        what: What the jobs read: ``FetchJob.CHANGES`` or ``FetchJob.DETAILS``.
+        use: The public use the jobs are for (``tokens.Use``), whose grants may read; None.
 
     Returns:
         The jobs queued; repositories with a job queued or running get none.
@@ -48,6 +58,10 @@ def enqueue(
                 items_expected=max(e.missing, 0) or e.items,
                 reason=reason[:300],
                 reason_url=reason_url[:300],
+                what=what,
+                use_kind=use.kind if use else "",
+                use_scope=use.scope if use else "",
+                use_login=use.login if use else "",
             )
         )
     start_worker()

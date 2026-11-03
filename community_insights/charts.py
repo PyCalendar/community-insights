@@ -4,21 +4,35 @@ Charts drawn with matplotlib, returned as SVG, in the colours of the website (st
 green palette, for a light or a dark page.
 """
 
+import functools
 import io
 from collections.abc import Sequence
 
-import matplotlib
+from django.utils.translation import gettext, gettext_lazy
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from django.utils.translation import gettext, gettext_lazy  # noqa: E402
-from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
-from matplotlib.ticker import FixedLocator, FuncFormatter  # noqa: E402
+from .heavy import LOCK
+from .stats import format_duration, histogram, survival
 
-from .stats import format_duration, histogram, survival  # noqa: E402
 
-plt.rcParams["svg.fonttype"] = "none"
-plt.rcParams["font.size"] = 9
+@functools.cache
+def pyplot():
+    """matplotlib, loaded when the first chart is drawn: a process without charts stays small.
+
+    Returns:
+        ``matplotlib.pyplot``, drawing without a screen, with the text of SVGs as text.
+    """
+    with LOCK:  # see heavy.py; matplotlib draws without a screen
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.colors  # noqa: F401  loaded here, used by heat()
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker  # noqa: F401  loaded here, used by duration_axis()
+
+        plt.rcParams["svg.fonttype"] = "none"
+        plt.rcParams["font.size"] = 9
+    return plt
+
 
 # the palette of static/style.css
 GREEN = "#149414"
@@ -51,10 +65,24 @@ KIND_COLORS = {
 BAR = {"light": GREEN_DARK, "dark": GREEN_LIGHT}
 # from dark (few) to the full green (many): no white, which looked like missing data
 HEAT_STOPS = ["#1c331b", GREEN_DEEPEST, GREEN_DARK, GREEN]
-HEAT = {
-    theme: LinearSegmentedColormap.from_list(f"community-{theme}", HEAT_STOPS)
-    for theme in ("light", "dark")
-}
+
+
+@functools.cache
+def heat(theme: str):
+    """The colours of the heat map, from dark (few) to the full green (many).
+
+    Args:
+        theme: ``light`` or ``dark``.
+
+    Returns:
+        The colour map of matplotlib.
+    """
+    with LOCK:  # see heavy.py
+        from matplotlib.colors import LinearSegmentedColormap
+
+    return LinearSegmentedColormap.from_list(f"community-{theme}", HEAT_STOPS)
+
+
 WEEKDAYS = [
     gettext_lazy("Mon"),
     gettext_lazy("Tue"),
@@ -87,6 +115,7 @@ def svg(figure) -> bytes:
     Returns:
         The SVG.
     """
+    plt = pyplot()
     buffer = io.BytesIO()
     figure.savefig(buffer, format="svg", bbox_inches="tight", transparent=True)
     plt.close(figure)
@@ -125,6 +154,7 @@ def empty(message: str, theme: str = "light") -> bytes:
     Returns:
         The SVG.
     """
+    plt = pyplot()
     figure, axes = plt.subplots(figsize=(6, 1.2))
     axes.axis("off")
     axes.text(0.5, 0.5, message, ha="center", va="center", color=INK[theme])
@@ -146,6 +176,7 @@ def response_chart(title: str, entries, classes, theme: str = "light") -> bytes:
     Returns:
         The SVG; a chart that says so without responses.
     """
+    plt = pyplot()
     names = [c.name for c in classes]
     rows = histogram(entries, names)
     if not any(any(c.values()) for _, c in rows):
@@ -189,6 +220,7 @@ def query_chart(
     Returns:
         The SVG; a chart that says so when nobody matches.
     """
+    plt = pyplot()
     if not labels:
         return empty(gettext("nobody matches the query"), theme)
     figure, axes = plt.subplots(figsize=(7, max(1.6, 0.28 * len(labels) + 0.8)))
@@ -208,6 +240,7 @@ def hour_chart(grid, theme: str = "light") -> bytes:
     Returns:
         The SVG.
     """
+    plt = pyplot()
     totals = [sum(grid[day][hour] for day in range(7)) for hour in range(24)]
     figure, axes = plt.subplots(figsize=(6, 2.4))
     axes.bar(range(24), totals, color=BAR[theme])
@@ -228,8 +261,9 @@ def heatmap(grid, theme: str = "light") -> bytes:
     Returns:
         The SVG.
     """
+    plt = pyplot()
     figure, axes = plt.subplots(figsize=(7, 2.8))
-    image = axes.imshow(grid, aspect="auto", cmap=HEAT[theme])
+    image = axes.imshow(grid, aspect="auto", cmap=heat(theme))
     axes.set_yticks(range(7), [str(day) for day in WEEKDAYS])
     axes.set_xticks(range(0, 24, 3), HOURS)
     axes.set_xlabel(gettext("time of the day (your time zone)"))
@@ -273,6 +307,7 @@ def response_month_chart(months, theme: str = "light") -> bytes:
     Returns:
         The SVG; a chart that says so without responses.
     """
+    plt = pyplot()
     import statistics
 
     if not months:
@@ -309,6 +344,9 @@ def duration_axis(axes, highest: float, axis: str = "y"):
         highest: The highest value shown, in hours.
         axis: ``y`` or ``x``.
     """
+    with LOCK:  # see heavy.py
+        from matplotlib.ticker import FixedLocator, FuncFormatter
+
     above = [tick for tick in DURATION_TICKS if tick >= highest]
     top = above[0] if above else highest
     shown = axes.yaxis if axis == "y" else axes.xaxis
@@ -341,6 +379,10 @@ def survival_chart(title: str, entries, observed, classes, theme: str = "light")
     Returns:
         The SVG; a chart that says so without responses.
     """
+    with LOCK:  # see heavy.py
+        from matplotlib.ticker import FuncFormatter
+
+    plt = pyplot()
     curves = [(c, survival(entries, observed, c.name)) for c in classes]
     curves = [(c, fitted) for c, fitted in curves if fitted is not None]
     if not curves:
@@ -379,6 +421,7 @@ def month_chart(months, theme: str = "light") -> bytes:
     Returns:
         The SVG; a chart that says so without activity.
     """
+    plt = pyplot()
     if not months:
         return empty(gettext("no activity"), theme)
     keys = sorted(months)

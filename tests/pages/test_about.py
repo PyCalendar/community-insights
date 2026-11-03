@@ -74,7 +74,11 @@ def test_a_checkout_knows_its_commit():
 def test_reused_code_is_read_from_reuse_toml():
     """Reused code is read from reuse toml."""
     found = licenses.reused()
-    assert {p.license for p in found} == {"MIT", "BSD-2-Clause", "0BSD"}, "not the project"
+    assert {p.license for p in found} == {"MIT", "BSD-2-Clause", "0BSD", "CC-BY-SA-4.0"}, (
+        "not the project"
+    )
+    icon = next(p for p in found if p.name == "static/img/favicon.png")
+    assert (icon.version, icon.license) == ("2026 the pycal team", "CC-BY-SA-4.0")
     icalendar = next(p for p in found if p.license == "BSD-2-Clause")
     assert "test_with_doctest.py" in icalendar.name
     assert "Plone Foundation" in icalendar.version
@@ -84,6 +88,7 @@ def test_reused_code_is_read_from_reuse_toml():
         "static/vendor/chartjs",
         "static/vendor/sortable",
         "static/vendor/htmx",
+        "static/img/favicon.png",
     }
     root = Path(licenses.__file__).parent.parent
     for entry in found:
@@ -172,3 +177,24 @@ def test_a_package_without_a_license_file_has_no_link(monkeypatch):
 def test_the_license_page_ignores_the_case_of_the_name(client):
     """/about/licenses/DJANGO/ is the license of Django."""
     assert client.get("/about/licenses/DJANGO/").status_code == 200
+
+
+def test_the_favicon_of_pycal_org(client):
+    """Every page has the icon of pycal.org; /favicon.ico leads to it."""
+    page = client.get("/about/").content.decode()
+    assert '<link rel="icon" href="/static/img/favicon.png" type="image/png">' in page
+    response = client.get("/favicon.ico")
+    assert response.status_code == 301 and response["Location"] == "/static/img/favicon.png"
+
+
+def test_the_footer_shows_the_version_without_the_commit(client, monkeypatch):
+    """Version 0.0.1.dev8, not the local part with the commit and date."""
+    from community_insights import version
+
+    found = {**version.get(), "version": "0.0.1.dev8+g3f7dc4888.d20261028", "commit": "3f7dc48"}
+    found["short"] = version.short_version(found["version"])
+    monkeypatch.setattr(version, "get", lambda: found)
+    page = client.get("/about/").content.decode()
+    footer = page[page.index("<footer") :]
+    assert ">Version 0.0.1.dev8</a>" in footer
+    assert "(3f7dc48)" not in footer, "the bug report still names the commit"

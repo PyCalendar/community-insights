@@ -335,7 +335,7 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] below  Who (a query, empty for everybody) : the query field needs auto-completing for the variable names → a list of the variables that start with the word typed (`static/js/query-complete.js`)
 - [x] all action steps must have names → every step of `.github/workflows/tests.yml`, checked by `tests/quality/test_ci.py`
 - [x] anybadge has no aria: the wrapper in `badges.py` adds role, aria-label and title, and a stable mask id
-- [ ] No sound when done: the Stop hook now starts the sound detached (`setsid -f pw-play`), so it is not ended with the hook; to be confirmed by hearing it
+- [x] No sound when done: the Stop hook now starts the sound detached (`setsid -f pw-play`), so it is not ended with the hook; to be confirmed by hearing it; heard on 2026-11-03
 - [x] Test all edge cases of the libraries added: empty data, zeros, missing values, made up addresses, wrong orders, unknown charts and scopes, quoting in CSV, Parquet without values, Kaplan-Meier with all or no responses, the trend at its limits, answers of GitHub without a token; the code of the documentation is tested against the site. Found and fixed: a heat map without activity was not empty, the Chart.js charts did not follow the theme
 - [x] Proofread the documentation by Diátaxis: the tutorial is one path (the optional steps are the how-to *Configure your installation*, the ways of access an explanation); the tables of the downloads are a reference page; develop.rst is tasks, its design notes are in the explanation; the steps of classes moved from the reference to *Use the application*; old texts fixed (superuser, docstring checks, OAuth app optional)
 - [x] the superuser in the env file must be an email address. The email address should be admin@example.com. → `DEFAULT_SUPERUSER=admin@example.com:password`; the name of the superuser is its email address; `InvalidDefaultSuperuser` for another form (also the old name:password)
@@ -429,5 +429,64 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] Sign up with GitHub: easy to get a token in the settings that reads for the user for a month or a year: buttons on GitHub access open the form of GitHub filled in (template URL of fine-grained tokens: name, description, expires_in, permissions for private repositories)
 - [x] Sencho still unhealthy: the HEALTHCHECK asked http://127.0.0.1:5000/health/ and Django refused the host with 400, as ALLOWED_HOSTS names only insight.pycal.org; docker/healthcheck.py sends the first host of ALLOWED_HOSTS; make docker-test runs with ALLOWED_HOSTS and waits for the health status of Docker
 - [x] The health check imports only the standard library (a test, as for the fetch worker)
-- [ ] Decide: lazy imports of matplotlib, lifelines and statsmodels, so that a worker that only serves kept images and pages stays smaller
-- [ ] Measure the memory of the fetch worker during a large fetch (82 MB when idle)
+- [x] A statistics page Replies: did the author of a pull request reply (comment, review or commit) after a review or comment of somebody else; contributors listed with feedback; for those who did not reply: the count without reply, the #numbers by project, the count closed by somebody else; links to the profile and to their pull requests; a green / yellow (one pull request, not answered) / red badge that leads to a page to copy it, linked to the page of replies
+- [x] A page with the pull requests, issues or both of one person (/s/<scope>/people/<login>/items/)
+- [x] Fetches read the last 10 commits of each pull request (ItemCommit) and who closed it (Item.closed_by was never filled)
+- [x] The page Replies and its badges fetch what changed first and wait for it, AUTO_FETCH_TIMEOUT = 10 s by default; with the tokens of the owner of the project or the shared ones; without points left they do not wait
+- [x] The page Replies sorts by the share answered/with feedback: 0/X before 1/Y, and 0/X before 0/Z when X is bigger
+- [x] The page of a person: the numbers of pull requests and issues at the top link to /people/<login>/items/?kind=pr and ?kind=issue
+- [x] GitHub's image proxy: how long does it wait at most? Not documented by GitHub; the open source Camo waits 10 s (answered)
+- [x] AUTO_FETCH_BADGE_TIMEOUT: badges wait 4 s at most
+- [x] Each reply badge is kept for one hour (Cache-Control); documented on the page of the badge and in the docs
+- [x] 24f3003921 in /replies/24f3003921/badge/ is a GitHub handle (Nilesh Pandey), not an id: the badge page shows the name of the profile next to it
+- [x] The reply badge says X/Y PRs unanswered
+- [x] Merged pull requests do not count on the page Replies and in its badges: only open ones and those closed without merging
+- [x] The column "pull requests without reply" is removed
+- [x] The favicon is the one of pycal.org (CC-BY-SA-4.0, the pycal team; scaled to 64x64); /favicon.ico leads to it
+- [x] "Not replied to" is split into two columns: "Not replied to and open" and "Not replied to and closed"
+- [x] The page Replies sorts those with an open pull request without reply first
+- [x] The page Replies does not link to the GitHub profile of the people listed
+- [x] The column "pull requests with feedback" is named "PRs replied to"
+- [x] A column "PRs merged" on the page Replies (merged ones do not count otherwise)
+- [x] A page of the replies of one person, /s/<scope>/replies/<login>/: all their pull requests in a table with their title, those without reply first; it can read from GitHub; the badge links to it
+- [x] The path of that page: <project> / Replies / <login>, each linked; also on the page of the badge
+- [x] "1193 pull requests were read before commits were read" is always shown: the page can read them from GitHub
+- [x] All buttons Read from GitHub fetch at once when clicked; a small drop-down on their right side opens the page Fetch to configure it, as now
+- [x] The page Fetch has parameters for what is read (such as the commits and closers of pull requests read before)
+- [x] The page Replies: a pull request its author closed is not counted at all; the column "closed by others" is explained; the documentation says when a pull request counts on the page and when not
+- [x] The column PRs merged shows X/Y: Y is the total number of pull requests of the person
+- [x] The page Replies: a drag and drop field orders the table by the relevant columns: badge, person, PRs replied to, PRs merged, #open, #closed
+- [x] An approved review is no feedback that needs a reply
+- [x] The page Replies says "X/Y contributors shown", with a link to the documentation of why not all are shown
+- [x] Check and test that replies to review comments count as replies
+- [x] The replies of a person show the badge, linked
+- [x] Large tables: on a desktop, the heading of the table stays in view while scrolling (sticky header)
+- [x] Mobile, page Replies: the badge is above the handle; the handle is shortened with … when it is too long
+- [x] Mobile: the pages lose their thick sides (less space left and right)
+- [x] All pages: tables get the width before the green sides; at 683 pixels the sides made the table smaller and hid its content
+- [x] The choice of the language is a drop-down
+- [x] The site is translated to Spanish
+- [x] In the changelog, news/ links to the folder on the main branch of the repository, so that unreleased changes can be seen
+- [x] Every prompt is recorded as an item of todo.txt (also the open ones, right away)
+- [x] Public badges: the shared tokens by default, and no update when they have no points left. On the page of a badge, a signed in person chooses whose tokens update it: also my tokens for this badge, also my tokens for all badges of this project or organisation (the scope), or only the shared tokens. Not signed in, the page says the shared tokens update the badge and asks to sign in to add one's own tokens
+- [x] Which questions are open, and how to direct them towards a solution (answered in the reply)
+- [x] Not a choice of one option: each token has its own section of public uses (a new table for the token, and the public use of today, shared_percent, part of it in the same way): a list of the projects and scopes (such as badges) allowed to use the token, each with a share of its points like the public use; revoke or remove each one there. The page of a badge adds such a use. Decided: "everybody" (shared_percent) becomes a grant of each token, moved by a migration; each grant has its own budget; grants for badges of a scope, public pages of a scope, and fetches visitors start in a scope
+- [x] Why a sound is played: the Stop hook of .claude/settings.local.json plays complete.oga when Claude finishes a turn (answered; remove it if not wanted)
+- [x] The sound only when Claude is completely done and waits for the person, not after a part: Claude no longer ends a turn while tests run in the background (each end of a turn plays the Stop hook)
+- [x] Sencho: "Post-deploy scan did not run. Trivy is not available on this node": the CI scans the image with Trivy (make docker-scan) before it is pushed
+- [x] A JSON endpoint next to each reply badge, with the same wait times, and the data of the row of the table besides
+- [x] Every badge can be had as badge.json, badge.svg and badge.png: one class turns the JSON spec of a badge (label, message, colour) into each; every page that makes a badge links its JSON and switches between SVG and PNG
+- [x] Delete the broken test database data/test-db.sqlite3* (asked and allowed): make test works without DATA_DIR again
+- [x] "100% of the data (1968 of 1971 items)" is wrong: the percentage of the data is rounded down, so 100 % only when all is read
+- [x] Read from GitHub works the same on every page and always reads all the data the pages need, also the commits and closers of pull requests read before: no menu is needed for that
+- [x] Tables: the heading sticks to the top of the window while the page scrolls, without a scroll bar of its own
+- [x] The tab "Link" of the code of a badge (next to HTML) is named "URL"
+- [x] "Read from GitHub" is named "Update"
+- [x] The version in the footer is just "Version 0.0.1.dev8", without the hash
+- [ ] Commit, push, fix the CI until it is green so that it deploys (asked by the person)
+- [ ] Release 0.1.0 (asked by the person)
+- [ ] Install Trivy on the Sencho node, so its post-deploy scan runs (on the server: not possible from here)
+- [x] The tests failed with "disk I/O error": the test database data/test-db.sqlite3 of the interrupted run is broken (4 KB with an old -shm); the tests pass with DATA_DIR in the scratchpad. Ask before deleting data/test-db.sqlite3*
+- [ ] Decide: "only those that do not reply at all should have a column": now the columns are filled for yellow and red rows; green rows show "-"
+- [x] Lazy imports of matplotlib, lifelines, statsmodels, scipy, pandas and pyarrow (decided): a web process starts with 85 MB instead of 290 MB and loads them with the first statistics or chart; a test checks that none is loaded at the start; the browser tests found a deadlock of Python's import when threads load matplotlib at the same time: all lazy imports of the large libraries happen behind one lock (heavy.LOCK), tested in a fresh process
+- [x] Measure the memory of the fetch worker during a large fetch: 104-112 MB at most while reading all 1971 pull requests and issues of collective/icalendar (a copy of the local database in the scratchpad). The fetch failed twice on GitHub 504 / not JSON (heavier queries with commits): the client now tries server errors and unreadable answers again, 1, 2 and 4 s later; then the fetch finished in one run

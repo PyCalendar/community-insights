@@ -63,6 +63,27 @@ def test_empty_repository_is_complete(user):  # noqa: F811
     assert pipeline.completeness([repository])["percent"] == 100
 
 
+def test_nearly_complete_data_is_not_100_percent(user):  # noqa: F811
+    """1968 of 1971 items are 99 %, rounded down: 100 % means nothing is missing."""
+    repository = store_repository(repo("o/many"))
+    repository.prs_total, repository.issues_total = 1971, 0
+    repository.save()
+    Item.objects.bulk_create(
+        Item(
+            repository=repository,
+            kind="pr",
+            number=number,
+            state="open",
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
+        for number in range(1, 1969)
+    )
+    data = pipeline.completeness([repository])
+    assert (data["percent"], data["items"], data["total"]) == (99, 1968, 1971)
+    assert pipeline.sources([repository])[0].percent == 99
+
+
 def test_seconds_left(user):  # noqa: F811
     """Seconds left."""
     job = FetchJobFactory(user=user, repository__full_name="o/r", items_expected=200, items_done=0)

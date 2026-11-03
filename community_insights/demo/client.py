@@ -135,10 +135,31 @@ class DemoClient:
                     if reviewer == author
                     else [self.node(reviewer, role, self.when(created, 20), key="submittedAt")]
                 )
+                merged = closed and self.random.random() < 0.8
+                # the author pushes after the review, or does not
+                pushed = [created] + (
+                    [last + timedelta(hours=1)] if self.random.random() < 0.7 else []
+                )
                 item.update(
-                    merged=closed and self.random.random() < 0.8,
+                    merged=merged,
                     mergedAt=None,
-                    mergedBy={"login": reviewer} if closed else None,
+                    mergedBy={"login": reviewer} if merged else None,
+                    commits={
+                        "nodes": [
+                            {
+                                "commit": {
+                                    "committedDate": at.isoformat(),
+                                    "author": {"user": {"login": author}},
+                                }
+                            }
+                            for at in pushed
+                        ]
+                    },
+                    timelineItems={
+                        "nodes": [{"actor": {"login": author if merged else reviewer}}]
+                        if closed
+                        else []
+                    },
                     reviews={
                         "pageInfo": {"hasNextPage": False, "endCursor": None},
                         "nodes": reviews,

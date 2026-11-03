@@ -1,0 +1,1 @@
+Every badge is also a PNG and JSON (badge.png, badge.json); the JSON has the spec of shields.io endpoint badges and what the badge counted, for the reply badges the row of the table. The pages that make badges switch between SVG and PNG and link the JSON.

@@ -1,0 +1,1 @@
+The page Replies and its badges read what changed on GitHub before they show it, waiting at most AUTO_FETCH_TIMEOUT seconds (10 by default), with the tokens of the owner of the project or the shared ones; without points left they do not wait.

@@ -1478,13 +1478,6 @@ msgstr "owner/name oder eine Organisation hinzufügen"
 msgid "Repository or organisation to add"
 msgstr "Repository oder Organisation zum Hinzufügen"
 
-msgid ""
-"Public repositories only. After adding, “Read from GitHub” shows whether the"
-" donated tokens can read it now."
-msgstr ""
-"Nur öffentliche Repositories. Nach dem Hinzufügen zeigt „Von GitHub lesen“, "
-"ob die gespendeten Tokens es jetzt lesen können."
-
 msgid "Nothing matches."
 msgstr "Nichts passt."
 
@@ -2196,9 +2189,6 @@ msgstr ""
 msgid "Back to the page of the chart"
 msgstr "Zurück zur Seite des Diagramms"
 
-msgid "Link"
-msgstr "Link"
-
 #, python-format
 msgid ""
 "Your projects hold %(held)s pull requests and issues; this fetch adds about "
@@ -2414,3 +2404,403 @@ msgid ""
 msgstr ""
 "Besucher dürfen das %(times)s-mal pro Stunde. Registriere Dich, um Deine "
 "eigenen Tokens zu nutzen, oder warte auf die nächste Stunde."
+
+msgid "Replies of contributors to %(title)s"
+msgstr "Antworten der Mitwirkenden an %(title)s"
+
+msgid ""
+"Did the authors of pull requests answer the comments and reviews they got? A"
+" pull request is answered when its author commented, reviewed or pushed a "
+"commit after the first feedback of somebody else, not of a bot. Only people "
+"with feedback on a pull request in the time range are listed."
+msgstr ""
+"Haben die Autorinnen und Autoren von Pull Requests auf die Kommentare und "
+"Reviews geantwortet, die sie bekommen haben? Ein Pull Request ist "
+"beantwortet, wenn sein Autor nach der ersten Rückmeldung von jemand anderem,"
+" nicht von einem Bot, kommentiert, ein Review geschrieben oder einen Commit "
+"gepusht hat. Nur Menschen mit Rückmeldung auf einen Pull Request im Zeitraum"
+" sind aufgeführt."
+
+msgid "What changed on GitHub was read just now."
+msgstr "Was sich auf GitHub geändert hat, wurde gerade gelesen."
+
+msgid ""
+"%(green)s answered everything, %(yellow)s did not answer their only pull "
+"request, %(red)s did not answer some."
+msgstr ""
+"%(green)s haben auf alles geantwortet, %(yellow)s nicht auf ihren einzigen "
+"Pull Request, %(red)s auf einige nicht."
+
+msgid "Badge"
+msgstr "Badge"
+
+msgid "Person"
+msgstr "Person"
+
+msgid "Links"
+msgstr "Links"
+
+msgid "The badge to copy"
+msgstr "Das Badge zum Kopieren"
+
+msgid "answered"
+msgstr "beantwortet"
+
+msgid "only one, not answered"
+msgstr "einziger, nicht beantwortet"
+
+msgid "not answered"
+msgstr "nicht beantwortet"
+
+msgid "GitHub profile"
+msgstr "GitHub-Profil"
+
+msgid "Nobody got feedback on a pull request in this time."
+msgstr ""
+"In dieser Zeit hat niemand eine Rückmeldung auf einen Pull Request bekommen."
+
+msgid "Badge of %(login)s"
+msgstr "Badge von %(login)s"
+
+msgid "Replies"
+msgstr "Antworten"
+
+msgid ""
+"The address contains a secret token of the project "
+"<strong>%(name)s</strong>: the badge counts with your classes of people and "
+"fetches with your tokens."
+msgstr ""
+"Die Adresse enthält ein geheimes Token des Projekts "
+"<strong>%(name)s</strong>: das Badge zählt mit Deinen Klassen von Menschen "
+"und liest mit Deinen Tokens."
+
+msgid ""
+"The badge counts the public repositories of your projects, with the default "
+"classes of people: %(repositories)s"
+msgstr ""
+"Das Badge zählt die öffentlichen Repositories Deiner Projekte, mit den "
+"Standardklassen von Menschen: %(repositories)s"
+
+msgid ""
+"These projects together have no public repository and no badge: open one "
+"project to get its badge."
+msgstr ""
+"Diese Projekte zusammen haben kein öffentliches Repository und kein Badge: "
+"öffne ein Projekt, um sein Badge zu bekommen."
+
+msgid "Pull requests and issues of %(login)s in %(title)s"
+msgstr "Pull Requests und Issues von %(login)s in %(title)s"
+
+msgid "Pull requests and issues of %(login)s"
+msgstr "Pull Requests und Issues von %(login)s"
+
+msgid "Replies of %(title)s"
+msgstr "Antworten von %(title)s"
+
+msgid "Replies of %(login)s"
+msgstr "Antworten von %(login)s"
+
+msgid ""
+"%(count)s pull request was read before commits were read: an answer by a "
+"commit is not seen there until it is read again."
+msgid_plural ""
+"%(count)s pull requests were read before commits were read: an answer by a "
+"commit is not seen there until they are read again."
+msgstr[0] ""
+"%(count)s Pull Request wurde gelesen, bevor Commits gelesen wurden: eine "
+"Antwort mit einem Commit ist dort erst zu sehen, wenn er wieder gelesen ist."
+msgstr[1] ""
+"%(count)s Pull Requests wurden gelesen, bevor Commits gelesen wurden: eine "
+"Antwort mit einem Commit ist dort erst zu sehen, wenn sie wieder gelesen "
+"sind."
+
+msgid "what changed and what is missing"
+msgstr "was sich geändert hat und was fehlt"
+
+msgid "the commits and closers of pull requests read before"
+msgstr ""
+"die Commits und wer sie geschlossen hat, für früher gelesene Pull Requests"
+
+msgid "PRs replied to"
+msgstr "PRs beantwortet"
+
+msgid "PRs merged"
+msgstr "PRs gemergt"
+
+msgid "Not replied to and open"
+msgstr "Nicht beantwortet und offen"
+
+msgid "Not replied to and closed"
+msgstr "Nicht beantwortet und geschlossen"
+
+msgid "Nothing to read."
+msgstr "Nichts zu lesen."
+
+msgid "Choose what and how much to read…"
+msgstr "Wählen, was und wie viel gelesen wird …"
+
+msgid "Replies of %(login)s in %(title)s"
+msgstr "Antworten von %(login)s in %(title)s"
+
+msgid "Contributions"
+msgstr "Beiträge"
+
+msgid ""
+"Merged pull requests and those the author closed need no reply and do not "
+"count."
+msgstr ""
+"Gemergte Pull Requests und die, die ihr Autor geschlossen hat, brauchen "
+"keine Antwort und zählen nicht."
+
+msgid "Which pull requests count"
+msgstr "Welche Pull Requests zählen"
+
+msgid ""
+"%(answered)s of %(total)s pull requests with feedback were replied to; "
+"%(merged)s merged."
+msgstr ""
+"%(answered)s von %(total)s Pull Requests mit Rückmeldung wurden beantwortet;"
+" %(merged)s gemergt."
+
+msgid "Pull request"
+msgstr "Pull Request"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "State"
+msgstr "Zustand"
+
+msgid "Opened"
+msgstr "Geöffnet"
+
+msgid "First feedback"
+msgstr "Erste Rückmeldung"
+
+msgid "Replied"
+msgstr "Beantwortet"
+
+msgid "closed by %(who)s"
+msgstr "geschlossen von %(who)s"
+
+msgid "merged: needs no reply"
+msgstr "gemergt: braucht keine Antwort"
+
+msgid "closed by the author: not counted"
+msgstr "vom Autor geschlossen: zählt nicht"
+
+msgid "no feedback"
+msgstr "keine Rückmeldung"
+
+msgid "replied"
+msgstr "beantwortet"
+
+msgid "not replied"
+msgstr "nicht beantwortet"
+
+msgid "No pull requests in this time."
+msgstr "Keine Pull Requests in dieser Zeit."
+
+msgid "What to read"
+msgstr "Was gelesen wird"
+
+msgid ""
+"Reads the last commits and who closed them for the pull requests read before"
+" these were read, 50 in one request; the page Replies needs them to see "
+"replies by a commit. The number comes from the database: nothing was asked "
+"from GitHub for it."
+msgstr ""
+"Liest die letzten Commits und wer sie geschlossen hat für die Pull Requests,"
+" die gelesen wurden, bevor diese gelesen wurden, 50 in einer Anfrage; die "
+"Seite Antworten braucht sie, um Antworten mit einem Commit zu sehen. Die "
+"Zahl kommt aus der Datenbank: GitHub wurde dafür nicht gefragt."
+
+msgid "Choose what to read"
+msgstr "Wählen, was gelesen wird"
+
+msgid ""
+"Green: every comment and review on the pull requests of %(login)s was "
+"answered. Yellow: the only pull request was not answered. Red: some were not"
+" answered. The badge links to <a href=\"%(page)s\">the replies of "
+"%(login)s</a>. When it is opened, it reads what changed on GitHub first, a "
+"few seconds at most."
+msgstr ""
+"Grün: jeder Kommentar und jedes Review auf die Pull Requests von %(login)s "
+"wurde beantwortet. Gelb: der einzige Pull Request wurde nicht beantwortet. "
+"Rot: einige wurden nicht beantwortet. Das Badge verlinkt <a "
+"href=\"%(page)s\">die Antworten von %(login)s</a>. Wenn es geöffnet wird, "
+"liest es zuerst, was sich auf GitHub geändert hat, höchstens ein paar "
+"Sekunden lang."
+
+msgid ""
+"Browsers and the image proxy of GitHub keep each badge for one hour: a "
+"README shows a change at most an hour later."
+msgstr ""
+"Browser und der Bild-Proxy von GitHub behalten jedes Badge eine Stunde: ein "
+"README zeigt eine Änderung höchstens eine Stunde später."
+
+msgid "Change"
+msgstr "Ändern"
+
+msgid "%(shown)s/%(authors)s contributors shown."
+msgstr "%(shown)s/%(authors)s Mitwirkende gezeigt."
+
+msgid "Why not all are shown"
+msgstr "Warum nicht alle gezeigt werden"
+
+msgid "Order of the table"
+msgstr "Reihenfolge der Tabelle"
+
+msgid "Sorted by, drag to change:"
+msgstr "Sortiert nach, zum Ändern ziehen:"
+
+msgid "Sort by %(name)s earlier"
+msgstr "Früher nach %(name)s sortieren"
+
+msgid "Sort by %(name)s later"
+msgstr "Später nach %(name)s sortieren"
+
+msgid ""
+"Pull requests of the person that somebody else closed without merging them"
+msgstr ""
+"Pull Requests der Person, die jemand anderes geschlossen hat, ohne sie zu "
+"mergen"
+
+msgid "PRs closed by others"
+msgstr "PRs von anderen geschlossen"
+
+msgid "Invalid scope of a public use"
+msgstr "Ungültiger Bereich einer öffentlichen Nutzung"
+
+msgid "everybody on this site"
+msgstr "alle auf dieser Seite"
+
+msgid "badges of replies"
+msgstr "Badges der Antworten"
+
+msgid "public pages"
+msgstr "öffentliche Seiten"
+
+msgid "fetches of visitors"
+msgstr "Lesevorgänge von Besuchern"
+
+msgid "Whose tokens update the badge"
+msgstr "Wessen Tokens das Badge aktualisieren"
+
+msgid ""
+"The tokens shared on this site for everybody update the badge; when they "
+"have no points left, it is not updated."
+msgstr ""
+"Die Tokens, die auf dieser Seite für alle geteilt sind, aktualisieren das "
+"Badge; wenn sie keine Punkte mehr haben, wird es nicht aktualisiert."
+
+msgid "Your tokens update it, too:"
+msgstr "Deine Tokens aktualisieren es auch:"
+
+#, python-format
+msgid "the badge of %(login)s"
+msgstr "das Badge von %(login)s"
+
+#, python-format
+msgid "all badges of %(name)s"
+msgstr "alle Badges von %(name)s"
+
+#, python-format
+msgid "%(points)s points per hour"
+msgstr "%(points)s Punkte pro Stunde"
+
+msgid "Also with my token"
+msgstr "Auch mit meinem Token"
+
+msgid "For"
+msgstr "Für"
+
+#, python-format
+msgid "this badge of %(login)s"
+msgstr "dieses Badge von %(login)s"
+
+msgid "Share in percent"
+msgstr "Anteil in Prozent"
+
+#, python-format
+msgid "<a href=\"%(access_url)s\">Add a token</a> to update the badge with it."
+msgstr ""
+"<a href=\"%(access_url)s\">Füge ein Token hinzu</a>, um das Badge damit zu "
+"aktualisieren."
+
+#, python-format
+msgid ""
+"Change or remove what your tokens allow under <a "
+"href=\"%(access_url)s\">GitHub access</a>."
+msgstr ""
+"Ändere oder entferne, was Deine Tokens erlauben, unter <a "
+"href=\"%(access_url)s\">GitHub-Zugang</a>."
+
+#, python-format
+msgid ""
+"<a href=\"%(login_url)s?next=%(next)s\">Sign in</a> to let your own tokens "
+"update it, too."
+msgstr ""
+"<a href=\"%(login_url)s?next=%(next)s\">Melde Dich an</a>, damit auch Deine "
+"eigenen Tokens es aktualisieren."
+
+msgid ""
+"Allow the badges, the public pages or the visitors of a public scope to read"
+" with this token, each with its own share of the maximum per hour. An "
+"organisation covers all its repositories."
+msgstr ""
+"Erlaube den Badges, den öffentlichen Seiten oder den Besuchern eines "
+"öffentlichen Bereichs, mit diesem Token zu lesen, jeweils mit einem eigenen "
+"Anteil am Maximum pro Stunde. Eine Organisation umfasst alle ihre "
+"Repositories."
+
+msgid "of"
+msgstr "von"
+
+msgid "Remove this public use?"
+msgstr "Diese öffentliche Nutzung entfernen?"
+
+#, python-format
+msgid "%(points)s points per hour, %(used)s used this hour"
+msgstr "%(points)s Punkte pro Stunde, %(used)s in dieser Stunde genutzt"
+
+msgid "Scope"
+msgstr "Bereich"
+
+msgid "Only the badge of"
+msgstr "Nur das Badge von"
+
+#, python-format
+msgid "%(scope)s is no public scope such as owner or owner~name."
+msgstr "%(scope)s ist kein öffentlicher Bereich wie owner oder owner~name."
+
+msgid "The public use was added."
+msgstr "Die öffentliche Nutzung wurde hinzugefügt."
+
+msgid "The public use was removed."
+msgstr "Die öffentliche Nutzung wurde entfernt."
+
+#, python-format
+msgid "Public uses: %(count)s"
+msgid_plural "Public uses: %(count)s"
+msgstr[0] "Öffentliche Nutzungen: %(count)s"
+msgstr[1] "Öffentliche Nutzungen: %(count)s"
+
+msgid "Format of the badge"
+msgstr "Format des Badges"
+
+msgid "The badge as JSON"
+msgstr "Das Badge als JSON"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Update"
+msgstr "Aktualisieren"
+
+msgid ""
+"Public repositories only. After adding, “Update” shows whether the donated "
+"tokens can read it now."
+msgstr ""
+"Nur öffentliche Repositories. Nach dem Hinzufügen zeigt „Aktualisieren“, ob "
+"die gespendeten Tokens es jetzt lesen können."

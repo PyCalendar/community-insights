@@ -2,7 +2,7 @@
 Badges
 =======
 
-``/badge/<token>.svg`` returns a badge for the response time of a project. The token is secret and belongs to the project, so the address of a private project cannot be guessed. A badge reads the database only; it never calls GitHub and never uses a token. Update the data with **Read from GitHub**.
+``/badge/<token>.svg`` returns a badge for the response time of a project; ``.png`` returns it as an image for places that show no SVG, and ``.json`` as its spec: ``schemaVersion``, ``label``, ``message`` and ``color`` in the format of `shields.io endpoint badges <https://shields.io/badges/endpoint-badge>`_, and what it counted besides (``kind``, ``percentile``, ``class``, ``model``, ``seconds``, ``counted``). Every badge of the site has these three formats; the pages that make badges switch between SVG and PNG and link the JSON. The token is secret and belongs to the project, so the address of a private project cannot be guessed. A badge reads the database only; it never calls GitHub and never uses a token. Update the data with **Update**.
 
 .. list-table::
    :header-rows: 1

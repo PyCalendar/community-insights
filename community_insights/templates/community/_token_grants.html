@@ -1,0 +1,28 @@
+{% load i18n %}{# The public uses of a token "t": the scopes whose badges, pages or visitors may use it, each with its own share; changed, removed and added here. #}
+<details class="mt-2" id="uses-{{ t.pk }}"{% if t.public_uses %} open{% endif %}>
+  <summary class="small">{% blocktranslate count count=t.public_uses|length %}Public uses: {{ count }}{% plural %}Public uses: {{ count }}{% endblocktranslate %}</summary>
+  <p class="small text-muted mb-1">{% translate "Allow the badges, the public pages or the visitors of a public scope to read with this token, each with its own share of the maximum per hour. An organisation covers all its repositories." %}</p>
+  <ul class="list-unstyled small mb-2">{% for g in t.public_uses %}
+    <li class="d-flex flex-wrap align-items-center gap-2 mb-1">
+      <span><strong>{{ g.get_kind_display }}</strong> {% translate "of" %} <code>{{ g.scope }}</code>{% if g.login %} ({% blocktranslate with login=g.login %}the badge of {{ login }}{% endblocktranslate %}){% endif %}</span>
+      <form method="post" class="d-flex gap-1 align-items-center">{% csrf_token %}<input type="hidden" name="grant" value="{{ g.pk }}">
+        <label class="visually-hidden" for="grant-{{ g.pk }}">{% translate "Share in percent" %}</label>
+        <input class="form-control form-control-sm" style="width: 5rem" type="number" min="0" max="100" id="grant-{{ g.pk }}" name="percent" value="{{ g.percent }}"> %
+        <button class="btn btn-sm btn-outline-primary" name="action" value="grant_edit">{% translate "Save" %}</button>
+        <button class="btn btn-sm btn-outline-secondary" name="action" value="grant_remove" data-confirm="{% translate "Remove this public use?" %}">{% translate "Remove" %}</button>
+      </form>
+      <span class="text-muted">{% blocktranslate with points=g.points used=g.used_in_hour %}{{ points }} points per hour, {{ used }} used this hour{% endblocktranslate %}</span>
+    </li>{% endfor %}
+  </ul>
+  <form method="post" class="row g-1 align-items-end small">{% csrf_token %}<input type="hidden" name="id" value="{{ t.pk }}"><input type="hidden" name="action" value="grant_add">
+    <div class="col-6 col-md-3"><label class="form-label mb-0" for="kind-{{ t.pk }}">{% translate "For" %}</label>
+      <select class="form-select form-select-sm" id="kind-{{ t.pk }}" name="kind">{% for value, label in grant_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-md-3"><label class="form-label mb-0" for="scope-{{ t.pk }}">{% translate "Scope" %}</label>
+      <input class="form-control form-control-sm" id="scope-{{ t.pk }}" name="scope" placeholder="collective~icalendar" required></div>
+    <div class="col-6 col-md-2"><label class="form-label mb-0" for="login-{{ t.pk }}">{% translate "Only the badge of" %}</label>
+      <input class="form-control form-control-sm" id="login-{{ t.pk }}" name="login" placeholder="{% translate "everybody" %}"></div>
+    <div class="col-6 col-md-2"><label class="form-label mb-0" for="percent-{{ t.pk }}">{% translate "Share in percent" %}</label>
+      <input class="form-control form-control-sm" type="number" min="0" max="100" id="percent-{{ t.pk }}" name="percent" value="10"></div>
+    <div class="col-12 col-md-2"><button class="btn btn-sm btn-outline-primary w-100">{% translate "Allow" %}</button></div>
+  </form>
+</details>

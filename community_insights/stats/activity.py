@@ -1,10 +1,12 @@
 """When one person was active, grouped by month, weekday and hour with pandas."""
 
 from datetime import datetime
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-import pandas as pd
+if TYPE_CHECKING:
+    import pandas as pd
 
+from ..heavy import LOCK
 from ..models import Commit, Event, Item
 from .selection import events_in
 
@@ -44,7 +46,7 @@ def activity_of(
     return result
 
 
-def local_times(times, tz) -> pd.Series:
+def local_times(times, tz) -> "pd.Series":
     """Times as a pandas series in the time zone.
 
     Args:
@@ -54,6 +56,9 @@ def local_times(times, tz) -> pd.Series:
     Returns:
         The times, converted.
     """
+    with LOCK:  # see heavy.py
+        import pandas as pd  # loaded when needed: it is large
+
     return pd.Series(
         pd.to_datetime(list(times), utc=True), dtype="datetime64[ns, UTC]"
     ).dt.tz_convert(tz)
@@ -75,6 +80,9 @@ def by_hour_and_weekday(times: list[datetime], tz) -> list[list[int]]:
         >>> grid[0][23], sum(map(sum, grid))
         (1, 1)
     """
+    with LOCK:  # see heavy.py
+        import pandas as pd  # loaded when needed: it is large
+
     local = local_times(times, tz)
     grid = pd.crosstab(local.dt.weekday, local.dt.hour)
     return grid.reindex(index=range(7), columns=range(24), fill_value=0).astype(int).values.tolist()
@@ -97,6 +105,9 @@ def by_month_and_kind(
         >>> by_month_and_kind([(datetime(2026, 1, 31, 23, tzinfo=UTC), "commit")], UTC)
         {(2026, 1): {'commit': 1}}
     """
+    with LOCK:  # see heavy.py
+        import pandas as pd  # loaded when needed: it is large
+
     if not activity:
         return {}
     local = local_times([time for time, _ in activity], tz)
@@ -128,6 +139,9 @@ def responses_by_month(
     Returns:
         The seconds by (year, month).
     """
+    with LOCK:  # see heavy.py
+        import pandas as pd  # loaded when needed: it is large
+
     events = events_in(
         Event.objects.filter(item__repository__in=repositories, actor__iexact=login).exclude(
             kind=Event.OPENED

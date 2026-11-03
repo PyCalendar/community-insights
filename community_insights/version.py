@@ -34,6 +34,22 @@ def git_commit() -> str:
     return found.stdout.strip()
 
 
+def short_version(version: str) -> str:
+    """The version without the local part of a build that is no release.
+
+    Args:
+        version: The version, such as ``0.0.1.dev8+g3f7dc4888.d20261028``.
+
+    Returns:
+        The version for people: the commit and the date are on the page About.
+
+    Examples:
+        >>> short_version("0.0.1.dev8+g3f7dc4888.d20261028"), short_version("0.1.0")
+        ('0.0.1.dev8', '0.1.0')
+    """
+    return version.split("+", 1)[0]
+
+
 @cache
 def get() -> dict:
     """The build information, read once: version, commit, tag, time of the build."""
@@ -42,6 +58,7 @@ def get() -> dict:
     if not info.get("commit_full") and not VERSION_FILE.exists():
         info["commit_full"] = git_commit()
         info["commit"] = info["commit_full"][:7]
+    info["short"] = short_version(info.get("version", ""))
     try:
         info["built_at"] = datetime.fromisoformat(info.get("built", ""))
     except ValueError:

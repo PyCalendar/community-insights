@@ -304,7 +304,7 @@ jobs:
         run: make check-vendor
 
   docker:
-    name: Build and start the Docker image (make docker-test)
+    name: Build, start and scan the Docker image (make docker-test, make docker-scan)
     runs-on: ubuntu-latest
     steps:
       - name: Check out the code
@@ -313,6 +313,8 @@ jobs:
           persist-credentials: false
       - name: Run make docker-test
         run: make docker-test
+      - name: Scan the image with Trivy (make docker-scan)
+        run: make docker-scan
 
   push:
     name: Push the Docker image to ghcr.io

@@ -10,7 +10,7 @@ from .base import CommunityError
 class FetchStopped(CommunityError):
     """A fetch from GitHub stopped before it read everything.
 
-    What was read is kept. Read from GitHub again to continue.
+    What was read is kept. Press Update again to continue.
 
     How data is fetched: :doc:`/explanation/pipeline`.
     """

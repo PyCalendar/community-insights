@@ -4,9 +4,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime
 
-import numpy
-import statsmodels.api as sm
-
+from ..heavy import LOCK
 from .responses import Times
 
 MIN_RESPONSES = 10  # fewer give no trend
@@ -89,6 +87,10 @@ def trend(rows: list[tuple[datetime, Times, float]]) -> Trend | None:
     Returns:
         The trend; None with fewer than ``MIN_RESPONSES`` responses, or all on one day.
     """
+    with LOCK:  # see heavy.py
+        import numpy
+        import statsmodels.api as sm  # loaded when needed: it is large
+
     answered = [(created, min(times.values())) for created, times, _ in rows if times]
     if len(answered) < MIN_RESPONSES:
         return None

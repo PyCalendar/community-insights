@@ -137,3 +137,32 @@ def test_the_colours_of_the_page_are_chosen_from_a_menu_with_an_icon(site):
     expect(site.page.locator("[data-theme-icon]")).to_have_text("☾")
     site.choose_theme("auto")
     expect(site.page.locator("[data-theme-icon]")).to_have_text("◐")
+
+
+def test_the_heading_of_a_large_table_stays_in_view(read):
+    """On a desktop, the heading sticks to the top of the window while the page scrolls;
+    the table has no scroll bar of its own."""
+    if read.page.viewport_size["width"] < 992:
+        return  # phones scroll the table sideways
+    read.click("Contributors")
+    table = read.page.locator("#contributors-table")
+    table.wait_for()
+    box = read.page.locator(".table-responsive:has(#contributors-table)")
+    assert box.evaluate("b => getComputedStyle(b).overflowX") == "visible"
+    assert box.evaluate("b => b.scrollHeight <= b.clientHeight + 1"), "no scroll bar of its own"
+    read.page.evaluate("document.body.style.paddingBottom = '2000px'")  # room to scroll
+    read.page.evaluate(  # at once: Bootstrap scrolls smoothly otherwise
+        "window.scrollTo({top: document.querySelector('#contributors-table tbody')"
+        ".getBoundingClientRect().top + window.scrollY + 5, behavior: 'instant'})"
+    )
+    heading = read.page.locator("#contributors-table thead th").first
+    assert heading.evaluate("th => getComputedStyle(th).position") == "sticky"
+    assert abs(heading.evaluate("th => th.getBoundingClientRect().top")) < 2
+
+
+def test_choose_what_to_read_in_the_menu_of_the_button(read):
+    """The drop-down of Update opens the page Fetch with the estimate."""
+    read.page.locator(".dropdown-toggle-split").first.click()
+    read.page.get_by_role("link", name="Choose what and how much to read…").click()
+    read.see("API points")
+    read.see("The commits and closers of pull requests read before")

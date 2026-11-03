@@ -8,6 +8,7 @@
     <a class="btn btn-sm {% if active == 'overview' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'overview' scope.text %}{{ scope.query }}">{% translate "Overview" %}</a>
     <a class="btn btn-sm {% if active == 'contributors' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'contributors' scope.text %}{{ scope.query }}">{% translate "Contributors" %}</a>
     <a class="btn btn-sm {% if active == 'items' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'items' scope.text %}{{ scope.query }}">{% translate "Pull requests and issues" %}</a>
+    <a class="btn btn-sm {% if active == 'replies' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'replies' scope.text %}{{ scope.query }}">{% translate "Replies" %}</a>
     {% if scope.repositories.count > 1 %}<a class="btn btn-sm {% if active == 'compare' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'compare' scope.text %}{{ scope.query }}">{% translate "Compare repositories" %}</a>{% endif %}
   </div>
 </div>

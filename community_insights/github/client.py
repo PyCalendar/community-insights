@@ -4,7 +4,7 @@ import httpx
 from aiolimiter import AsyncLimiter
 from django.conf import settings
 
-from ..errors import GitHubUnreachable, SecondaryRateLimitExceeded
+from ..errors import GitHubAnswerNotJSON, GitHubUnreachable, SecondaryRateLimitExceeded
 from . import limits, reads
 from .answers import data_of
 from .headers import header_int
@@ -44,7 +44,9 @@ class Client:
         """The data of a query.
 
         When GitHub asks to slow down, wait as long as it asks and try again; longer waits
-        are left to the caller.
+        are left to the caller. When it answers with a server error or something unreadable, as
+        when a query took it too long, or cannot be reached, wait a little longer each time
+        and try again.
 
         Args:
             query: The GraphQL query.
@@ -56,6 +58,8 @@ class Client:
         Raises:
             SecondaryRateLimitExceeded: If GitHub asks to wait longer than ``limits.MAX_WAIT``, or
                 still after ``limits.RETRIES`` tries.
+            GitHubUnreachable: If GitHub still cannot answer after ``limits.RETRIES`` tries.
+            GitHubAnswerNotJSON: If it still answers something unreadable then.
             AssertionError: Never: the loop returns or raises before.
         """
         for attempt in range(limits.RETRIES + 1):
@@ -66,6 +70,10 @@ class Client:
                 if attempt == limits.RETRIES or wait > limits.MAX_WAIT:
                     raise
                 await asyncio.sleep(wait)
+            except (GitHubUnreachable, GitHubAnswerNotJSON):  # mostly gone a moment later
+                if attempt == limits.RETRIES:
+                    raise
+                await asyncio.sleep(limits.backoff(attempt, None))
         raise AssertionError("not reached")
 
     async def send(self, query: str, variables: dict) -> dict:

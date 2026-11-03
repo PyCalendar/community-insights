@@ -2,7 +2,7 @@
 Translate the pages
 ===================
 
-The pages are in English and German. People get the language of their browser; the names of the languages at the bottom of every page switch it, and the choice is kept in a cookie. The addresses stay the same in every language, so links and badges keep working.
+The pages are in English, German and Spanish. People get the language of their browser; the choice of the language at the bottom of every page switches it, and the choice is kept in a cookie. The addresses stay the same in every language, so links and badges keep working.
 
 What is translated
 ==================
@@ -33,7 +33,7 @@ Change or add a text
 
 The tests in ``tests/i18n/`` fail if a text has no translation, if a translation lost a placeholder such as ``%(name)s`` or an HTML tag, or if the compiled ``.mo`` files are older than the ``.po`` files. The CI runs ``make test-translations``.
 
-The German texts address people informally, with a capital letter as in a letter: *Du*, *Dir*, *Dein*.
+The German texts address people informally, with a capital letter as in a letter: *Du*, *Dir*, *Dein*. The Spanish texts address people informally, too: *tú*.
 
 Add a language
 ==============

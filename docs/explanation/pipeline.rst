@@ -10,7 +10,7 @@ The site works in two steps:
 .. mermaid::
 
     flowchart LR
-        page[Statistics page] -->|Read from GitHub| estimate[Estimate points and time]
+        page[Statistics page] -->|Update| estimate[Estimate points and time]
         estimate -->|confirm, limit, priority| queue[(Queue)]
         queue --> worker[Worker]
         tokens[Tokens in order] --> worker

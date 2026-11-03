@@ -114,3 +114,10 @@ test("badgeUrl keeps the classes of the page in the base", () => {
     BASE + "?classes=maintainer-3&kind=pr&percentile=50",
   );
 });
+
+test("withFormat changes the format of a badge and keeps its parameters", () => {
+  assert.equal(badge.withFormat("/badge/s/o~r.svg?kind=pr", "png"), "/badge/s/o~r.png?kind=pr");
+  assert.equal(badge.withFormat("/badge/t.png", "json"), "/badge/t.json");
+  assert.equal(badge.withFormat("/badge/s/a~pycal.org.svg", "png"), "/badge/s/a~pycal.org.png");
+  assert.equal(badge.withFormat("/badge/t.svg", "gif"), "/badge/t.svg", "unknown: svg");
+});

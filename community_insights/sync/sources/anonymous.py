@@ -59,6 +59,7 @@ class AnonymousSource:
     """
 
     replaces_events = False
+    reads_details = False  # the commits and closers of pull requests need a token
 
     def __init__(self, client):
         """Read repositories without a token, with the REST API of GitHub.
@@ -237,3 +238,14 @@ class AnonymousSource:
             None for each login.
         """
         return dict.fromkeys(logins)  # names and locations need a token
+
+    async def details(self, ids: list[str]) -> list[dict | None]:
+        """No commits and closers: they need a token.
+
+        Args:
+            ids: The node ids of the pull requests.
+
+        Returns:
+            None for each.
+        """
+        return [None] * len(ids)

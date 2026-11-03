@@ -6,6 +6,7 @@ from asgiref.sync import sync_to_async
 from ..errors import AllTokensUsedUp, FetchLimitReached
 from ..models import Item, Repository
 from . import events, store
+from .queries import DETAILS
 from .sources import GraphQLSource
 
 PEOPLE_BATCH = 30
@@ -172,8 +173,28 @@ class Syncer:
 
         await together(*(read(batch) for batch in batches))
 
+    async def sync_details(self, repository: Repository, count: bool = True) -> str:
+        """Read the commits and closers of the pull requests read before these were read.
+
+        Args:
+            repository: The repository.
+            count: Whether each pull request counts as an item read for the progress; not
+                when this completes a fetch of what changed, whose progress counts its items.
+
+        Returns:
+            How many pull requests were completed.
+        """
+        ids = await sync_to_async(store.without_details)(repository)
+        done = 0
+        for start in range(0, len(ids), DETAILS):
+            nodes = await self.source.details(ids[start : start + DETAILS])
+            done += await sync_to_async(store.save_details)(repository, nodes)
+            for _ in nodes if count else ():
+                await self.on_item()
+        return f"commits and closers of {done} of {len(ids)} pull requests read"
+
     async def sync(self, repository: Repository) -> str:
-        """Read the pull requests, issues and people; a summary.
+        """Read the pull requests, issues, commits and people, and what older ones miss.
 
         Args:
             repository: The repository.
@@ -187,4 +208,9 @@ class Syncer:
             self.sync_commits(repository),
         )
         await self.sync_people(repository)
-        return f"{prs} pull requests, {issues} issues and {commits} commits read"
+        found = f"{prs} pull requests, {issues} issues and {commits} commits read"
+        reads_details = getattr(self.source, "reads_details", False)
+        missing = reads_details and await sync_to_async(store.without_details)(repository)
+        if missing:  # read before their commits and closers were read: all a page needs
+            found += "; " + await self.sync_details(repository, count=False)
+        return found

@@ -5,6 +5,7 @@ import pytest
 from community_insights.errors import InvalidTarget
 from community_insights.models import Project
 from community_insights.sync import add_project
+from tests.factories.access_token import share
 
 from ..fakes import FakeClient, repo, run
 
@@ -74,7 +75,7 @@ def test_the_dashboard_does_not_tell_of_private_repositories_of_others(
     from community_insights.models import AccessToken
 
     other = get_user_model().objects.create_user("kim", "kim@example.org", "pw")
-    AccessToken.objects.create(user=other, token="kims", login="kim", shared_percent=50)
+    share(AccessToken.objects.create(user=other, token="kims", login="kim"), 50)
     AccessToken.objects.filter(user=user).delete()
     fake = FakeClient(repositories=[repo("kim/secret", private=True)])
     monkeypatch.setattr("community_insights.github.Client", lambda token: fake)

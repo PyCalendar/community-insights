@@ -6,7 +6,7 @@ database.
 
 from django.utils.dateparse import parse_datetime
 
-from ..models import Event
+from ..models import Event, ItemCommit
 
 
 def is_bot(login: str, typename: str | None = None) -> bool:
@@ -67,6 +67,49 @@ def responses(nodes: list[dict], field: str) -> list[Event]:
                     is_bot=is_bot(actor["login"], actor.get("__typename")),
                     kind=Event.COMMENT if field == "comments" else Event.REVIEW,
                     at=parse_datetime(date),
+                    state=(node.get("state") or "").lower(),
                 )
+            )
+    return found
+
+
+def closer(item: dict) -> str:
+    """Who closed a pull request, from its last closing; "" if unknown or open.
+
+    Args:
+        item: The pull request as GitHub answered it.
+
+    Returns:
+        The login.
+
+    Examples:
+        >>> closer({"timelineItems": {"nodes": [{"actor": {"login": "kim"}}]}})
+        'kim'
+        >>> closer({"timelineItems": {"nodes": [{"actor": None}]}}), closer({})
+        ('', '')
+    """
+    nodes = (item.get("timelineItems") or {}).get("nodes") or []
+    return ((nodes[-1] or {}).get("actor") or {}).get("login", "") if nodes else ""
+
+
+def commits(item: dict) -> list[ItemCommit] | None:
+    """The last commits of a pull request, with their author; None if none were read.
+
+    Args:
+        item: The pull request as GitHub answered it.
+
+    Returns:
+        The commits, not saved yet; None for an answer without commits, such as of an
+        issue or of a source that does not read them.
+    """
+    if "commits" not in item:
+        return None
+    found = []
+    for node in (item["commits"] or {}).get("nodes") or []:
+        commit = (node or {}).get("commit") or {}
+        if commit.get("committedDate"):
+            user = (commit.get("author") or {}).get("user") or {}
+            found.append(
+                ItemCommit(actor=user.get("login", ""), at=parse_datetime(commit["committedDate"]))
             )
     return found

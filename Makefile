@@ -124,7 +124,7 @@ lint: .venv  ## Check the code style
 
 # How manage.py is run; "python manage.py" in a container without uv.
 MANAGE ?= uv run python manage.py
-LANGUAGES ?= de
+LANGUAGES ?= de es
 MESSAGES_IGNORE = -i '.venv/*' -i 'docs/*' -i 'tests/*' -i 'features/*' \
 	-i 'staticfiles/*' -i 'node_modules/*' -i 'static/vendor/*'
 
@@ -212,6 +212,12 @@ docker-test: docker-build  ## Run the container with ALLOWED_HOSTS and check tha
 	[ "$$healthy" = yes ] || { docker logs community-insights-test; \
 		docker inspect -f '{{json .State.Health.Log}}' community-insights-test; }; \
 	docker rm -f community-insights-test >/dev/null; [ "$$healthy" = yes ]
+
+TRIVY = aquasec/trivy:0.58.1
+.PHONY: docker-scan
+docker-scan: docker-build  ## Scan the image with Trivy: fails on critical vulnerabilities that have a fix
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(TRIVY) image \
+		--exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress community-insights
 
 .PHONY: docker-run
 docker-run: docker-build  ## Run the container on $(PORT) with the database of make run (./data) and the superuser admin@example.com

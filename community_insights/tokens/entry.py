@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from ..models import AccessToken
+from ..models import AccessToken, TokenGrant
 from .allowance import HourAllowance
 
 HOUR = timedelta(hours=1)
@@ -11,7 +11,7 @@ class Entry:
 
     A token in a pool, with the client that uses it: the linked GitHub account (no own limit),
     an own AccessToken (up to its maximum, then the allowance of the hour) or the token of
-    somebody else (its shared points).
+    somebody else, through one of its grants (``TokenGrant``) with its own share.
     """
 
     def __init__(
@@ -19,7 +19,7 @@ class Entry:
         label: str,
         client,
         stored: AccessToken | None = None,
-        shared: bool = False,
+        grant: TokenGrant | None = None,
         allowance: HourAllowance | None = None,
     ):
         """A token in a pool, with the limits of this site and of GitHub.
@@ -28,15 +28,20 @@ class Entry:
             label: How the token is named in messages.
             client: The GitHub client with the token.
             stored: The stored token with its limits, None for one that is not stored.
-            shared: True for the points somebody else shares with this site.
+            grant: The grant through which somebody else's token is used; None for one's own.
             allowance: The points the user allowed above the limits for this hour.
         """
         self.label, self.client, self.stored = label, client, stored
-        self.shared = shared
+        self.grant = grant
         self.allowance = allowance or HourAllowance(None)
         if stored is not None:
             client.rate.remaining = stored.rate_remaining
             client.rate.reset_at = stored.rate_reset_at
+
+    @property
+    def shared(self) -> bool:
+        """Whether this is somebody else's token, used through a grant."""
+        return self.grant is not None
 
     def left(self, now: datetime) -> int | None:
         """Points this entry may use now; None for no limit of this site.
@@ -50,8 +55,8 @@ class Entry:
         stored = self.stored
         if stored is None:
             return None
-        if self.shared:
-            return stored.others_left(now)
+        if self.grant is not None:
+            return self.grant.left(now)
         left = stored.owner_left(now)
         if left == 0 and stored.left_at_github(now) != 0:
             return self.allowance.left(now)
@@ -121,7 +126,10 @@ class Entry:
             return
         if error is None:
             over = not self.shared and stored.owner_left(now) == 0
-            stored.count(now, by_others=self.shared)
+            stored.count(now)
+            if self.grant is not None:
+                self.grant.count(now)
+                self.grant.save(update_fields=["hour_started", "used_in_hour"])
             if over:
                 self.allowance.spend()
         rate = self.client.rate

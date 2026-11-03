@@ -9,8 +9,8 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from ..models import Commit, Event, Item, Person, Repository
-from .events import is_bot
+from ..models import Commit, Event, Item, ItemCommit, Person, Repository
+from .events import closer, commits, is_bot
 
 PEOPLE_MAX_AGE = timedelta(days=30)
 
@@ -74,8 +74,10 @@ def save_item(
             "updated_at": parse_datetime(data["updatedAt"]),
             "closed_at": parse_datetime(data["closedAt"]) if data.get("closedAt") else None,
             "merged_by": (data.get("mergedBy") or {}).get("login", ""),
+            "closed_by": closer(data) if data["state"] != "OPEN" else "",
         },
     )
+    save_commits_of(item, data)
     if replace:
         item.events.all().delete()
     else:
@@ -84,6 +86,78 @@ def save_item(
     for event in events:
         event.item = item
     Event.objects.bulk_create(events)
+
+
+def save_commits_of(item: Item, data: dict) -> None:
+    """Replace the last commits of a pull request with those of the answer, if it has them.
+
+    Args:
+        item: The stored pull request.
+        data: The pull request as GitHub answered it.
+    """
+    found = commits(data)
+    if found is None:  # an answer without commits, such as of an issue
+        return
+    item.commits.all().delete()
+    for commit in found:
+        commit.item = item
+    ItemCommit.objects.bulk_create(found)
+    if item.details != Item.DETAILS:  # with the states of its reviews
+        item.details = Item.DETAILS
+        item.save(update_fields=["details"])
+
+
+def without_details(repository: Repository) -> list[str]:
+    """The pull requests read before their details (``Item.DETAILS``), by their node ids.
+
+    Args:
+        repository: The repository.
+
+    Returns:
+        The node ids, newest pull request first.
+    """
+    return list(
+        Item.objects.filter(repository=repository, kind=Item.PR, details__lt=Item.DETAILS)
+        .exclude(node_id="")
+        .order_by("-created_at")
+        .values_list("node_id", flat=True)
+    )
+
+
+@transaction.atomic
+def save_details(repository: Repository, nodes: list[dict | None]) -> int:
+    """The commits and closers of pull requests read again.
+
+    Args:
+        repository: The repository.
+        nodes: The pull requests as GitHub answered them; None for one GitHub no longer has.
+
+    Returns:
+        How many were stored.
+    """
+    stored = 0
+    for data in nodes:
+        if not data:  # GitHub no longer has it
+            continue
+        item = Item.objects.filter(repository=repository, node_id=data["id"]).first()
+        if item is None:
+            continue
+        if item.state == "closed":
+            item.closed_by = closer(data)
+            item.save(update_fields=["closed_by"])
+        approved = {
+            ((r.get("author") or {}).get("login", ""), parse_datetime(r["submittedAt"]))
+            for r in ((data.get("reviews") or {}).get("nodes") or [])
+            if r.get("submittedAt") and r.get("state", "APPROVED") == "APPROVED"
+        }
+        for event in item.events.filter(kind=Event.REVIEW):
+            state = Event.APPROVED if (event.actor, event.at) in approved else ""
+            if event.state != state and (state or event.state == Event.APPROVED):
+                event.state = state
+                event.save(update_fields=["state"])
+        save_commits_of(item, data)
+        stored += 1
+    return stored
 
 
 def save_progress(repository: Repository, kind: str, cursor: str, stop, newest) -> None:

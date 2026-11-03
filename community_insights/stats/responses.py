@@ -2,9 +2,9 @@
 
 from datetime import datetime, timedelta
 
-import numpy
 from django.utils import timezone
 
+from ..heavy import LOCK
 from ..models import Event, Item
 from .selection import items_in
 
@@ -156,6 +156,9 @@ def percentile(values: list[float], p: float) -> float | None:
     Returns:
         The value, or None.
     """
+    with LOCK:  # see heavy.py
+        import numpy
+
     if not len(values):
         return None
     return float(numpy.percentile(values, p))

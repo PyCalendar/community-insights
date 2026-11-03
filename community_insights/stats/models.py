@@ -2,9 +2,7 @@
 
 import math
 
-import numpy
-import scipy.stats
-
+from ..heavy import LOCK
 from .responses import Times, percentile
 from .survival import quantile, survival
 
@@ -57,6 +55,10 @@ def model_percentile(
         >>> model_percentile(entries, [60.0, 120.0, 3600.0], "bot", 50, "kaplan-meier")
         (120.0, 3)
     """
+    with LOCK:  # see heavy.py
+        import numpy
+        import scipy.stats  # loaded when needed: it is large
+
     if model not in MODELS:
         raise ValueError(f"no model {model!r}")
     if model == "kaplan-meier":

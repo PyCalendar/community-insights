@@ -7,9 +7,7 @@ lifelines.
 import math
 import warnings
 
-from lifelines import KaplanMeierFitter
-from lifelines.utils import qth_survival_time
-
+from ..heavy import LOCK
 from .responses import Times
 
 
@@ -52,6 +50,9 @@ def survival(entries: list[Times], observed: list[float], name: str | None):
     Returns:
         The fitted ``lifelines.KaplanMeierFitter``, or None.
     """
+    with LOCK:  # see heavy.py
+        from lifelines import KaplanMeierFitter  # loaded when needed: it is large
+
     durations, responded = waits(entries, observed, name)
     if not any(responded):
         return None
@@ -78,5 +79,8 @@ def quantile(fitted, share: float) -> float | None:
         >>> quantile(fitted, 0.5), quantile(fitted, 0.95)
         (20.0, None)
     """
+    with LOCK:  # see heavy.py
+        from lifelines.utils import qth_survival_time
+
     found = float(qth_survival_time(1 - share, fitted.survival_function_))
     return None if math.isinf(found) else found

@@ -66,13 +66,17 @@ class JobRunner:
         job = self.job
         budget = None if job.point_limit is None else max(0, job.point_limit - job.points_used)
         try:
-            entries = await sync_to_async(entries_for)(job.user, self.make_client)
+            entries = await sync_to_async(entries_for)(job.user, self.make_client, use=job.use)
         except errors.CommunityError as error:
             return await sync_to_async(jobs.finish)(job, FetchJob.FAILED, error)
         # without any token: the requests without a token of this server
         self.pool = TokenPool(entries, budget) if entries else AnonymousSource(AnonymousClient())
         try:
-            message = await Syncer(self.pool, self.on_item, self.check).sync(job.repository)
+            syncer = Syncer(self.pool, self.on_item, self.check)
+            if job.what == FetchJob.DETAILS:
+                message = await syncer.sync_details(job.repository)
+            else:
+                message = await syncer.sync(job.repository)
         except errors.FetchCancelled as error:
             return await self.end(FetchJob.CANCELLED, error)
         except errors.FetchLimitReached as error:

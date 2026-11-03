@@ -130,3 +130,26 @@ def test_the_worker_imports_only_allowed_parts_of_the_site(worker):
     """The worker imports no statistics, charts or pages of the site."""
     packages = {".".join(name.split(".")[:2]) for name in worker["own"]}
     assert packages - OWN == set()
+
+
+def test_a_web_process_loads_the_large_libraries_only_when_needed():
+    """Django with every view loads no statistics library: charts and numbers load them."""
+    import subprocess
+    import sys
+
+    found = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import os, sys; os.environ.setdefault('DJANGO_SETTINGS_MODULE',"
+            " 'community_insights.settings'); import django; django.setup();"
+            " import community_insights.urls;"
+            " print(' '.join(m for m in sys.modules if m.split('.')[0] in"
+            " {'matplotlib', 'lifelines', 'statsmodels', 'scipy', 'pandas', 'pyarrow'}))",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+        env={**os.environ, "PRODUCTION": "false"},
+    )
+    assert found.stdout.strip() == ""

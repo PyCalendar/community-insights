@@ -7,6 +7,7 @@ class Event(models.Model):
     """A comment or review on an item by someone, or the opening of the item."""
 
     OPENED, COMMENT, REVIEW = "opened", "comment", "review"
+    APPROVED = "approved"  # the state of a review that approves: nothing to reply to
     KINDS = [(OPENED, "opened"), (COMMENT, "comment"), (REVIEW, "review")]
     item = models.ForeignKey(Item, models.CASCADE, related_name="events")
     actor = models.CharField(max_length=100, db_index=True)
@@ -14,6 +15,8 @@ class Event(models.Model):
     is_bot = models.BooleanField(default=False)
     kind = models.CharField(max_length=10, choices=KINDS)
     at = models.DateTimeField(db_index=True)
+    # of a review: approved, changes_requested, commented or dismissed; "" for others or unknown
+    state = models.CharField(max_length=20, blank=True)
 
     item_id: int  # the column of the foreign key, for the type checker
 

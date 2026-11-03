@@ -3,11 +3,22 @@
 from .activity import activity_of, by_hour_and_weekday, by_month_and_kind, responses_by_month
 from .bot_suggestions import BotSuggestion, bot_suggestions
 from .contributor import Contributor
+from .contributor_replies import ContributorReplies
 from .contributors import contributors
 from .counts import counts
 from .fit import FitRow, best_fit, summary
 from .format import format_duration
 from .models import MODELS, model_percentile, times_of
+from .pull_reply import PullReply
+from .replies import (
+    SORT_KEYS,
+    commits_unread,
+    pull_order,
+    pull_replies,
+    replies,
+    replies_of,
+    sort_order,
+)
 from .responses import (
     BUCKETS,
     SLOWER,
@@ -36,6 +47,15 @@ __all__ = [
     "BUCKETS",
     "SLOWER",
     "Contributor",
+    "ContributorReplies",
+    "commits_unread",
+    "PullReply",
+    "pull_order",
+    "pull_replies",
+    "replies_of",
+    "SORT_KEYS",
+    "sort_order",
+    "replies",
     "FitRow",
     "best_fit",
     "Times",

@@ -84,7 +84,7 @@ def test_the_day_and_the_week_have_units(figures):
 @pytest.mark.parametrize("theme", charts.THEMES)
 def test_the_heat_map_goes_from_dark_to_the_full_green(theme):
     """The heat map goes from dark to the full green."""
-    colors = charts.HEAT[theme]
+    colors = charts.heat(theme)
     darkest, fullest = to_rgb(colors(0.0)), to_rgb(colors(1.0))
     assert sum(darkest) / 3 < 0.25, "few is dark, not white"
     assert to_hex(fullest) == charts.GREEN
@@ -110,3 +110,39 @@ def test_the_survival_chart_without_responses_says_so():
     """No class got a response: the chart says so."""
     svg = charts.survival_chart("Issues", [{}, {}], [10.0, 20.0], CLASSES).decode()
     assert "Issues: no responses yet" in svg
+
+
+def test_charts_drawn_at_the_same_time_load_matplotlib_once():
+    """Threads that draw the first charts of a fresh process at the same time, and compute
+    statistics, do not stop each other while they load the libraries (heavy.LOCK)."""
+    import os
+    import subprocess
+    import sys
+
+    code = """
+import os, threading
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "community_insights.settings")
+import django
+django.setup()
+from community_insights import charts
+from community_insights.stats import percentile, trend
+found = []
+def work(n):
+    if n % 2:
+        found.append(charts.empty("nothing", "light")[:5].decode())
+    else:
+        found.append(str(percentile([1, 2, 3], 50)))
+threads = [threading.Thread(target=work, args=(n,)) for n in range(8)]
+for t in threads: t.start()
+for t in threads: t.join(60)
+print(sorted(found))
+"""
+    done = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        env={**os.environ, "PRODUCTION": "false"},
+        check=True,
+    )
+    assert done.stdout.strip() == str(sorted(["2.0"] * 4 + ["<?xml"] * 4))

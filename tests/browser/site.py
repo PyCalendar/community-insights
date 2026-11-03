@@ -193,16 +193,14 @@ class Site:
         self.see(f"{target} was added.")
 
     def read_project(self, target: str) -> None:
-        """Read a project from GitHub: estimate, confirm, and wait for the data.
+        """Read a project from GitHub with the button, which reads at once, and wait for the data.
 
         Args:
             target: The repository.
         """
         self.open("/dashboard/")
         self.page.get_by_role("link", name=target, exact=True).first.click()
-        self.click("Read from GitHub")
-        self.see("API points")
-        self.page.locator("form.card button.btn-primary").click()
+        self.click("Update")
         self.see("100% of the data")
 
     # themes

@@ -45,3 +45,7 @@ pytest
 matplotlib
 htmx
 ETag
+PRs
+Camo
+Sencho
+Trivy

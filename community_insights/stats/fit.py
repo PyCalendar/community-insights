@@ -1,9 +1,7 @@
 import math
 from dataclasses import dataclass
 
-import numpy
-import scipy.stats
-
+from ..heavy import LOCK
 from .format import format_duration
 from .responses import Times
 from .survival import quantile, survival
@@ -65,6 +63,9 @@ def summary(
     Returns:
         The rows.
     """
+    with LOCK:  # see heavy.py
+        import numpy
+        import scipy.stats  # loaded when needed: it is large
 
     def show(seconds) -> str:
         return format_duration(float(seconds))  # also numpy numbers

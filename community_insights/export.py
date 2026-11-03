@@ -9,16 +9,18 @@ import io
 import json
 import re
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-import pandas as pd
-import pyarrow
 from django.utils import timezone
 from django.utils.translation import gettext
-from pyarrow import parquet
 
 from . import stats
 from .errors import UnknownTable
+from .heavy import LOCK
 from .models import Commit, Event
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 TABLES = ("responses", "items", "events", "commits", "contributors")
 
@@ -335,7 +337,7 @@ def workbook(
     return sheets
 
 
-def frame(rows: list[dict]) -> pd.DataFrame:
+def frame(rows: list[dict]) -> "pd.DataFrame":
     """Rows as a pandas table, the values as they are.
 
     Args:
@@ -344,6 +346,9 @@ def frame(rows: list[dict]) -> pd.DataFrame:
     Returns:
         The table; without rows, one without columns.
     """
+    with LOCK:  # see heavy.py
+        import pandas as pd  # loaded when needed: it is large
+
     return pd.DataFrame(rows, dtype=object)
 
 
@@ -387,6 +392,11 @@ def to_parquet(rows: list[dict], about: dict) -> bytes:
     Returns:
         The Parquet file.
     """
+    with LOCK:  # see heavy.py
+        import pandas as pd  # loaded when needed: they are large
+        import pyarrow
+        from pyarrow import parquet
+
     table = pd.DataFrame(rows).convert_dtypes()
     for name in table.columns:
         if TIME_COLUMNS.search(str(name)):

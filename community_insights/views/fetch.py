@@ -21,10 +21,13 @@ from ..errors import (
 )
 from ..feedback import error_json, show_error
 from ..github.anonymous import SERVER_QUOTA
-from ..models import FetchJob, Profile
+from ..models import FetchJob, Profile, TokenGrant
 from ..models.profile import HOUR
+from ..pipeline.refresh import unasked
 from ..stats import format_duration
 from ..tokens import points_left
+from ..tokens.access import entries_for
+from ..tokens.use import Use
 from ..visitor_limit import VisitorLimit
 from .dashboard import add_project_for
 from .scope import scope_of, scope_view
@@ -84,14 +87,33 @@ def fetch(request, scope):
     back = safe_next(request, f"/s/{scope.text}/")
     visitor = not request.user.is_authenticated  # only the tokens donated to the site
     profile = None if visitor else Profile.of(request.user)
+    what = request.POST.get("read") or request.GET.get("read") or FetchJob.CHANGES
+    what = what if what in dict(FetchJob.WHATS) else FetchJob.CHANGES
     try:
-        estimates, tokens, spent = pipeline.estimate_for(request.user, scope.repositories)
+        if what == FetchJob.DETAILS:  # counted in the database, GitHub is not asked
+            estimates, spent = pipeline.details_estimates(scope.repositories), 0
+            tokens = entries_for(
+                request.user, make_client=unasked, use=visitor_use(scope) if visitor else None
+            )
+        else:
+            estimates, tokens, spent = pipeline.estimate_for(
+                request.user, scope.repositories, visitor_use(scope) if visitor else None
+            )
+            # a fetch also reads what pull requests read before miss: count its requests
+            details = {
+                e.repository.pk: e.points for e in pipeline.details_estimates(scope.repositories)
+            }
+            for e in estimates:
+                e.points += details.get(e.repository.pk, 0)
     except Exception as error:  # shown with what to do
         show_error(request, error)
         return redirect(back)
     points = sum(e.points for e in estimates)
     # above the number of the profile, a fetch needs a limit, and that number is proposed
     ask_above = profile.fetch_limit if profile else pipeline.ASK_ABOVE
+    if request.method == "POST" and request.POST.get("action") == "now":
+        # the button Update: at once, within the limit the profile proposes
+        return queue_now(request, scope, estimates, points, ask_above, what, back)
     if request.method == "POST" and request.POST.get("action") == "allow" and profile:
         extra = whole_above_zero(request.POST.get("extra", ""))
         if extra is None:
@@ -133,7 +155,7 @@ def fetch(request, scope):
             priority = int(request.POST.get("priority", FetchJob.NORMAL))
         except ValueError:
             priority = FetchJob.NORMAL
-        if not visitor:
+        if not visitor and what == FetchJob.CHANGES:  # details add no items
             try:
                 user_limit.check(request.user, sum(e.missing for e in estimates))
             except UserItemsLimitReached as error:
@@ -149,10 +171,12 @@ def fetch(request, scope):
         jobs = pipeline.enqueue(
             None if visitor else request.user,
             estimates,
+            use=visitor_use(scope) if visitor else None,
             priority=max(FetchJob.LOW, min(FetchJob.HIGH, priority)),
             point_limit=limit,
             reason=request.POST.get("reason", "")[:300] or f"Statistics of {scope.title}",
             reason_url=back,
+            what=what,
         )
         messages.info(
             request,
@@ -193,8 +217,76 @@ def fetch(request, scope):
             "spent_on_estimate": spent,
             "next": back,
             "priorities": FetchJob.PRIORITIES,
+            "what": what,
+            "whats": FetchJob.WHATS,
         },
     )
+
+
+def visitor_use(scope) -> Use | None:
+    """The public use of a fetch a visitor starts: the grants for visitors of its scope.
+
+    Args:
+        scope: The scope of the page.
+
+    Returns:
+        The use; None for projects, which visitors cannot open.
+    """
+    return Use(TokenGrant.VISITORS, scope.text) if scope.public else None
+
+
+def queue_now(request, scope, estimates, points: int, ask_above: int, what: str, back: str):
+    """Queue the fetch at once, as the button Update does, and go back.
+
+    Above the number of points the profile proposes, that number is the limit; visitors
+    are counted as on the page Fetch.
+
+    Args:
+        request: The request.
+        scope: The scope.
+        estimates: What each repository costs.
+        points: All points together.
+        ask_above: The points above which a fetch gets a limit.
+        what: What is read: ``FetchJob.CHANGES`` or ``FetchJob.DETAILS``.
+        back: The page to go back to.
+
+    Returns:
+        A redirect back, with a message.
+    """
+    visitor = not request.user.is_authenticated
+    if visitor:
+        try:
+            VisitorLimit("fetch", settings.VISITOR_FETCHES_PER_HOUR).count(request)
+        except VisitorLimitReached as error:
+            show_error(request, error)
+            return redirect(back)
+    elif what == FetchJob.CHANGES:
+        try:
+            user_limit.check(request.user, sum(e.missing for e in estimates))
+        except UserItemsLimitReached as error:
+            show_error(request, error)
+            return redirect(back)
+    jobs = pipeline.enqueue(
+        None if visitor else request.user,
+        estimates,
+        use=visitor_use(scope) if visitor else None,
+        priority=FetchJob.LOW if visitor else FetchJob.NORMAL,
+        point_limit=ask_above if points > ask_above else None,
+        reason=f"Statistics of {scope.title}",
+        reason_url=back,
+        what=what,
+    )
+    if not estimates:
+        messages.info(request, _("Nothing to read."))
+    elif jobs:
+        messages.info(
+            request,
+            ngettext("%(count)s repository queued.", "%(count)s repositories queued.", len(jobs))
+            % {"count": len(jobs)},
+        )
+    else:
+        messages.info(request, _("Everything is already queued."))
+    return redirect(back)
 
 
 @login_required

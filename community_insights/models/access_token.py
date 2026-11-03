@@ -1,10 +1,16 @@
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from encrypted_fields.fields import EncryptedCharField
 from ordered_model.models import OrderedModel
+
+if TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from .token_grant import TokenGrant
 
 HOUR = timedelta(hours=1)
 GITHUB_POINTS = 5000  # per hour, until GitHub tells the limit of the token
@@ -28,8 +34,9 @@ class AccessToken(OrderedModel):
 
     Tokens are used in their order (django-ordered-model), the token itself is encrypted in the
     database (django-fernet-encrypted-fields). The owner uses up to `max_percent` of the points
-    per hour; `shared_percent` of that is given to everybody else on this site. What is not used
-    stays as a reserve with GitHub.
+    per hour; its grants (``TokenGrant``) give shares of that to others: everybody on this site,
+    or the badges, pages and visitors of a public scope. What is not used stays as a reserve
+    with GitHub.
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, related_name="access_tokens")
@@ -38,22 +45,23 @@ class AccessToken(OrderedModel):
     login = models.CharField(max_length=100)  # whose token it is on GitHub
     linked = models.BooleanField(default=False)  # the linked GitHub account (django-allauth)
     max_percent = models.PositiveSmallIntegerField(default=100)  # of the points per hour
-    shared_percent = models.PositiveSmallIntegerField(default=10)  # of the maximum
     expires_at = models.DateTimeField(null=True, blank=True)  # None: never or unknown
     # what GitHub said in the last answer
     rate_limit = models.IntegerField(null=True, blank=True)
     rate_remaining = models.IntegerField(null=True, blank=True)
     rate_reset_at = models.DateTimeField(null=True, blank=True)
-    # points used in the current hour: by anybody, and by others than the owner
+    # points used in the current hour, by anybody; the grants count what others used
     hour_started = models.DateTimeField(null=True, blank=True)
     used_in_hour = models.PositiveIntegerField(default=0)
-    used_by_others_in_hour = models.PositiveIntegerField(default=0)
     last_test = models.JSONField(default=dict, blank=True)  # {"checked", "missing", "ok", "total"}
     last_error = models.TextField(blank=True)
     last_error_code = models.CharField(max_length=60, blank=True)  # a class of errors/
     created = models.DateTimeField(default=timezone.now)
 
     order_with_respect_to = "user"
+
+    if TYPE_CHECKING:  # the reverse relation, for the type checker
+        grants: RelatedManager[TokenGrant]
 
     class Meta(OrderedModel.Meta):
         pass
@@ -77,11 +85,6 @@ class AccessToken(OrderedModel):
     def reserve(self) -> int:
         """Points that stay with GitHub: the token is not used below them."""
         return self.points_per_hour - self.max_points
-
-    @property
-    def shared_points(self) -> int:
-        """The points per hour others on this site may use (the second slider)."""
-        return percent_of(self.max_points, self.shared_percent)
 
     def new_hour(self, now: datetime) -> bool:
         """Whether the hour of the counters is over.
@@ -122,27 +125,12 @@ class AccessToken(OrderedModel):
         github = self.left_at_github(now)
         return left if github is None else min(left, github)
 
-    def others_left(self, now: datetime) -> int:
-        """Points others may still use this hour, within the reserve.
+    def count(self, now: datetime) -> None:
+        """One point used, by the owner or through a grant.
 
         Args:
             now: The time now.
-
-        Returns:
-            The points.
-        """
-        used = 0 if self.new_hour(now) else self.used_by_others_in_hour
-        return min(max(0, self.shared_points - used), self.owner_left(now))
-
-    def count(self, now: datetime, by_others: bool) -> None:
-        """One point used, by the owner or by somebody else.
-
-        Args:
-            now: The time now.
-            by_others: True if somebody else used the shared points.
         """
         if self.new_hour(now):
-            self.hour_started, self.used_in_hour, self.used_by_others_in_hour = now, 0, 0
+            self.hour_started, self.used_in_hour = now, 0
         self.used_in_hour += 1
-        if by_others:
-            self.used_by_others_in_hour += 1

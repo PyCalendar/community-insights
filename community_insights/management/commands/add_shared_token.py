@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
-from community_insights.models import AccessToken
+from community_insights.models import AccessToken, TokenGrant
 from community_insights.tokens import ask_one
 
 
@@ -57,14 +57,14 @@ class Command(BaseCommand):
             login=login,
             label=label[:100],
             max_percent=max_percent,
-            shared_percent=100,
             expires_at=client.rate.expires_at,
             rate_limit=client.rate.limit,
             rate_remaining=client.rate.remaining,
             rate_reset_at=client.rate.reset_at,
         )
+        everybody = TokenGrant.objects.create(token=stored, kind=TokenGrant.EVERYBODY, percent=100)
         self.stdout.write(
-            f"The token of {login} is shared: {stored.shared_points} points per hour "
+            f"The token of {login} is shared: {everybody.points} points per hour "
             f"for everybody, owned by {superuser}."
         )
         if client.rate.expires_at is None:
