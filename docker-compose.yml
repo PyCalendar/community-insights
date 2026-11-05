@@ -1,4 +1,4 @@
-# The setup of the tutorial: https://community-insights.readthedocs.io/en/latest/tutorial.html
+# The setup of the tutorial: https://community-insights.readthedocs.io/en/latest/tutorials/set-up.html
 #   cp .env.example .env    # then edit .env
 #   docker compose up -d
 

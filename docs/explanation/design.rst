@@ -39,7 +39,7 @@ The charts, their data for Chart.js and the badges are kept under the stamp, the
 Ways to give access to GitHub
 =============================
 
-The site reads GitHub with the accounts and tokens of the people who use it. There are three ways to give it access, and they can be combined. The site reads with a linked GitHub account first, then with the tokens in their order, then with the points others share.
+The site reads GitHub with the accounts and tokens of the people who use it. There are three ways to give it access, and they can be combined. The site reads with a linked GitHub account first, then with the tokens in their order, then with the points others share. Others share their tokens through public uses: for everybody on the site, or only for the badges, the public pages or the visitors of a public scope, each with its own share of the points (see :ref:`public-uses`); a fetch for a public badge or page can use only the shares meant for it.
 
 .. list-table::
    :header-rows: 1
@@ -60,7 +60,7 @@ The site reads GitHub with the accounts and tokens of the people who use it. The
 Tokens and privacy
 ==================
 
-The token of the signed-in user reads GitHub. A project only contains repositories this token could see when it was added. Badges contain no token and read the database.
+The token of the signed-in user reads GitHub. A project only contains repositories this token could see when it was added. Badges contain no token: the badge of the response time reads the database only; a badge of replies and the page Replies first queue a fetch of what changed, read by the worker with the tokens of the owner of the project or the shares allowed for them, and wait a few seconds for it. A page or a badge never asks GitHub itself.
 
 Response times
 ==============

@@ -45,7 +45,7 @@ def test_this_module_is_among_them() -> None:
     assert __name__ in MODULE_NAMES
 
 
-@pytest.mark.parametrize("filename", ["index.rst", "tutorial.rst"])
+@pytest.mark.parametrize("filename", ["index.rst", "set-up.rst"])
 def test_files_is_included(filename: str) -> None:
     """The documents are found."""
     assert any(path.name == filename for path in DOCUMENT_PATHS)

@@ -406,3 +406,37 @@ def test_the_badge_page_switches_formats_and_links_the_json(replied, client):
     png = page_of(client.get("/s/o~r/replies/cid/badge/?format=png"))
     assert '<img src="/badge/s/o~r/replies/cid.png"' in png
     assert 'data-share-image="http://testserver/badge/s/o~r/replies/cid.png"' in png
+
+
+@pytest.mark.parametrize(
+    ("login", "status"), [("cid", "red"), ("ben", "yellow"), ("ann", "green"), ("dot", "grey")]
+)
+def test_the_badge_page_links_the_description_of_its_colour(replied, client, login, status):
+    """The documentation explains each colour, also grey for somebody not on the page."""
+    page = page_of(client.get(f"/s/o~r/replies/{login}/badge/"))
+    assert f"reference/badges.html#reply-badge-{status}" in page
+    assert "reference/badges.html#reply-badges" in page
+
+
+def test_the_examples_of_the_documentation_are_the_badges_of_the_site():
+    """docs/reference/badges/ has the badges the site draws: manage.py reply_badge_examples."""
+    from community_insights.management.commands.reply_badge_examples import (
+        DEFAULT_FOLDER,
+        example_files,
+    )
+
+    for name, content in example_files().items():
+        assert (DEFAULT_FOLDER / name).read_bytes() == content, (
+            f"run: uv run python manage.py reply_badge_examples ({name})"
+        )
+
+
+def test_the_documentation_links_of_the_badges_exist():
+    """Every anchor the pages link to is in the documentation."""
+    from pathlib import Path
+
+    badges = (Path(__file__).parents[2] / "docs" / "reference" / "badges.rst").read_text()
+    for anchor in ("reply-badges", "response-time-badges") + tuple(
+        f"reply-badge-{colour}" for colour in ("green", "yellow", "red", "grey")
+    ):
+        assert f".. _{anchor}:" in badges

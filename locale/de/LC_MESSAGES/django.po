@@ -2879,7 +2879,8 @@ msgstr "Beitragende"
 
 msgid "Ask another administrator to remove your administrator access."
 msgstr ""
-"Bitten Sie einen anderen Administrator, Ihren Administratorzugang zu entfernen."
+"Bitten Sie einen anderen Administrator, Ihren Administratorzugang zu "
+"entfernen."
 
 msgid "Only the administrators may see the users."
 msgstr "Nur Administratoren dürfen die Benutzer sehen."
@@ -2902,6 +2903,12 @@ msgid ""
 msgstr ""
 "Besucher dürfen das %(times)s-mal pro Stunde. Registriere Dich, um Deine "
 "eigenen Tokens zu nutzen, oder warte auf die nächste Stunde."
+
+msgid "What the colour of this badge means"
+msgstr "Was die Farbe dieses Badges bedeutet"
+
+msgid "All badges of replies"
+msgstr "Alle Badges der Antworten"
 
 #, python-format
 #~ msgid "Sign out %(name)s"

@@ -22,7 +22,7 @@ Every statistics page shows how complete its data is: the items downloaded of th
 Estimate
 ========
 
-Before reading, the site asks GitHub how many pull requests and issues there are (one API point for up to 50 repositories) and estimates the points: one per 50 items, some for items with many comments, and some for the people. The time is measured from earlier fetches. More than 5000 points, one hour of one token, need a limit.
+Before reading, the site asks GitHub how many pull requests and issues there are (one API point for up to 50 repositories) and estimates the points: one per 50 items, some for items with many comments, and some for the people. A fetch also reads the last commits, the closer and the approvals of pull requests read before these were read, one point per 50 of them, counted in the database. **Update** starts the fetch at once, within the limit of the profile; its drop-down shows the estimate first. The time is measured from earlier fetches. More than 5000 points, one hour of one token, need a limit.
 
 The queue
 =========
@@ -50,7 +50,7 @@ Where the worker runs
      - the Docker image (its default) and ``docker compose`` as it comes
    * - ``external-separate-container``
      - only the ``worker`` service of ``docker-compose.yml``; the web container starts no worker
-     - larger installations, see the :doc:`../tutorial`
+     - larger installations, see the :doc:`../tutorials/set-up`
    * - ``inline``
      - in the request that queued the fetch
      - the tests

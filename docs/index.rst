@@ -10,8 +10,8 @@ Contributor Community Insights is a web application that shows how healthy the c
 .. grid:: 2
     :gutter: 2
 
-    .. grid-item-card:: 🎓 Tutorial
-        :link: tutorial
+    .. grid-item-card:: 🎓 Tutorials
+        :link: tutorials/index
         :link-type: doc
 
         Set up your own installation with Docker Compose, step by step.
@@ -43,7 +43,7 @@ Contributor Community Insights is a web application that shows how healthy the c
 .. toctree::
    :hidden:
 
-   tutorial
+   tutorials/index
    how-to/index
    reference/index
    explanation/index

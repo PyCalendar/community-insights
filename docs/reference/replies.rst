@@ -43,11 +43,7 @@ PRs closed by others
 Order
    People with an open pull request without a reply first. Then the smallest share of replies: replied to/that count, so 0/5 and 0/1 come before 1/2. With the same share, more pull requests that count come first: 0/5 before 0/1.
 
-The badge of each person is
-
-- **green** if every pull request that counts was replied to,
-- **yellow** if the person has only one pull request, it counts, and it was not replied to,
-- **red** if some pull requests that count were not replied to.
+The badge of each person is **green** if every pull request that counts was replied to, **yellow** if the person has only one pull request, it counts, and it was not replied to, and **red** if some that count were not replied to. All badges, with the grey one of people who are not on the page, are in :ref:`reply-badges`.
 
 The label of a row opens the replies of the person (``/s/<scope>/replies/<login>/``): all their pull requests of the time range with their titles, those without a reply first, and why the others need no reply. Every row also links to the page of the person and to their pull requests (``/s/<scope>/people/<login>/items/?kind=pr``); that page also shows their issues (``kind=issue``) or both (no ``kind``).
 
@@ -56,7 +52,7 @@ Pull requests read before commits and closers were read have neither: a reply by
 Badges
 ======
 
-The badge on the replies of a person opens the page of the badge (``/s/<scope>/replies/<login>/badge/``) with the code to copy; the badge links to the replies of the person. The badge is also ``.png`` and ``.json``; the JSON has the row of the table: ``pull_requests``, ``merged``, ``counted``, ``with_feedback``, ``replied``, ``not_replied``, ``not_replied_open`` and ``not_replied_closed`` (the numbers by repository), ``closed_by_others``, ``status`` and the ``page`` of the replies of the person, waiting for a fetch as long as the badge. The badge of a project has its secret token, ``/badge/<token>/replies/<login>.svg``: it counts with the classes of the owner. The badge of public repositories is ``/badge/s/<scope>/replies/<login>.svg``, with the default classes. A person without feedback gets a grey badge, *no feedback yet*.
+Each person has a badge: see :ref:`reply-badges` for its addresses, its colours, its JSON, and which tokens update it.
 
 Reading what changed
 ====================

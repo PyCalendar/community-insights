@@ -2,7 +2,7 @@
 Configure your installation
 =============================
 
-These steps change an installation made with the :doc:`../tutorial`. Each one is independent: choose those you need. All settings are in ``.env``, see :doc:`../reference/configuration`; ``docker compose up -d`` applies them.
+These steps change an installation made with the :doc:`../tutorials/set-up`. Each one is independent: choose those you need. All settings are in ``.env``, see :doc:`../reference/configuration`; ``docker compose up -d`` applies them.
 
 Let people sign in with GitHub
 ==============================

@@ -7,9 +7,9 @@ Without an account
 
 The start page, **Explore**, lists the public repositories the site knows, with their numbers. Open one for its statistics, contributors, pull requests and issues and downloads; all of them work without signing in, with the default classes of people.
 
-To add a public repository or organisation, type ``owner/name`` or ``owner`` and press **Add**. The site checks with the tokens people donated to it that it exists and is public. Then **Update** shows how many points it needs and whether the donated tokens have them this hour; it reads with them, after the fetches of people with an account.
+To add a public repository or organisation, type ``owner/name`` or ``owner`` and press **Add**. The site checks with the tokens people donated to it that it exists and is public. **Update** then reads it at once; the drop-down next to it shows how many points a fetch needs and whether the donated tokens have them.
 
-The address of public statistics names the repositories: ``/s/plone~volto/`` for one, ``/s/plone~volto+django~django/`` for several, ``/s/plone/`` for all known public repositories of an organisation. Their badges are at ``/badge/s/plone~volto.svg``.
+The address of public statistics names the repositories: ``/s/plone~volto/`` for one, ``/s/plone~volto+django~django/`` for several, ``/s/plone/`` for all known public repositories of an organisation. Their badges are at ``/badge/s/plone~volto.svg``, and the badges of replies at ``/badge/s/plone~volto/replies/<login>.svg``.
 
 With an account you can also keep projects, add your own tokens, save queries and change the classes of people.
 
@@ -18,9 +18,9 @@ Signed in, the button **Account** at the top opens a menu with your pages: **Das
 Add projects
 ============
 
-Open the **Dashboard**. Enter ``owner/name`` for one repository or only ``owner`` for a whole organisation or user. Your own repositories are listed on the right, most stars first, with a button to add each.
+Open the **Dashboard** and the tab **Add repositories**. **Refresh from GitHub** lists your repositories, those of your organisations and those you contributed to; type a part of a name to filter them, or any ``owner/name`` or ``owner`` for a whole organisation or user, and choose it.
 
-Press **Update** on the overview. The first read of a large project takes minutes, later reads only fetch what changed.
+Press **Update** on the overview, or on the card of the project on the dashboard. It reads at once all the pages need: what changed, and what earlier reads missed. The first read of a large project takes minutes, later reads only fetch what changed. The drop-down next to **Update** opens the page that estimates the points and time and chooses what and how much to read.
 
 Look at several projects
 ========================
@@ -53,20 +53,27 @@ The overview shows, for pull requests and for issues:
 
 :doc:`../explanation/response-times` explains how to read each of them.
 
+Who replies to feedback
+=======================
+
+**Replies** shows whether the authors of pull requests replied to the comments and reviews they got, with a coloured label for each person; the label opens the replies of the person, with all their pull requests and their badge. :doc:`../tutorials/replies` goes through it step by step, and :doc:`../reference/replies` explains which pull requests count. The page and the badges read what changed on GitHub first, a few seconds at most.
+
 Badges
 ======
 
-The overview has a badge builder. Choose pull requests or issues, the percentile, optionally a class and the text of the left side, and copy the code for Markdown, reStructuredText, HTML or the link. See :doc:`../reference/badges`.
+The overview has a builder of the badge of the response time: choose pull requests or issues, the percentile, optionally a class, the statistic, the text of the left side and SVG or PNG, and copy the code for Markdown, reStructuredText, HTML or the plain URL. Each person on **Replies** has a badge of their replies, with its own page and code. Every badge is also JSON. :doc:`../reference/badges` lists the badges and their colours.
 
 Share
 =====
 
 **Share** at the top of a statistics page copies its address, with the time range, the query and your classes of people. **Share this chart** under a chart gives the code to show it elsewhere, linked to its page. Both open without a sign in: your projects are shared as their public repositories.
 
-Colours
-=======
+Colours and language
+====================
 
 The button with the half circle in the menu chooses the colours of the page: *Auto* follows the system, *Light* and *Dark* stay. The charts change with the page.
+
+The pages are in the language of the browser: English, German or Spanish. The choice at the bottom of every page changes it; see :doc:`translate`.
 
 Download files and read messages
 ================================

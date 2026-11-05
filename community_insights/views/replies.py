@@ -10,19 +10,17 @@ from django.utils.translation import gettext_lazy
 from django_tables2 import RequestConfig
 
 from .. import pipeline, stats
-from ..badge_spec import BadgeSpec
 from ..classify import Classifier
 from ..errors import InvalidInput
 from ..feedback import show_error
 from ..models import AccessToken, Person, Project, TokenGrant
+from ..reply_badges import reply_spec
 from ..stats.contributor_replies import GREEN, RED, YELLOW
 from ..tables import ItemTable, PersonItemFilter, items_with_responses
 from ..tokens.use import Use
 from .access import add_grant
 from .scope import PROJECTS, Scope, public_repositories, scope_of, scope_view, stats_page
 
-COLORS = {GREEN: "#2da44e", YELLOW: "#bf8700", RED: "#cf222e"}
-NO_FEEDBACK = "#9f9f9f"
 # the names of the keys the table can be sorted by, as the titles of its columns
 SORT_NAMES = {
     "badge": gettext_lazy("Badge"),
@@ -256,11 +254,14 @@ def reply_badge_share(request, scope, login):
             show_error(request, error)
         return redirect(request.get_full_path())
     use = Use(TokenGrant.BADGES, public or "", login)
+    found = stats.replies(scope.repositories, scope.classifier(), login=login)
     return stats_page(
         request,
         scope,
         "community/reply_badge.html",
         {
+            # the colour the badge has now, to link its description: grey off the page
+            "status": found[0].status if found else "grey",
             "public_scope": public,
             "scope_name": (public or "").replace("~", "/").replace("+", ", "),
             "own_tokens": list(request.user.access_tokens.all()) if signed_in else [],
@@ -349,14 +350,8 @@ def reply_badge_of(
     )
     found = stats.replies(repositories, Classifier(user), login=login)
     person = found[0] if found else None
-    if person is None:
-        value, color = "no feedback yet", NO_FEEDBACK
-    else:
-        # in English, as the badges in READMEs: unanswered of those with feedback
-        value = f"{person.unanswered_count}/{person.with_feedback} PRs unanswered"
-        color = COLORS[person.status]
-    data = reply_data(login, person, page)
-    return BadgeSpec(login, value, color, data).response(extension, BADGE_KEPT)
+    spec = reply_spec(login, person, reply_data(login, person, page))
+    return spec.response(extension, BADGE_KEPT)
 
 
 def reply_data(login: str, person, page: str | None) -> dict:

@@ -2884,6 +2884,12 @@ msgstr ""
 "Los visitantes pueden hacer esto %(times)s veces por hora. Regístrate para "
 "usar tus propios tokens, o espera a la próxima hora."
 
+msgid "What the colour of this badge means"
+msgstr "Qué significa el color de este badge"
+
+msgid "All badges of replies"
+msgstr "Todos los badges de respuestas"
+
 #, python-format
 #~ msgid "Sign out %(name)s"
 #~ msgstr "Cerrar la sesión de %(name)s"
