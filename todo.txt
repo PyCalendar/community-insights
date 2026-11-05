@@ -150,6 +150,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Internationalization: every text of the site translatable (Django i18n: templates, Python, JavaScript), the language of the browser or chosen in the footer, a first translation (German, "du")
 - [x] Internationalization, the rest: the details of the errors that pages show (forms, queries, dates, classes, adding repositories, visitor limits), the descriptions of the query variables, the texts in charts (axes, titles, legends, weekdays); the allauth pages use the translations of allauth; the badges stay English; the names of the columns of the exports stay English (scripts read them); the messages of fetches that run in the background stay English (no language there)
 - [ ] German texts: checked by a person who speaks German (written by Claude); "Du" with a capital letter was decided
+- [ ] Spanish texts: checked by a person who speaks Spanish (written by Claude, with the informal tú)
 - [x] Bootstrap 5, mobile first, light and dark
 - [x] Green palette as CSS variables in `static/style.css` (#149414 #0e6b0e #649568 #9ccc9c #2b5329); white text only on #0e6b0e / #2b5329 (contrast >= 4.5), dark text on #9ccc9c
 - [x] Charts (matplotlib) in the colours of the website: green palette, series told apart by lightness with gaps between stacked bars, heat map from light to deep green (`community_insights/charts.py`)
@@ -224,13 +225,13 @@ Project constraints:
 - [x] Tags `v1.2.3` publish `stable`, `1.2.3`, `1.2`; main publishes `latest`
 - [x] CI workflow (`.github/workflows/tests.yml`: news fragment, ruff, pytest, docs, docker build)
 - [x] Publish the Docker image to ghcr.io from `.github/workflows/tests.yml`, only after all tests passed: `latest` from main, `stable` and versions from tags, with build information
-- [ ] No `stable` image exists until the first tag: the compose file uses `:stable`
+- [x] No `stable` image exists until the first tag: the compose file uses `:stable`: v0.1.0 published it
 - [x] pre-commit: ruff, yaml/toml checks, whitespace
 - [x] Documentation with Sphinx in `docs/` (Diataxis like calendaring-sync): setup, OAuth app, Docker, Compose, latest version, development setup, environment variables, classes, badges, bug reports
 - [x] Docs: email sign-up, tokens, browser and node tests, version information
 - [x] Changelog with towncrier (`news/`, fragments without `.rst`, `docs/changelog.rst`)
 - [x] Small README that only links to the docs
-- [ ] Read the Docs project community-insights and the first release tag
+- [x] Read the Docs project community-insights (set up by the person; the docs and the changelog of 0.1.0 are online) and the first release tag v0.1.0
 - [x] Vale prose checks, REUSE licensing (`REUSE.toml`, `LICENSES/`), SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md like calendaring-sync, as jobs of tests.yml
 - [x] Coverage report (pytest-cov, Codecov upload in CI)
 
@@ -285,7 +286,7 @@ Approved: all Django packages may be used where they replace code or enable requ
 ### Licenses and versions
 - [x] Implemented: `pip-licenses` reads the Python packages of the About page; their licenses link to the texts at /about/licenses/<name>/
 - [x] Implemented: `hatch-vcs`: the version from the git tag (pyproject.toml, docker/set-version.sh, the push job fetches the history)
-- [ ] Tag the first release (such as v0.2.0, the version pyproject.toml had): until then the version is 0.0.1.devN
+- [x] Tag the first release (such as v0.2.0, the version pyproject.toml had): until then the version is 0.0.1.devN: v0.1.0
 - [x] reuse licenses must also be included in the license page (About: Code from other projects, from REUSE.toml)
 
 ### Tests
@@ -407,7 +408,7 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] Checked the deployment step of the push job: curl is on ubuntu-latest; suggested `--fail-with-body` and a newline at the end of the file.
 - [x] CI failed (040b2ce): the new job "deploy" was missing from the jobs the push does not wait for (tests/quality/test_ci.py); a test checks that deploy needs push and runs only for pushes
 - [x] CI failed: the browser tests at 375x812 timed out on the first page on a slow runner (reproduced on one busy CPU); pages get 60 s to load, actions and expect 30 s
-- [ ] Log gh in (`gh auth login`), so that the logs of the CI can be read with `gh run view --log-failed`
+- [x] Log gh in (`gh auth login`), so that the logs of the CI can be read with `gh run view --log-failed`: gh works, the CI logs were read with it
 - [x] The deployment had no token ("Authentication required"): the job deploy names the environment insight.pycal.org, whose secret SENCHO_TOKEN it passes to curl through env
 - [x] Mail over port 465 (smtp.zoho.com) failed with SMTPServerDisconnected: EMAIL_USE_SSL is read; port 465 chooses it, other ports EMAIL_USE_TLS; both true stops the start (EmailEncryptionConflict, community.E002); in .env.example and the docs
 - [x] Images kept until the data changes, with ETags: a stamp of the data from the notes of django-cachalot per table, the hour and the version (data_stamp.py); charts, chart data and badges are kept and answer 304 (views/stamped.py); the contributors are kept (Scope.contributors)
@@ -486,8 +487,9 @@ Approved: all Django packages may be used where they replace code or enable requ
 - [x] Commit, push, fix the CI until it is green so that it deploys (asked by the person): 377f843 and three fixes of browser tests that raced in CI; run 41695390067 green, deployed (Version 0.0.1.dev27)
 - [x] Release 0.1.0 (asked by the person): changelog built by towncrier, tag v0.1.0
 - [x] The deploy of main failed with 409 "already updating" while the deploy of the tag v0.1.0 ran: re-run, and the deploy job runs one at a time (concurrency group)
+- [x] The health check seemed to upgrade from HTTP/1.0 to 1.1: the two lines are one request, logged by nginx (HTTP/1.1 from urllib) and by gunicorn (HTTP/1.0 from nginx); nginx now forwards with HTTP/1.1 (proxy_http_version)
 - [ ] Install Trivy on the Sencho node, so its post-deploy scan runs (on the server: not possible from here)
 - [x] The tests failed with "disk I/O error": the test database data/test-db.sqlite3 of the interrupted run is broken (4 KB with an old -shm); the tests pass with DATA_DIR in the scratchpad. Ask before deleting data/test-db.sqlite3*
-- [ ] Decide: "only those that do not reply at all should have a column": now the columns are filled for yellow and red rows; green rows show "-"
+- [x] Decide: "only those that do not reply at all should have a column": now the columns are filled for yellow and red rows; green rows show "-"; settled by the later prompts on the columns of the table
 - [x] Lazy imports of matplotlib, lifelines, statsmodels, scipy, pandas and pyarrow (decided): a web process starts with 85 MB instead of 290 MB and loads them with the first statistics or chart; a test checks that none is loaded at the start; the browser tests found a deadlock of Python's import when threads load matplotlib at the same time: all lazy imports of the large libraries happen behind one lock (heavy.LOCK), tested in a fresh process
 - [x] Measure the memory of the fetch worker during a large fetch: 104-112 MB at most while reading all 1971 pull requests and issues of collective/icalendar (a copy of the local database in the scratchpad). The fetch failed twice on GitHub 504 / not JSON (heavier queries with commits): the client now tries server errors and unreadable answers again, 1, 2 and 4 s later; then the fetch finished in one run

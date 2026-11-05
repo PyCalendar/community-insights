@@ -147,3 +147,12 @@ def test_the_health_check_imports_only_the_standard_library():
     outside = {m for m in modules if m not in sys.stdlib_module_names and not m.startswith("_")}
     assert outside == set()
     assert "urllib" in modules
+
+
+def test_nginx_forwards_with_http_1_1():
+    """nginx forwards to gunicorn with HTTP/1.1, as requests come in, not with HTTP/1.0."""
+    from pathlib import Path
+
+    config = (Path(__file__).parents[2] / "docker" / "nginx.conf").read_text()
+    assert "proxy_http_version 1.1;" in config
+    assert 'proxy_set_header Connection "";' in config
