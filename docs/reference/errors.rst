@@ -43,6 +43,13 @@ Input
    :members:
    :show-inheritance:
 
+Users
+=====
+
+.. automodule:: community_insights.errors.users
+   :members:
+   :show-inheritance:
+
 All errors
 ==========
 

@@ -14,6 +14,7 @@ How-to guides
    translate
    use
    profile
+   users
    queries
    verify
    report-bug

@@ -144,7 +144,11 @@ def test_the_health_check_imports_only_the_standard_library():
         check=True,
     )
     modules = set(json.loads(found.stdout))
-    outside = {m for m in modules if m not in sys.stdlib_module_names and not m.startswith("_")}
+    # Python itself loads sitecustomize at the start where the installation has one (Debian)
+    startup = {"sitecustomize", "usercustomize"}
+    outside = {
+        m for m in modules - startup if m not in sys.stdlib_module_names and not m.startswith("_")
+    }
     assert outside == set()
     assert "urllib" in modules
 

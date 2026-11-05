@@ -1,0 +1,18 @@
+{% extends "community/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Users" %}{% endblock %}
+{% block content %}
+<h1 class="h3">{% translate "Users" %}</h1>
+<p class="text-muted">{% translate "The accounts of this site. Administrators see the cache, the database in the admin and this page, and can make others administrators." %}</p>
+<div class="table-responsive"><table class="table table-sm table-hover align-middle">
+  <thead><tr><th>{% translate "User" %}</th><th>{% translate "Email" %}</th><th>{% translate "GitHub" %}</th><th>{% translate "Joined" %}</th><th>{% translate "Administrator" %}</th><th></th></tr></thead>
+  <tbody>{% for account, login in accounts %}<tr data-user="{{ account.username }}">
+    <td>{{ account.username }}{% if account == user %} <span class="badge text-bg-secondary">{% translate "you" %}</span>{% endif %}</td>
+    <td>{{ account.email|default:"-" }}</td>
+    <td>{% if login %}<a href="https://github.com/{{ login|urlencode }}">{{ login }}</a>{% else %}<span class="text-muted">{% translate "not linked" %}</span>{% endif %}</td>
+    <td title="{{ account.date_joined|date:'c' }}">{{ account.date_joined|date:"Y-m-d" }}</td>
+    <td>{% if account.is_superuser %}{% translate "yes" %}{% else %}{% translate "no" %}{% endif %}</td>
+    <td class="text-end">{% if account.is_superuser %}{% if account != user %}<form method="post">{% csrf_token %}<input type="hidden" name="user" value="{{ account.pk }}"><input type="hidden" name="admin" value="0"><button class="btn btn-sm btn-outline-danger" data-confirm="{% blocktranslate with name=account.username %}Remove the administrator access of {{ name }}?{% endblocktranslate %}">{% translate "Remove admin" %}</button></form>{% endif %}{% else %}<form method="post">{% csrf_token %}<input type="hidden" name="user" value="{{ account.pk }}"><input type="hidden" name="admin" value="1"><button class="btn btn-sm btn-outline-primary" data-confirm="{% blocktranslate with name=account.username %}Make {{ name }} an administrator? They can see and change all data of the site.{% endblocktranslate %}">{% translate "Make admin" %}</button></form>{% endif %}</td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

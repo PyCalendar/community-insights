@@ -113,7 +113,9 @@ def test_the_worker_fetched_the_job(worker):
 
 def test_the_worker_imports_only_allowed_packages(worker):
     """Each package the worker imports is in the list of allowed ones."""
-    assert set(worker["modules"]) - ALLOWED == set()
+    # Python itself loads sitecustomize at the start where the installation has one (Debian)
+    startup = {"sitecustomize", "usercustomize"}
+    assert set(worker["modules"]) - ALLOWED - startup == set()
 
 
 def test_the_worker_imports_no_big_library(worker):

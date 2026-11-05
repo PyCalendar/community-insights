@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 12:00+0000\n"
+"POT-Creation-Date: 2026-11-05 13:38+0000\n"
 "PO-Revision-Date: 2026-11-03 12:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: Spanish\n"
@@ -20,21 +20,21 @@ msgstr "tiempo hasta la primera respuesta"
 msgid "responses"
 msgstr "respuestas"
 
-msgid "time of the day (your time zone)"
-msgstr "hora del día (tu zona horaria)"
+#, python-format
+msgid "%(title)s (%(items)s, %(silent)s without a response)"
+msgstr "%(title)s (%(items)s, %(silent)s sin respuesta)"
 
 msgid "activities (number)"
 msgstr "actividades (número)"
+
+msgid "time of the day (your time zone)"
+msgstr "hora del día (tu zona horaria)"
 
 msgid "weekday"
 msgstr "día de la semana"
 
 msgid "median time until the first response"
 msgstr "mediana del tiempo hasta la primera respuesta"
-
-#, python-format
-msgid "%(title)s (%(items)s, %(silent)s without a response)"
-msgstr "%(title)s (%(items)s, %(silent)s sin respuesta)"
 
 msgid "Mon"
 msgstr "lun"
@@ -72,11 +72,9 @@ msgstr "revisión"
 msgid "commit"
 msgstr "commit"
 
-msgid "time since opened"
-msgstr "tiempo desde que se abrió"
-
-msgid "without a response"
-msgstr "sin respuesta"
+#, python-format
+msgid "%(title)s: no responses yet"
+msgstr "%(title)s: aún sin respuestas"
 
 msgid "nobody matches the query"
 msgstr "nadie coincide con la consulta"
@@ -88,20 +86,22 @@ msgstr "sin respuestas a otros"
 msgid "%(title)s (%(items)s): still waiting for a response"
 msgstr "%(title)s (%(items)s): aún esperan una respuesta"
 
+msgid "time since opened"
+msgstr "tiempo desde que se abrió"
+
+msgid "without a response"
+msgstr "sin respuesta"
+
 msgid "no activity"
 msgstr "sin actividad"
 
 #, python-format
-msgid "%(title)s: no responses yet"
-msgstr "%(title)s: aún sin respuestas"
+msgid "%(ident)s is no id of a class."
+msgstr "%(ident)s no es el id de una clase."
 
 #, python-format
 msgid "There are no classes %(idents)s."
 msgstr "No hay clases %(idents)s."
-
-#, python-format
-msgid "%(ident)s is no id of a class."
-msgstr "%(ident)s no es el id de una clase."
 
 #, python-format
 msgid "%(file)s is ready to download"
@@ -319,6 +319,9 @@ msgstr "Tabla desconocida"
 msgid "Check the numbers yourself"
 msgstr "Comprueba los números tú mismo"
 
+msgid "Invalid scope of a public use"
+msgstr "Ámbito no válido de un uso público"
+
 msgid "Problem with a token"
 msgstr "Problema con un token"
 
@@ -337,6 +340,15 @@ msgstr "Token rechazado: dura demasiado"
 msgid "Token not allowed"
 msgstr "Token no permitido"
 
+msgid "User not changed"
+msgstr "Usuario no modificado"
+
+msgid "How to manage the users"
+msgstr "Cómo gestionar los usuarios"
+
+msgid "Your own administrator access stays"
+msgstr "Su propio acceso de administrador se mantiene"
+
 #, python-format
 msgid "There is no table %(name)s."
 msgstr "No hay ninguna tabla %(name)s."
@@ -344,15 +356,15 @@ msgstr "No hay ninguna tabla %(name)s."
 msgid "What to do"
 msgstr "Qué hacer"
 
-msgid "DEFAULT_SUPERUSER must be \"email:password\"; the password is missing."
-msgstr "DEFAULT_SUPERUSER debe ser \"correo:contraseña\"; falta la contraseña."
-
 #, python-format
 msgid ""
 "DEFAULT_SUPERUSER must be \"email:password\"; %(email)s is no email address."
 msgstr ""
 "DEFAULT_SUPERUSER debe ser \"correo:contraseña\"; %(email)s no es una "
 "dirección de correo."
+
+msgid "DEFAULT_SUPERUSER must be \"email:password\"; the password is missing."
+msgstr "DEFAULT_SUPERUSER debe ser \"correo:contraseña\"; falta la contraseña."
 
 msgid "handles (space separated names)"
 msgstr "nombres de usuario (separados por espacios)"
@@ -404,6 +416,18 @@ msgstr "lo que cambió y lo que falta"
 
 msgid "the commits and closers of pull requests read before"
 msgstr "los commits y quién cerró los pull requests leídos antes"
+
+msgid "everybody on this site"
+msgstr "todos en este sitio"
+
+msgid "badges of replies"
+msgstr "badges de respuestas"
+
+msgid "public pages"
+msgstr "páginas públicas"
+
+msgid "fetches of visitors"
+msgstr "lecturas de visitantes"
 
 msgid "GitHub handle"
 msgstr "nombre de usuario de GitHub"
@@ -498,24 +522,16 @@ msgid "It is called %(new)s now."
 msgstr "Ahora se llama %(new)s."
 
 #, python-format
-msgid "Not a comparison: %(part)s."
-msgstr "No es una comparación: %(part)s."
-
-#, python-format
-msgid "Expected a variable, a number or text, found %(part)s."
-msgstr "Se esperaba una variable, un número o un texto; se encontró %(part)s."
-
-#, python-format
-msgid "Group by one of %(groups)s, not %(group)s."
-msgstr "Agrupa por uno de %(groups)s, no por %(group)s."
-
-#, python-format
 msgid "Did you mean %(names)s?"
 msgstr "¿Querías decir %(names)s?"
 
 #, python-format
 msgid "%(text)s cannot be read: %(reason)s."
 msgstr "%(text)s no se puede leer: %(reason)s."
+
+#, python-format
+msgid "Not a comparison: %(part)s."
+msgstr "No es una comparación: %(part)s."
 
 #, python-format
 msgid "Unsupported comparison in %(text)s."
@@ -534,8 +550,12 @@ msgstr ""
 ">, >=: %(text)s."
 
 #, python-format
-msgid "%(target)s was not found, or the token cannot see it."
-msgstr "%(target)s no se encontró, o el token no puede verlo."
+msgid "Expected a variable, a number or text, found %(part)s."
+msgstr "Se esperaba una variable, un número o un texto; se encontró %(part)s."
+
+#, python-format
+msgid "Group by one of %(groups)s, not %(group)s."
+msgstr "Agrupa por uno de %(groups)s, no por %(group)s."
 
 #, python-format
 msgid "%(target)s is not owner/name or owner."
@@ -548,6 +568,10 @@ msgstr "%(target)s es privado."
 #, python-format
 msgid "%(target)s has no public repositories."
 msgstr "%(target)s no tiene repositorios públicos."
+
+#, python-format
+msgid "%(target)s was not found, or the token cannot see it."
+msgstr "%(target)s no se encontró, o el token no puede verlo."
 
 msgid "Not allowed"
 msgstr "No permitido"
@@ -564,6 +588,289 @@ msgstr "No encontrado"
 msgid "There is no page at this address, or what it shows is not known yet."
 msgstr ""
 "No hay ninguna página en esta dirección, o lo que muestra aún no se conoce."
+
+msgid "Format of the badge"
+msgstr "Formato del badge"
+
+msgid "The badge as JSON"
+msgstr "El badge como JSON"
+
+msgid "Share this chart"
+msgstr "Compartir este gráfico"
+
+msgid "Data"
+msgstr "Datos"
+
+msgid "Data sources"
+msgstr "Fuentes de datos"
+
+msgid "Repository"
+msgstr "Repositorio"
+
+msgid "Pull requests"
+msgstr "Pull requests"
+
+msgid "Issues"
+msgstr "Issues"
+
+msgid "Complete"
+msgstr "Completo"
+
+msgid "Read"
+msgstr "Leído"
+
+#, python-format
+msgid "%(ago)s ago"
+msgstr "hace %(ago)s"
+
+msgid "never"
+msgstr "nunca"
+
+msgid ""
+"Download the data behind this page. The ODS spreadsheets also have the data "
+"each table was made from, and what the download is."
+msgstr ""
+"Descarga los datos de esta página. Las hojas de cálculo ODS también tienen "
+"los datos de los que se hizo cada tabla, y qué es la descarga."
+
+msgid "How to check the numbers with scipy"
+msgstr "Cómo comprobar los números con scipy"
+
+msgid "Sources shown"
+msgstr "Fuentes mostradas"
+
+msgid "The file is ready."
+msgstr "El archivo está listo."
+
+msgid "The file could not be made."
+msgstr "El archivo no se pudo hacer."
+
+msgid ""
+"The file is being made from the data on this site. You can leave this page; "
+"the file waits here for a week."
+msgstr ""
+"El archivo se está haciendo con los datos de este sitio. Puedes salir de "
+"esta página; el archivo espera aquí durante una semana."
+
+msgid "A message tells you when it is ready."
+msgstr "Un mensaje te avisa cuando esté listo."
+
+msgid "Progress of the file"
+msgstr "Progreso del archivo"
+
+msgid "Download"
+msgstr "Descargar"
+
+msgid "Started for:"
+msgstr "Iniciado para:"
+
+#, python-format
+msgid "%(used)s of %(limit)s points"
+msgstr "%(used)s de %(limit)s puntos"
+
+#, python-format
+msgid "%(used)s points"
+msgstr "%(used)s puntos"
+
+msgid "Earlier"
+msgstr "Antes"
+
+msgid "Later"
+msgstr "Después"
+
+msgid "Stopping…"
+msgstr "Deteniendo…"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Data read from GitHub"
+msgstr "Datos leídos de GitHub"
+
+#, python-format
+msgid "%(percent)s%% of the data (%(items)s of %(total)s items)"
+msgstr "%(percent)s%% de los datos (%(items)s de %(total)s elementos)"
+
+#, python-format
+msgid "%(percent)s%% of the data"
+msgstr "%(percent)s%% de los datos"
+
+#, python-format
+msgid ", complete in about %(left)s"
+msgstr ", completo en unos %(left)s"
+
+msgid ", reading"
+msgstr ", leyendo"
+
+msgid ", read from GitHub to complete it"
+msgstr ", lee de GitHub para completarlo"
+
+msgid "Data and sources"
+msgstr "Datos y fuentes"
+
+msgid "Update"
+msgstr "Actualizar"
+
+msgid "Choose what to read"
+msgstr "Elegir qué leer"
+
+msgid "Choose what and how much to read…"
+msgstr "Elegir qué y cuánto leer…"
+
+#, python-format
+msgid "Replies of %(login)s"
+msgstr "Respuestas de %(login)s"
+
+msgid "answered"
+msgstr "respondido"
+
+msgid "only one, not answered"
+msgstr "único, sin responder"
+
+msgid "not answered"
+msgstr "sin responder"
+
+#, python-format
+msgid "%(count)s repository"
+msgid_plural "%(count)s repositories"
+msgstr[0] "%(count)s repositorio"
+msgstr[1] "%(count)s repositorios"
+
+msgid "Copy the address of this page"
+msgstr "Copiar la dirección de esta página"
+
+msgid "Share"
+msgstr "Compartir"
+
+msgid "Overview"
+msgstr "Resumen"
+
+msgid "Contributors"
+msgstr "Contribuidores"
+
+msgid "Pull requests and issues"
+msgstr "Pull requests e issues"
+
+msgid "Replies"
+msgstr "Respuestas"
+
+msgid "Compare repositories"
+msgstr "Comparar repositorios"
+
+msgid "Time range"
+msgstr "Rango de tiempo"
+
+msgid "From"
+msgstr "Desde"
+
+msgid "To"
+msgstr "Hasta"
+
+msgid "Or the last days"
+msgstr "O los últimos días"
+
+msgid "Show this time"
+msgstr "Mostrar este tiempo"
+
+msgid "All time"
+msgstr "Todo el tiempo"
+
+#, python-format
+msgid ""
+"Pull requests and issues created, and activity, in the last %(days)s day."
+msgid_plural ""
+"Pull requests and issues created, and activity, in the last %(days)s days."
+msgstr[0] ""
+"Pull requests e issues creados, y actividad, en el último %(days)s día."
+msgstr[1] ""
+"Pull requests e issues creados, y actividad, en los últimos %(days)s días."
+
+#, python-format
+msgid ""
+"Pull requests and issues created, and activity, from %(since)s until "
+"%(until)s."
+msgstr ""
+"Pull requests e issues creados, y actividad, desde %(since)s hasta "
+"%(until)s."
+
+#, python-format
+msgid "Pull requests and issues created, and activity, from %(since)s."
+msgstr "Pull requests e issues creados, y actividad, desde %(since)s."
+
+#, python-format
+msgid "Pull requests and issues created, and activity, until %(until)s."
+msgstr "Pull requests e issues creados, y actividad, hasta %(until)s."
+
+msgid "All time."
+msgstr "Todo el tiempo."
+
+msgid "Classes of people of the shared address:"
+msgstr "Clases de personas de la dirección compartida:"
+
+msgid "Use my own classes"
+msgstr "Usar mis propias clases"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Add a repository or organisation"
+msgstr "Añadir un repositorio u organización"
+
+msgid "Filter, or type owner/name or owner"
+msgstr "Filtra, o escribe propietario/nombre o propietario"
+
+msgid "Add"
+msgstr "Añadir"
+
+#, python-format
+msgid "Public uses: %(count)s"
+msgid_plural "Public uses: %(count)s"
+msgstr[0] "Usos públicos: %(count)s"
+msgstr[1] "Usos públicos: %(count)s"
+
+msgid ""
+"Allow the badges, the public pages or the visitors of a public scope to read"
+" with this token, each with its own share of the maximum per hour. An "
+"organisation covers all its repositories."
+msgstr ""
+"Permite a los badges, las páginas públicas o los visitantes de un ámbito "
+"público leer con este token, cada uno con su propia parte del máximo por "
+"hora. Una organización incluye todos sus repositorios."
+
+msgid "of"
+msgstr "de"
+
+#, python-format
+msgid "the badge of %(login)s"
+msgstr "el badge de %(login)s"
+
+msgid "Share in percent"
+msgstr "Parte en porcentaje"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Remove this public use?"
+msgstr "¿Quitar este uso público?"
+
+msgid "Remove"
+msgstr "Quitar"
+
+#, python-format
+msgid "%(points)s points per hour, %(used)s used this hour"
+msgstr "%(points)s puntos por hora, %(used)s usados esta hora"
+
+msgid "For"
+msgstr "Para"
+
+msgid "Scope"
+msgstr "Ámbito"
+
+msgid "Only the badge of"
+msgstr "Solo el badge de"
+
+msgid "Allow"
+msgstr "Permitir"
 
 msgid "About"
 msgstr "Acerca de"
@@ -727,17 +1034,26 @@ msgstr "Oscuro"
 msgid "Explore"
 msgstr "Explorar"
 
+msgid "Account"
+msgstr "Cuenta"
+
+msgid "unread"
+msgstr "sin leer"
+
 msgid "Dashboard"
 msgstr "Panel"
-
-msgid "Downloads"
-msgstr "Descargas"
 
 msgid "Messages"
 msgstr "Mensajes"
 
-msgid "unread"
-msgstr "sin leer"
+msgid "Downloads"
+msgstr "Descargas"
+
+msgid "Profile"
+msgstr "Perfil"
+
+msgid "GitHub access"
+msgstr "Acceso a GitHub"
 
 msgid "Classes"
 msgstr "Clases"
@@ -745,18 +1061,14 @@ msgstr "Clases"
 msgid "Cache"
 msgstr "Caché"
 
-msgid "GitHub access"
-msgstr "Acceso a GitHub"
-
-msgid "Profile"
-msgstr "Perfil"
-
 msgid "Admin"
 msgstr "Administración"
 
-#, python-format
-msgid "Sign out %(name)s"
-msgstr "Cerrar la sesión de %(name)s"
+msgid "Users"
+msgstr "Usuarios"
+
+msgid "Sign out"
+msgstr "Cerrar la sesión"
 
 msgid "Sign in"
 msgstr "Iniciar sesión"
@@ -858,27 +1170,17 @@ msgstr "Borrar"
 msgid "Last used"
 msgstr "Último uso"
 
-msgid "Repository"
-msgstr "Repositorio"
-
 msgid "Items"
 msgstr "Elementos"
 
 msgid "Read from GitHub"
 msgstr "Leer de GitHub"
 
-#, python-format
-msgid "%(ago)s ago"
-msgstr "hace %(ago)s"
-
 msgid "private"
 msgstr "privado"
 
 msgid "The cache is empty."
 msgstr "La caché está vacía."
-
-msgid "Share this chart"
-msgstr "Compartir este gráfico"
 
 msgid "What the kinds of rules mean"
 msgstr "Qué significan los tipos de reglas"
@@ -916,9 +1218,6 @@ msgstr "Id en las direcciones compartidas: %(ident)s"
 #, python-format
 msgid "Name of %(name)s"
 msgstr "Nombre de %(name)s"
-
-msgid "Save"
-msgstr "Guardar"
 
 msgid "Move up"
 msgstr "Subir"
@@ -968,9 +1267,6 @@ msgstr "valor"
 
 msgid "Value"
 msgstr "Valor"
-
-msgid "Add"
-msgstr "Añadir"
 
 msgid "Maybe bots"
 msgstr "Quizá bots"
@@ -1022,14 +1318,8 @@ msgstr ""
 "Una fila por repositorio. Los tiempos de respuesta son de la primera "
 "respuesta de cualquiera menos el autor: la mediana y el percentil 90."
 
-msgid "Pull requests"
-msgstr "Pull requests"
-
 msgid "open / merged"
 msgstr "abiertos / fusionados"
-
-msgid "Issues"
-msgstr "Issues"
 
 msgid "open"
 msgstr "abiertos"
@@ -1046,9 +1336,6 @@ msgstr "Respuesta a issue"
 
 msgid "People"
 msgstr "Personas"
-
-msgid "Data"
-msgstr "Datos"
 
 #, python-format
 msgid "Contributors of %(title)s"
@@ -1180,23 +1467,11 @@ msgid "organisation"
 msgstr "organización"
 
 #, python-format
-msgid "%(count)s repository"
-msgid_plural "%(count)s repositories"
-msgstr[0] "%(count)s repositorio"
-msgstr[1] "%(count)s repositorios"
-
-#, python-format
 msgid "Menu of %(name)s"
 msgstr "Menú de %(name)s"
 
 msgid "Statistics"
 msgstr "Estadísticas"
-
-msgid "Contributors"
-msgstr "Contribuidores"
-
-msgid "Choose what and how much to read…"
-msgstr "Elegir qué y cuánto leer…"
 
 msgid "Rename"
 msgstr "Renombrar"
@@ -1206,9 +1481,6 @@ msgid "Remove %(name)s? The downloaded data stays until the cache is cleared."
 msgstr ""
 "¿Quitar %(name)s? Los datos descargados se quedan hasta que se vacíe la "
 "caché."
-
-msgid "Remove"
-msgstr "Quitar"
 
 msgid "Open pull requests"
 msgstr "Pull requests abiertos"
@@ -1222,14 +1494,6 @@ msgstr "Mediana de la primera respuesta"
 #, python-format
 msgid "Data of %(name)s"
 msgstr "Datos de %(name)s"
-
-#, python-format
-msgid "%(percent)s%% of the data"
-msgstr "%(percent)s%% de los datos"
-
-#, python-format
-msgid ", complete in about %(left)s"
-msgstr ", completo en unos %(left)s"
 
 msgid "Nothing yet. Add repositories or organisations in the next tab."
 msgstr ""
@@ -1248,55 +1512,8 @@ msgstr "Leído hace %(ago)s."
 msgid "Refresh from GitHub"
 msgstr "Actualizar desde GitHub"
 
-msgid "Data sources"
-msgstr "Fuentes de datos"
-
-msgid "Complete"
-msgstr "Completo"
-
-msgid "Read"
-msgstr "Leído"
-
-msgid "never"
-msgstr "nunca"
-
-msgid ""
-"Download the data behind this page. The ODS spreadsheets also have the data "
-"each table was made from, and what the download is."
-msgstr ""
-"Descarga los datos de esta página. Las hojas de cálculo ODS también tienen "
-"los datos de los que se hizo cada tabla, y qué es la descarga."
-
-msgid "How to check the numbers with scipy"
-msgstr "Cómo comprobar los números con scipy"
-
-msgid "Sources shown"
-msgstr "Fuentes mostradas"
-
 msgid "Your messages"
 msgstr "Tus mensajes"
-
-msgid "The file is ready."
-msgstr "El archivo está listo."
-
-msgid "The file could not be made."
-msgstr "El archivo no se pudo hacer."
-
-msgid ""
-"The file is being made from the data on this site. You can leave this page; "
-"the file waits here for a week."
-msgstr ""
-"El archivo se está haciendo con los datos de este sitio. Puedes salir de "
-"esta página; el archivo espera aquí durante una semana."
-
-msgid "A message tells you when it is ready."
-msgstr "Un mensaje te avisa cuando esté listo."
-
-msgid "Progress of the file"
-msgstr "Progreso del archivo"
-
-msgid "Download"
-msgstr "Descargar"
 
 msgid ""
 "Data is read from GitHub in the background, the highest priority first; that"
@@ -1365,8 +1582,12 @@ msgstr "Añade propietario/nombre o una organización"
 msgid "Repository or organisation to add"
 msgstr "Repositorio u organización para añadir"
 
-msgid "Pull requests and issues"
-msgstr "Pull requests e issues"
+msgid ""
+"Public repositories only. After adding, “Update” shows whether the donated "
+"tokens can read it now."
+msgstr ""
+"Solo repositorios públicos. Tras añadirlo, “Actualizar” muestra si los "
+"tokens donados pueden leerlo ahora."
 
 msgid "Nothing matches."
 msgstr "Nada coincide."
@@ -1513,9 +1734,6 @@ msgstr ""
 msgid "More points of your tokens that are fine this hour"
 msgstr "Más puntos de tus tokens que están bien esta hora"
 
-msgid "Allow"
-msgstr "Permitir"
-
 msgid "Add tokens or change their order and limits"
 msgstr "Añadir tokens o cambiar su orden y límites"
 
@@ -1543,9 +1761,6 @@ msgstr "sin límite"
 
 msgid "Priority"
 msgstr "Prioridad"
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 msgid "The fetch runs in the background."
 msgstr "La lectura se ejecuta en segundo plano."
@@ -1749,26 +1964,6 @@ msgstr ""
 "Las columnas se ordenan al hacer clic en ellas. “Esperando” es cuánto ha "
 "esperado un elemento sin respuesta, hasta que se cerró o hasta ahora."
 
-msgid "Started for:"
-msgstr "Iniciado para:"
-
-#, python-format
-msgid "%(used)s of %(limit)s points"
-msgstr "%(used)s de %(limit)s puntos"
-
-#, python-format
-msgid "%(used)s points"
-msgstr "%(used)s puntos"
-
-msgid "Earlier"
-msgstr "Antes"
-
-msgid "Later"
-msgstr "Después"
-
-msgid "Stopping…"
-msgstr "Deteniendo…"
-
 msgid "Mark all as read"
 msgstr "Marcar todo como leído"
 
@@ -1966,12 +2161,6 @@ msgstr "vista previa del badge"
 msgid "%(login)s in %(title)s"
 msgstr "%(login)s en %(title)s"
 
-msgid "Copy the address of this page"
-msgstr "Copiar la dirección de esta página"
-
-msgid "Share"
-msgstr "Compartir"
-
 #, python-format
 msgid "pull requests (%(merged)s merged, %(open)s open)"
 msgstr "pull requests (%(merged)s fusionados, %(open)s abiertos)"
@@ -2034,13 +2223,6 @@ msgstr "Perfil de GitHub"
 #, python-format
 msgid "Replies of %(login)s in %(title)s"
 msgstr "Respuestas de %(login)s en %(title)s"
-
-msgid "Replies"
-msgstr "Respuestas"
-
-#, python-format
-msgid "Replies of %(login)s"
-msgstr "Respuestas de %(login)s"
 
 msgid "The badge to copy"
 msgstr "El badge para copiar"
@@ -2173,25 +2355,6 @@ msgstr "Aún no hay token."
 
 msgid "Add, order, test and share tokens"
 msgstr "Añadir, ordenar, probar y compartir tokens"
-
-msgid "Data read from GitHub"
-msgstr "Datos leídos de GitHub"
-
-#, python-format
-msgid "%(percent)s%% of the data (%(items)s of %(total)s items)"
-msgstr "%(percent)s%% de los datos (%(items)s de %(total)s elementos)"
-
-msgid ", reading"
-msgstr ", leyendo"
-
-msgid ", read from GitHub to complete it"
-msgstr ", lee de GitHub para completarlo"
-
-msgid "Data and sources"
-msgstr "Datos y fuentes"
-
-msgid "Choose what to read"
-msgstr "Elegir qué leer"
 
 #, python-format
 msgid "Replies of contributors to %(title)s"
@@ -2326,83 +2489,62 @@ msgstr ""
 "El badge cuenta los repositorios públicos de tus proyectos, con las clases "
 "de personas por defecto: %(repositories)s"
 
+msgid "Whose tokens update the badge"
+msgstr "Qué tokens actualizan el badge"
+
+msgid ""
+"The tokens shared on this site for everybody update the badge; when they "
+"have no points left, it is not updated."
+msgstr ""
+"Los tokens compartidos en este sitio para todos actualizan el badge; cuando "
+"no les quedan puntos, no se actualiza."
+
+msgid "Your tokens update it, too:"
+msgstr "Tus tokens también lo actualizan:"
+
+#, python-format
+msgid "all badges of %(name)s"
+msgstr "todos los badges de %(name)s"
+
+#, python-format
+msgid "%(points)s points per hour"
+msgstr "%(points)s puntos por hora"
+
+msgid "Also with my token"
+msgstr "También con mi token"
+
+#, python-format
+msgid "this badge of %(login)s"
+msgstr "este badge de %(login)s"
+
+#, python-format
+msgid "<a href=\"%(access_url)s\">Add a token</a> to update the badge with it."
+msgstr ""
+"<a href=\"%(access_url)s\">Añade un token</a> para actualizar el badge con "
+"él."
+
+#, python-format
+msgid ""
+"Change or remove what your tokens allow under <a "
+"href=\"%(access_url)s\">GitHub access</a>."
+msgstr ""
+"Cambia o quita lo que permiten tus tokens en <a "
+"href=\"%(access_url)s\">Acceso a GitHub</a>."
+
+#, python-format
+msgid ""
+"<a href=\"%(login_url)s?next=%(next)s\">Sign in</a> to let your own tokens "
+"update it, too."
+msgstr ""
+"<a href=\"%(login_url)s?next=%(next)s\">Inicia sesión</a> para que también "
+"lo actualicen tus propios tokens."
+
 msgid ""
 "These projects together have no public repository and no badge: open one "
 "project to get its badge."
 msgstr ""
 "Estos proyectos juntos no tienen ningún repositorio público ni badge: abre "
 "un proyecto para obtener su badge."
-
-msgid "answered"
-msgstr "respondido"
-
-msgid "only one, not answered"
-msgstr "único, sin responder"
-
-msgid "not answered"
-msgstr "sin responder"
-
-msgid "Overview"
-msgstr "Resumen"
-
-msgid "Compare repositories"
-msgstr "Comparar repositorios"
-
-msgid "Time range"
-msgstr "Rango de tiempo"
-
-msgid "From"
-msgstr "Desde"
-
-msgid "To"
-msgstr "Hasta"
-
-msgid "Or the last days"
-msgstr "O los últimos días"
-
-msgid "Show this time"
-msgstr "Mostrar este tiempo"
-
-msgid "All time"
-msgstr "Todo el tiempo"
-
-#, python-format
-msgid ""
-"Pull requests and issues created, and activity, in the last %(days)s day."
-msgid_plural ""
-"Pull requests and issues created, and activity, in the last %(days)s days."
-msgstr[0] ""
-"Pull requests e issues creados, y actividad, en el último %(days)s día."
-msgstr[1] ""
-"Pull requests e issues creados, y actividad, en los últimos %(days)s días."
-
-#, python-format
-msgid ""
-"Pull requests and issues created, and activity, from %(since)s until "
-"%(until)s."
-msgstr ""
-"Pull requests e issues creados, y actividad, desde %(since)s hasta "
-"%(until)s."
-
-#, python-format
-msgid "Pull requests and issues created, and activity, from %(since)s."
-msgstr "Pull requests e issues creados, y actividad, desde %(since)s."
-
-#, python-format
-msgid "Pull requests and issues created, and activity, until %(until)s."
-msgstr "Pull requests e issues creados, y actividad, hasta %(until)s."
-
-msgid "All time."
-msgstr "Todo el tiempo."
-
-msgid "Classes of people of the shared address:"
-msgstr "Clases de personas de la dirección compartida:"
-
-msgid "Use my own classes"
-msgstr "Usar mis propias clases"
-
-msgid "Copy"
-msgstr "Copiar"
 
 msgid "Share a chart"
 msgstr "Compartir un gráfico"
@@ -2435,11 +2577,57 @@ msgstr ""
 msgid "Back to the page of the chart"
 msgstr "Volver a la página del gráfico"
 
-msgid "Add a repository or organisation"
-msgstr "Añadir un repositorio u organización"
+msgid ""
+"The accounts of this site. Administrators see the cache, the database in the"
+" admin and this page, and can make others administrators."
+msgstr ""
+"Las cuentas de este sitio. Los administradores ven la caché, la base de "
+"datos en el admin y esta página, y pueden hacer administradores a otros."
 
-msgid "Filter, or type owner/name or owner"
-msgstr "Filtra, o escribe propietario/nombre o propietario"
+msgid "User"
+msgstr "Usuario"
+
+msgid "Email"
+msgstr "Correo electrónico"
+
+msgid "Joined"
+msgstr "Alta"
+
+msgid "Administrator"
+msgstr "Administrador"
+
+msgid "you"
+msgstr "usted"
+
+msgid "not linked"
+msgstr "no vinculada"
+
+msgid "yes"
+msgstr "sí"
+
+msgid "no"
+msgstr "no"
+
+#, python-format
+msgid "Remove the administrator access of %(name)s?"
+msgstr "¿Quitar el acceso de administrador de %(name)s?"
+
+msgid "Remove admin"
+msgstr "Quitar admin"
+
+#, python-format
+msgid ""
+"Make %(name)s an administrator? They can see and change all data of the "
+"site."
+msgstr ""
+"¿Hacer administrador a %(name)s? Los administradores ven y cambian todos los"
+" datos del sitio."
+
+msgid "Make admin"
+msgstr "Hacer admin"
+
+msgid "URL"
+msgstr "URL"
 
 #, python-format
 msgid ""
@@ -2449,11 +2637,19 @@ msgstr ""
 "Tus proyectos tienen %(held)s pull requests e issues; esta lectura añade "
 "unos %(adding)s, y se permiten %(limit)s."
 
+#, python-format
+msgid "%(text)s is no whole number."
+msgstr "%(text)s no es un número entero."
+
 msgid "The limit must be at least 1, or empty for no limit."
 msgstr "El límite debe ser al menos 1, o vacío para no tener límite."
 
 msgid "A percentage is between 0 and 100."
 msgstr "Un porcentaje está entre 0 y 100."
+
+#, python-format
+msgid "%(scope)s is no public scope such as owner or owner~name."
+msgstr "%(scope)s no es un ámbito público como owner o owner~name."
 
 msgid "Please paste a token."
 msgstr "Pega un token."
@@ -2474,21 +2670,8 @@ msgstr ""
 msgid "The order does not name each of your tokens once."
 msgstr "El orden no nombra cada uno de tus tokens una vez."
 
-#, python-format
-msgid "%(text)s is no whole number."
-msgstr "%(text)s no es un número entero."
-
-msgid "Not saved. "
-msgstr "No guardado. "
-
 msgid "The token was deleted."
 msgstr "Se borró el token."
-
-msgid "Token for a month"
-msgstr "Token para un mes"
-
-msgid "Token for a year"
-msgstr "Token para un año"
 
 #, python-format
 msgid ""
@@ -2496,8 +2679,14 @@ msgid ""
 msgstr ""
 "%(token)s: hasta %(max)s puntos por hora, %(shared)s de ellos para otros."
 
+msgid "The public use was added."
+msgstr "Se añadió el uso público."
+
 msgid "Saved."
 msgstr "Guardado."
+
+msgid "The public use was removed."
+msgstr "Se quitó el uso público."
 
 #, python-format
 msgid "%(token)s cannot read %(missing)s of %(total)s repositories: %(names)s"
@@ -2507,6 +2696,15 @@ msgstr ""
 #, python-format
 msgid "%(token)s can read all %(total)s repositories."
 msgstr "%(token)s puede leer los %(total)s repositorios."
+
+msgid "Not saved. "
+msgstr "No guardado. "
+
+msgid "Token for a month"
+msgstr "Token para un mes"
+
+msgid "Token for a year"
+msgstr "Token para un año"
 
 msgid "Cache cleared. It is read again when needed."
 msgstr "Caché vaciada. Se vuelve a leer cuando haga falta."
@@ -2538,9 +2736,6 @@ msgstr "actividades a lo largo de la semana y del día"
 msgid "contributions per month"
 msgstr "contribuciones por mes"
 
-msgid "The order does not name each of your classes once."
-msgstr "El orden no nombra cada una de tus clases una vez."
-
 #, python-format
 msgid "%(login)s is no GitHub handle."
 msgstr "%(login)s no es un nombre de usuario de GitHub."
@@ -2560,6 +2755,9 @@ msgstr "%(name)s es una clase del sitio: ocúltala en su lugar."
 #, python-format
 msgid "There is no kind of rule %(kind)s."
 msgstr "No hay ningún tipo de regla %(kind)s."
+
+msgid "The order does not name each of your classes once."
+msgstr "El orden no nombra cada una de tus clases una vez."
 
 msgid "Most commits in the last month"
 msgstr "Más commits en el último mes"
@@ -2588,10 +2786,6 @@ msgstr "Abrieron issues, pero ningún pull request"
 msgid "The query was saved."
 msgstr "Se guardó la consulta."
 
-#, python-format
-msgid "%(target)s is shown as %(label)s."
-msgstr "%(target)s se muestra como %(label)s."
-
 msgid "The suggestions were read from GitHub."
 msgstr "Las sugerencias se leyeron de GitHub."
 
@@ -2599,15 +2793,9 @@ msgstr "Las sugerencias se leyeron de GitHub."
 msgid "%(target)s was added."
 msgstr "Se añadió %(target)s."
 
-msgid "Nothing to read."
-msgstr "Nada que leer."
-
 #, python-format
-msgid "%(target)s was added. Read it from GitHub to see its data."
-msgstr "Se añadió %(target)s. Léelo de GitHub para ver sus datos."
-
-msgid "Everything is already queued."
-msgstr "Todo ya está en cola."
+msgid "%(target)s is shown as %(label)s."
+msgstr "%(target)s se muestra como %(label)s."
 
 msgid "Allow a whole number of points above 0."
 msgstr "Permite un número entero de puntos mayor que 0."
@@ -2615,16 +2803,6 @@ msgstr "Permite un número entero de puntos mayor que 0."
 #, python-format
 msgid "%(extra)s more points of your tokens are fine until %(until)s."
 msgstr "%(extra)s puntos más de tus tokens están bien hasta las %(until)s."
-
-#, python-format
-msgid "%(count)s repository queued."
-msgid_plural "%(count)s repositories queued."
-msgstr[0] "%(count)s repositorio en cola."
-msgstr[1] "%(count)s repositorios en cola."
-
-#, python-format
-msgid "%(repository)s is cancelled; what was read is kept."
-msgstr "%(repository)s se canceló; lo que se leyó se guarda."
 
 #, python-format
 msgid "%(limit_text)s is no whole number above 0."
@@ -2635,8 +2813,39 @@ msgid "This fetch needs about %(points)s points."
 msgstr "Esta lectura necesita unos %(points)s puntos."
 
 #, python-format
+msgid "%(count)s repository queued."
+msgid_plural "%(count)s repositories queued."
+msgstr[0] "%(count)s repositorio en cola."
+msgstr[1] "%(count)s repositorios en cola."
+
+msgid "Everything is already queued."
+msgstr "Todo ya está en cola."
+
+msgid "Nothing to read."
+msgstr "Nada que leer."
+
+#, python-format
+msgid "%(repository)s is cancelled; what was read is kept."
+msgstr "%(repository)s se canceló; lo que se leyó se guarda."
+
+#, python-format
+msgid "%(target)s was added. Read it from GitHub to see its data."
+msgstr "Se añadió %(target)s. Léelo de GitHub para ver sus datos."
+
+#, python-format
 msgid "Replies of %(title)s"
 msgstr "Respuestas de %(title)s"
+
+#, python-format
+msgid "%(text)s is no date like 2026-01-31."
+msgstr "%(text)s no es una fecha como 2026-01-31."
+
+msgid "The first date is after the second."
+msgstr "La primera fecha es posterior a la segunda."
+
+#, python-format
+msgid "%(text)s is no number of days above 0."
+msgstr "%(text)s no es un número de días mayor que 0."
 
 msgid "response times"
 msgstr "tiempos de respuesta"
@@ -2650,16 +2859,22 @@ msgstr "comentarios y revisiones"
 msgid "contributors"
 msgstr "contribuidores"
 
-msgid "The first date is after the second."
-msgstr "La primera fecha es posterior a la segunda."
+msgid "Ask another administrator to remove your administrator access."
+msgstr "Pida a otro administrador que quite su acceso de administrador."
+
+msgid "Only the administrators may see the users."
+msgstr "Solo los administradores pueden ver los usuarios."
+
+msgid "Not changed. "
+msgstr "No modificado. "
 
 #, python-format
-msgid "%(text)s is no number of days above 0."
-msgstr "%(text)s no es un número de días mayor que 0."
+msgid "%(name)s is an administrator."
+msgstr "%(name)s es administrador."
 
 #, python-format
-msgid "%(text)s is no date like 2026-01-31."
-msgstr "%(text)s no es una fecha como 2026-01-31."
+msgid "%(name)s is no administrator any more."
+msgstr "%(name)s ya no es administrador."
 
 #, python-format
 msgid ""
@@ -2669,137 +2884,6 @@ msgstr ""
 "Los visitantes pueden hacer esto %(times)s veces por hora. Regístrate para "
 "usar tus propios tokens, o espera a la próxima hora."
 
-msgid "Invalid scope of a public use"
-msgstr "Ámbito no válido de un uso público"
-
-msgid "everybody on this site"
-msgstr "todos en este sitio"
-
-msgid "badges of replies"
-msgstr "badges de respuestas"
-
-msgid "public pages"
-msgstr "páginas públicas"
-
-msgid "fetches of visitors"
-msgstr "lecturas de visitantes"
-
-msgid "Whose tokens update the badge"
-msgstr "Qué tokens actualizan el badge"
-
-msgid ""
-"The tokens shared on this site for everybody update the badge; when they "
-"have no points left, it is not updated."
-msgstr ""
-"Los tokens compartidos en este sitio para todos actualizan el badge; cuando "
-"no les quedan puntos, no se actualiza."
-
-msgid "Your tokens update it, too:"
-msgstr "Tus tokens también lo actualizan:"
-
 #, python-format
-msgid "the badge of %(login)s"
-msgstr "el badge de %(login)s"
-
-#, python-format
-msgid "all badges of %(name)s"
-msgstr "todos los badges de %(name)s"
-
-#, python-format
-msgid "%(points)s points per hour"
-msgstr "%(points)s puntos por hora"
-
-msgid "Also with my token"
-msgstr "También con mi token"
-
-msgid "For"
-msgstr "Para"
-
-#, python-format
-msgid "this badge of %(login)s"
-msgstr "este badge de %(login)s"
-
-msgid "Share in percent"
-msgstr "Parte en porcentaje"
-
-#, python-format
-msgid "<a href=\"%(access_url)s\">Add a token</a> to update the badge with it."
-msgstr ""
-"<a href=\"%(access_url)s\">Añade un token</a> para actualizar el badge con "
-"él."
-
-#, python-format
-msgid ""
-"Change or remove what your tokens allow under <a "
-"href=\"%(access_url)s\">GitHub access</a>."
-msgstr ""
-"Cambia o quita lo que permiten tus tokens en <a "
-"href=\"%(access_url)s\">Acceso a GitHub</a>."
-
-#, python-format
-msgid ""
-"<a href=\"%(login_url)s?next=%(next)s\">Sign in</a> to let your own tokens "
-"update it, too."
-msgstr ""
-"<a href=\"%(login_url)s?next=%(next)s\">Inicia sesión</a> para que también "
-"lo actualicen tus propios tokens."
-
-msgid ""
-"Allow the badges, the public pages or the visitors of a public scope to read"
-" with this token, each with its own share of the maximum per hour. An "
-"organisation covers all its repositories."
-msgstr ""
-"Permite a los badges, las páginas públicas o los visitantes de un ámbito "
-"público leer con este token, cada uno con su propia parte del máximo por "
-"hora. Una organización incluye todos sus repositorios."
-
-msgid "of"
-msgstr "de"
-
-msgid "Remove this public use?"
-msgstr "¿Quitar este uso público?"
-
-#, python-format
-msgid "%(points)s points per hour, %(used)s used this hour"
-msgstr "%(points)s puntos por hora, %(used)s usados esta hora"
-
-msgid "Scope"
-msgstr "Ámbito"
-
-msgid "Only the badge of"
-msgstr "Solo el badge de"
-
-#, python-format
-msgid "%(scope)s is no public scope such as owner or owner~name."
-msgstr "%(scope)s no es un ámbito público como owner o owner~name."
-
-msgid "The public use was added."
-msgstr "Se añadió el uso público."
-
-msgid "The public use was removed."
-msgstr "Se quitó el uso público."
-
-#, python-format
-msgid "Public uses: %(count)s"
-msgid_plural "Public uses: %(count)s"
-msgstr[0] "Usos públicos: %(count)s"
-msgstr[1] "Usos públicos: %(count)s"
-
-msgid "Format of the badge"
-msgstr "Formato del badge"
-
-msgid "The badge as JSON"
-msgstr "El badge como JSON"
-
-msgid "URL"
-msgstr "URL"
-
-msgid "Update"
-msgstr "Actualizar"
-
-msgid ""
-"Public repositories only. After adding, “Update” shows whether the donated "
-"tokens can read it now."
-msgstr ""
-"Solo repositorios públicos. Tras añadirlo, “Actualizar” muestra si los "
-"tokens donados pueden leerlo ahora."
+#~ msgid "Sign out %(name)s"
+#~ msgstr "Cerrar la sesión de %(name)s"

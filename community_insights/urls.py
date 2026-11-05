@@ -25,6 +25,7 @@ from .views import (
     profile,
     replies,
     statistics,
+    users,
 )
 
 # The admin is signed in to like the site (django-allauth), with its limit of
@@ -54,6 +55,7 @@ urlpatterns = [
     path("dashboard/", dashboard.dashboard, name="dashboard"),
     path("dashboard/classes/", classes.classes, name="classes"),
     path("dashboard/cache/", cache.cache, name="cache"),
+    path("dashboard/users/", users.users, name="users"),
     path("dashboard/github/", access.github_access, name="github_access"),
     path("dashboard/profile/", profile.profile, name="profile"),
     path("dashboard/downloads/", fetch.downloads, name="downloads"),

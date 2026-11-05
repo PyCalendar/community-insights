@@ -164,6 +164,13 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The repository is a setting (`SOURCE_URL`, `DOCS_URL`); the About page links to the code of the version that runs: the tag of a release, else the commit (`version.json` keeps the full commit and the tag; in a checkout the commit of git)
 - [x] Report a bug: a GitHub issue with page and version filled in; docs page `how-to/report-bug`
 - [x] Self-host Bootstrap instead of the CDN (`static/vendor/bootstrap/`, 5.3.3); the crawler fails if a page loads from another server
+- [x] Top menu: the button to sign out does not contain the email (only "Sign out")
+- [x] Top menu: a drop-down menu "Account": Dashboard, Explore (below Dashboard), Messages, Downloads; ---; Profile, GitHub access, Classes; ---; Sign out. Visitors keep Explore in the bar; the number of unread messages is also on the button "Account"
+- [x] Cache and Admin go into their own section of the drop-down above Sign out, for administrators only
+- [x] The section of the administrators has "Users" (superusers): the users of the site, whether they linked a GitHub account and its handle, and making them administrators (staff and superuser) or removing that access; the own access cannot be removed (`CannotRemoveOwnAdminAccess`), so the site keeps an administrator; docs/how-to/users.rst
+- [x] The import tests of the health check and the worker ignore `sitecustomize`, which Python loads at the start on Debian; local tools installed: uv, gettext, Node.js (Debian's Node 20 does not expand the glob of `make test-js`: run with the shell's glob), Firefox of Playwright
+- [ ] `make docker-test` and `make docker-scan` locally: installing Docker on this machine was refused by the permission check; they run in the CI
+- [ ] Release after the menu and the page Users (asked by the person): CI green on main, then the version 0.2.0 (new features)
 
 ## Code structure
 - [x] One Python package, not two: the app `community` is merged into `community_insights` (project and app in one); the app label stays `community`, so the tables, the migrations and the admin addresses of existing databases keep working
@@ -239,6 +246,9 @@ Project constraints:
 
 For every part, a library that could replace or simplify what is written by hand.
 Mark the ones to use; nothing below is used yet unless it says so.
+
+### Menu and users
+- [x] Bootstrap's dropdown (already used) for the account menu; the Django admin (already used) could manage users, but the page Users shows the GitHub handle and makes administrators in one click
 
 ### Statistics
 - [x] Every download also as ODS; the ODS has more sheets than the CSV: the data the result was made from (items, events, commits), and a sheet about the export (repositories, time range, classes, query, version) (`community_insights/spreadsheet.py`, odfpy)

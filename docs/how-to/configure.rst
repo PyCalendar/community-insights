@@ -37,10 +37,12 @@ For confirmation and password mails, add your mail server to ``.env``:
 
 The port chooses the encryption: 587 switches to TLS with STARTTLS, 465 speaks TLS from the start. If the mail server closes the connection (``SMTPServerDisconnected``), the port and the encryption do not fit; see ``EMAIL_USE_TLS`` and ``EMAIL_USE_SSL`` in :doc:`../reference/configuration`.
 
+.. _configure-administrator:
+
 Add an administrator
 ====================
 
-The administration at ``/admin/`` shows all data; staff see **Admin** in the menu.
+The administration at ``/admin/`` shows all data; staff see **Cache** and **Admin** in the menu **Account**, superusers also **Users**, where they make others administrators (:doc:`users`).
 
 #. Put the email address and a long password of the superuser into ``.env``:
 

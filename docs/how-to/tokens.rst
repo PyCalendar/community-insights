@@ -32,7 +32,7 @@ A classic token works, too: no scopes for public repositories, ``repo`` for priv
 Add the token to the site
 =========================
 
-#. Open **GitHub access** in the menu.
+#. Open **GitHub access** in the menu **Account**.
 #. Under **2. Tokens**, paste the token into **Token** and give it a name, such as *from Kim* for a token a friend gave you.
 #. Set the two sliders, see :ref:`share-points`.
 #. Press **Add the token**. The site asks GitHub who the token belongs to, how many points it has and when it expires, and shows that in the list.

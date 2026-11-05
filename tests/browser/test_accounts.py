@@ -1,5 +1,7 @@
 """Accounts and GitHub access: people sign up with an email address and add tokens."""
 
+import re
+
 from playwright.sync_api import expect
 
 
@@ -63,3 +65,21 @@ def test_the_menu_works_on_any_screen(alice):
     """The menu opens on a phone, too."""
     alice.click_in_menu("Classes")
     alice.see("Classes of people")
+
+
+def test_the_account_menu_opens_and_signs_out(alice):
+    """The account menu opens on any screen, leads to its pages and signs out."""
+    alice.click_in_menu("Explore")
+    expect(alice.page).to_have_url(re.compile(r"/explore/$"))
+    alice.open_menu()
+    alice.page.locator(".account-menu .dropdown-toggle").click()
+    sign_out = alice.page.locator(".account-menu").get_by_role(
+        "button", name="Sign out", exact=True
+    )
+    expect(sign_out).to_be_visible()
+    alice.does_not_scroll_sideways()
+    sign_out.click()
+    alice.open_menu()
+    expect(
+        alice.page.locator("#menu").get_by_role("link", name="Sign in", exact=True)
+    ).to_be_visible()

@@ -13,6 +13,8 @@ The address of public statistics names the repositories: ``/s/plone~volto/`` for
 
 With an account you can also keep projects, add your own tokens, save queries and change the classes of people.
 
+Signed in, the button **Account** at the top opens a menu with your pages: **Dashboard**, **Explore**, **Messages** and **Downloads**; **Profile**, **GitHub access** and **Classes**; for administrators **Cache**, **Admin** and **Users** (see :doc:`users`); and **Sign out**.
+
 Add projects
 ============
 
@@ -30,7 +32,7 @@ Use **All together** on the dashboard, or the address ``/s/1-2-3/`` with the num
 Change the classes of people
 ============================
 
-Response times are split by class of people. Open **Classes** in the menu:
+Response times are split by class of people. Open **Classes** in the menu **Account**:
 
 - To add a class, for example *maintainers* by a list of handles, fill in the form for a new class; :doc:`../reference/class-rules` lists the kinds of rules.
 - To change the order, drag a class by its handle ⠿ to another place, or move it with the arrows. Somebody belongs to the first class with a rule that matches.
@@ -69,7 +71,7 @@ The button with the half circle in the menu chooses the colours of the page: *Au
 Download files and read messages
 ================================
 
-CSV, Parquet and JSON files are downloaded at once; :doc:`../reference/downloads` lists their columns. An ODS file has more sheets and can take a while: the link opens a page with a progress bar, and **Download** appears when the file is ready. You can leave the page; the file waits there for a week. With an account, a message tells you when it is ready: **Messages** in the menu shows the number of unread ones, and opening a message leads to the file. **Mark all as read** clears them. Visitors find their file on the page of the download, in the same browser.
+CSV, Parquet and JSON files are downloaded at once; :doc:`../reference/downloads` lists their columns. An ODS file has more sheets and can take a while: the link opens a page with a progress bar, and **Download** appears when the file is ready. You can leave the page; the file waits there for a week. With an account, a message tells you when it is ready: **Messages** in the menu **Account** shows the number of unread ones (the button **Account** shows it, too), and opening a message leads to the file. **Mark all as read** clears them. Visitors find their file on the page of the download, in the same browser.
 
 Sort and name the columns
 =========================
@@ -79,7 +81,7 @@ On the **Contributors** page, a click on the name of a column sorts the table by
 Manage your account
 ===================
 
-**Profile** in the menu shows your email addresses, your password, the linked GitHub account and your tokens; see :doc:`profile`.
+**Profile** in the menu **Account** shows your email addresses, your password, the linked GitHub account and your tokens; see :doc:`profile`.
 
 Clean the cache
 ===============

@@ -2,7 +2,7 @@
 Manage your account
 =====================
 
-The page **Profile** in the menu shows your email addresses, your password, the linked GitHub account and your tokens. The changes are made on the pages it links to.
+The page **Profile** in the menu **Account** shows your email addresses, your password, the linked GitHub account and your tokens. The changes are made on the pages it links to.
 
 Confirm an email address
 ========================

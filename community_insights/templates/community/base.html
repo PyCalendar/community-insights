@@ -26,21 +26,32 @@
     </div>
 
       <ul class="navbar-nav me-auto">
+      {% if not user.is_authenticated %}
         <li class="nav-item"><a class="nav-link" href="{% url 'explore' %}">{% translate "Explore" %}</a></li>
-      {% if user.is_authenticated %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">{% translate "Dashboard" %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'downloads' %}">{% translate "Downloads" %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'messages' %}">{% translate "Messages" %}{% if unread_messages %} <span class="badge text-bg-light" title="{% translate "unread" %}">{{ unread_messages }}</span>{% endif %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'classes' %}">{% translate "Classes" %}</a></li>
-        {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'cache' %}">{% translate "Cache" %}</a></li>{% endif %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'github_access' %}">{% translate "GitHub access" %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{% translate "Profile" %}</a></li>
-        {% if user.is_staff %}<li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">{% translate "Admin" %}</a></li>{% endif %}
       {% endif %}
       </ul>
       {% if user.is_authenticated %}
-      <form method="post" action="{% url 'account_logout' %}" class="d-flex">{% csrf_token %}
-        <button class="btn btn-sm btn-outline-light">{% blocktranslate with name=user.email|default:user.username %}Sign out {{ name }}{% endblocktranslate %}</button></form>
+      <div class="dropdown account-menu">
+        <button type="button" class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">{% translate "Account" %}{% if unread_messages %} <span class="badge text-bg-light" title="{% translate "unread" %}">{{ unread_messages }}</span>{% endif %}</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="{% url 'dashboard' %}">{% translate "Dashboard" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'explore' %}">{% translate "Explore" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'messages' %}">{% translate "Messages" %}{% if unread_messages %} <span class="badge text-bg-secondary" title="{% translate "unread" %}">{{ unread_messages }}</span>{% endif %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'downloads' %}">{% translate "Downloads" %}</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'profile' %}">{% translate "Profile" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'github_access' %}">{% translate "GitHub access" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'classes' %}">{% translate "Classes" %}</a></li>
+          <li><hr class="dropdown-divider"></li>
+          {% if user.is_staff %}
+          <li><a class="dropdown-item" href="{% url 'cache' %}">{% translate "Cache" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% translate "Admin" %}</a></li>
+          {% if user.is_superuser %}<li><a class="dropdown-item" href="{% url 'users' %}">{% translate "Users" %}</a></li>{% endif %}
+          <li><hr class="dropdown-divider"></li>
+          {% endif %}
+          <li><form method="post" action="{% url 'account_logout' %}">{% csrf_token %}<button class="dropdown-item">{% translate "Sign out" %}</button></form></li>
+        </ul>
+      </div>
       {% else %}
       <div class="ms-auto d-flex gap-2">
         <a class="btn btn-sm btn-outline-light" href="{% url 'account_login' %}">{% translate "Sign in" %}</a>

@@ -90,12 +90,19 @@ class Site:
             expect(self.page.locator("#menu")).to_have_class(re.compile(r"(^|\s)show(\s|$)"))
 
     def click_in_menu(self, text: str) -> None:
-        """Click a link of the menu, opening it first on a phone.
+        """Click a link of the menu, opening it (and the account menu) first.
 
         Args:
             text: The text of the link.
         """
         self.open_menu()
+        account = self.page.locator(".account-menu")
+        if account.get_by_role("link", name=text, exact=True, include_hidden=True).count():
+            toggle = account.locator(".dropdown-toggle")
+            if toggle.get_attribute("aria-expanded") != "true":
+                toggle.click()
+            account.get_by_role("link", name=text, exact=True).click()
+            return
         self.page.locator("#menu").get_by_role("link", name=text, exact=True).click()
 
     def does_not_scroll_sideways(self) -> None:
