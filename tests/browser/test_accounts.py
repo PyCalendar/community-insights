@@ -79,6 +79,8 @@ def test_the_account_menu_opens_and_signs_out(alice):
     expect(sign_out).to_be_visible()
     alice.does_not_scroll_sideways()
     sign_out.click()
+    # the page after the sign out has no account menu; only then is its menu opened
+    expect(alice.page.locator(".account-menu")).to_have_count(0)
     alice.open_menu()
     expect(
         alice.page.locator("#menu").get_by_role("link", name="Sign in", exact=True)
