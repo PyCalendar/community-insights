@@ -1,1 +1,0 @@
-The pages of a signed in person are in one drop-down menu, **Account**: Dashboard, Explore, Messages and Downloads; Profile, GitHub access and Classes; Sign out. The button to sign out no longer shows the email address.

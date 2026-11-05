@@ -1,1 +1,0 @@
-Administrators have the page **Users** in the menu **Account**: it lists the accounts with the handle of their linked GitHub account and makes them administrators or removes that access. Cache, Admin and Users are in their own section above Sign out.

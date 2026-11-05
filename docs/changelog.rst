@@ -8,6 +8,23 @@ Changes are collected as small files in `news/ <https://github.com/PyCalendar/co
 
 .. towncrier release notes start
 
+0.2.0 (2026-11-05)
+------------------
+
+New features
+~~~~~~~~~~~~
+
+- Administrators have the page **Users** in the menu **Account**: it lists the accounts with the handle of their linked GitHub account and makes them administrators or removes that access. Cache, Admin and Users are in their own section above Sign out.
+- The pages of a signed in person are in one drop-down menu, **Account**: Dashboard, Explore, Messages and Downloads; Profile, GitHub access and Classes; Sign out. The button to sign out no longer shows the email address.
+
+
+Maintenance
+~~~~~~~~~~~
+
+- The CI deploys one at a time: a release tag and main pushed together no longer make the second deploy fail.
+- nginx forwards requests to gunicorn with HTTP/1.1 instead of HTTP/1.0.
+
+
 0.1.0 (2026-11-03)
 ------------------
 

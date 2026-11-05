@@ -170,7 +170,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The section of the administrators has "Users" (superusers): the users of the site, whether they linked a GitHub account and its handle, and making them administrators (staff and superuser) or removing that access; the own access cannot be removed (`CannotRemoveOwnAdminAccess`), so the site keeps an administrator; docs/how-to/users.rst
 - [x] The import tests of the health check and the worker ignore `sitecustomize`, which Python loads at the start on Debian; local tools installed: uv, gettext, Node.js (Debian's Node 20 does not expand the glob of `make test-js`: run with the shell's glob), Firefox of Playwright
 - [ ] `make docker-test` and `make docker-scan` locally: installing Docker on this machine was refused by the permission check; they run in the CI
-- [ ] Release after the menu and the page Users (asked by the person): CI green on main, then the version 0.2.0 (new features)
+- [x] Release after the menu and the page Users (asked by the person): all tests locally (except Docker); CI on main: the phone browser test raced after the sign out (fixed in b1aa68b), then all green except the link check of the docs, which passed locally and in the run before (a flaky external link); changelog by towncrier, version 0.2.0 (new features), tag v0.2.0
 
 ## Code structure
 - [x] One Python package, not two: the app `community` is merged into `community_insights` (project and app in one); the app label stays `community`, so the tables, the migrations and the admin addresses of existing databases keep working

@@ -1,1 +1,0 @@
-The CI deploys one at a time: a release tag and main pushed together no longer make the second deploy fail.
