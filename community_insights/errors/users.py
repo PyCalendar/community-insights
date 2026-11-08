@@ -31,3 +31,33 @@ class CannotRemoveOwnAdminAccess(UserAdministrationError):
     title = _("Your own administrator access stays")
     guide = "how-to/users.html"
     guide_title = _("How to manage the users")
+
+
+class UnknownEmailAddress(UserAdministrationError):
+    """No account has this email address.
+
+    ``manage.py make_admin`` makes the account with this email address an administrator.
+    Check the address for typing errors, or let the person sign up first.
+
+    How to manage the users: :doc:`/how-to/users`.
+    """
+
+    title = _("No account with this email address")
+    guide = "how-to/users.html#from-the-command-line"
+    guide_title = _("How to manage the users")
+
+
+class EmailAddressNotConfirmed(UserAdministrationError):
+    """The email address of the account is not confirmed.
+
+    Only an account whose email address is confirmed becomes an administrator from the
+    command line, so that nobody becomes one with an address that is not theirs. Ask the
+    person to confirm it with the link of the confirmation mail, or send the mail again on
+    their page *Profile*, then run the command again.
+
+    How to manage the users: :doc:`/how-to/users`.
+    """
+
+    title = _("Email address not confirmed")
+    guide = "how-to/users.html#from-the-command-line"
+    guide_title = _("How to manage the users")

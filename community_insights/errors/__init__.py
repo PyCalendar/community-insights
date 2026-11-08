@@ -77,10 +77,16 @@ from .tokens import (
     TokenNotAllowed,
 )
 from .translate import all_errors, by_code, translate
-from .users import CannotRemoveOwnAdminAccess, UserAdministrationError
+from .users import (
+    CannotRemoveOwnAdminAccess,
+    EmailAddressNotConfirmed,
+    UnknownEmailAddress,
+    UserAdministrationError,
+)
 
 __all__ = [
     "CannotRemoveOwnAdminAccess",
+    "EmailAddressNotConfirmed",
     "ClassNameTaken",
     "InvalidClassOrder",
     "InvalidTokenOrder",
@@ -141,6 +147,7 @@ __all__ = [
     "InvalidDefaultSuperuser",
     "UnknownWorkerMode",
     "UnsupportedComparison",
+    "UnknownEmailAddress",
     "UserAdministrationError",
     "UserItemsLimitReached",
     "VisitorLimitReached",

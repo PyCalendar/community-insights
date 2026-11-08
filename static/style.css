@@ -151,3 +151,8 @@ code.snippet { word-break: break-all; }
 @media (max-width: 767.98px) {
   .login-cut { display: inline-block; max-width: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 }
+
+/* the state of a pull request or issue, in the colours of GitHub */
+.badge.state-open { background-color: #1a7f37; color: #fff; }
+.badge.state-closed { background-color: #cf222e; color: #fff; }
+.badge.state-merged { background-color: #8250df; color: #fff; }

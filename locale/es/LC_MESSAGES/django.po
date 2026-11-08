@@ -1311,13 +1311,6 @@ msgstr "Crear"
 msgid "Compare the repositories of %(title)s"
 msgstr "Comparar los repositorios de %(title)s"
 
-msgid ""
-"One row per repository. The response times are of the first response of "
-"anybody but the author: the median and the 90th percentile."
-msgstr ""
-"Una fila por repositorio. Los tiempos de respuesta son de la primera "
-"respuesta de cualquiera menos el autor: la mediana y el percentil 90."
-
 msgid "open / merged"
 msgstr "abiertos / fusionados"
 
@@ -1957,13 +1950,6 @@ msgstr "Filtrar"
 msgid "%(count)s pull requests and issues."
 msgstr "%(count)s pull requests e issues."
 
-msgid ""
-"The columns sort when you click them. “Waiting” is how long an item without "
-"a response has waited, until it was closed or until now."
-msgstr ""
-"Las columnas se ordenan al hacer clic en ellas. “Esperando” es cuánto ha "
-"esperado un elemento sin respuesta, hasta que se cerró o hasta ahora."
-
 msgid "Mark all as read"
 msgstr "Marcar todo como leído"
 
@@ -1988,23 +1974,6 @@ msgstr "cerrado"
 
 msgid "Response times"
 msgstr "Tiempos de respuesta"
-
-#, python-format
-msgid ""
-"Time until the first response of each class of people (<a "
-"href=\"%(classes_url)s\">edit classes</a>). The author's own comments do not"
-" count. <em>Measured</em>, <em>normal</em> and <em>exponential</em> use only"
-" the items that got a response; <em>Kaplan-Meier</em> counts the others, "
-"too, as waiting at least until they were closed or until now, and is \"-\" "
-"where less than half (or 95 %%) got a response."
-msgstr ""
-"Tiempo hasta la primera respuesta de cada clase de personas (<a "
-"href=\"%(classes_url)s\">editar clases</a>). Los comentarios propios del "
-"autor no cuentan. <em>Medido</em>, <em>normal</em> y <em>exponencial</em> "
-"usan solo los elementos que recibieron respuesta; <em>Kaplan-Meier</em> "
-"también cuenta los demás, como esperando al menos hasta que se cerraron o "
-"hasta ahora, y es \"-\" donde menos de la mitad (o el 95 %%) recibió "
-"respuesta."
 
 #, python-format
 msgid "%(title)s: first response times"
@@ -2889,6 +2858,167 @@ msgstr "Qué significa el color de este badge"
 
 msgid "All badges of replies"
 msgstr "Todos los badges de respuestas"
+
+msgid "No account with this email address"
+msgstr "Ninguna cuenta con esta dirección de correo"
+
+msgid "Email address not confirmed"
+msgstr "Dirección de correo sin confirmar"
+
+#, python-format
+msgid "No account has the email address %(email)s."
+msgstr "Ninguna cuenta tiene la dirección de correo %(email)s."
+
+#, python-format
+msgid "%(email)s is not confirmed: the person confirms it first."
+msgstr "%(email)s no está confirmada: la persona la confirma primero."
+
+msgid "Author"
+msgstr "Autor"
+
+msgid "Responded"
+msgstr "Respondido"
+
+#, python-format
+msgid "Badges of %(title)s"
+msgstr "Badges de %(title)s"
+
+msgid "Response time"
+msgstr "Tiempo de respuesta"
+
+msgid "Replies of a person"
+msgstr "Respuestas de una persona"
+
+#, python-format
+msgid ""
+"Each person has a badge of whether they replied to the feedback on their "
+"pull requests: open <a href=\"%(replies_url)s%(query)s\">Replies</a> and "
+"choose a person."
+msgstr ""
+"Cada persona tiene un badge que dice si respondió a los comentarios de sus "
+"pull requests: abre <a href=\"%(replies_url)s%(query)s\">Respuestas</a> y "
+"elige una persona."
+
+msgid "people who contributed"
+msgstr "personas que contribuyeron"
+
+msgid "Most active"
+msgstr "Los más activos"
+
+msgid "All contributors"
+msgstr "Todos los contribuidores"
+
+#, python-format
+msgid "Pages of %(login)s"
+msgstr "Páginas de %(login)s"
+
+#, python-format
+msgid "Response times of %(title)s"
+msgstr "Tiempos de respuesta de %(title)s"
+
+msgid "Pages of the project"
+msgstr "Páginas del proyecto"
+
+#, python-format
+msgid "%(count)s contribution"
+msgid_plural "%(count)s contributions"
+msgstr[0] "%(count)s contribución"
+msgstr[1] "%(count)s contribuciones"
+
+#, python-format
+msgid "waiting %(time)s"
+msgstr "esperando %(time)s"
+
+msgid "no response"
+msgstr "sin respuesta"
+
+msgid ""
+"One row per repository. The response times are of the first response: the "
+"median and the 90th percentile."
+msgstr ""
+"Una fila por repositorio. Los tiempos de respuesta son de la primera "
+"respuesta: la mediana y el percentil 90."
+
+msgid "The columns sort when you click them."
+msgstr "Las columnas se ordenan al hacer clic en ellas."
+
+msgid ""
+"A response is a comment, a review, a merge or a close by somebody other than"
+" the author; the first response is the first one that is not of a bot."
+msgstr ""
+"Una respuesta es un comentario, una revisión, una fusión o un cierre por "
+"otra persona que no sea el autor; la primera respuesta es la primera que no "
+"es de un bot."
+
+msgid ""
+"“Waiting” marks the open items that no collaborator or higher (owner, member"
+" or collaborator) has answered yet, with the time since they were opened."
+msgstr ""
+"«Esperando» marca los elementos abiertos que todavía nadie con el estado "
+"collaborator o superior (owner, member o collaborator) ha respondido, con el"
+" tiempo desde que se abrieron."
+
+msgid "What a response is"
+msgstr "Qué es una respuesta"
+
+#, python-format
+msgid ""
+"Time until the first response of each class of people (<a "
+"href=\"%(classes_url)s\">edit classes</a>). <em>Measured</em>, "
+"<em>normal</em> and <em>exponential</em> use only the items that got a "
+"response; <em>Kaplan-Meier</em> counts the others, too, as waiting at least "
+"until they were closed or until now, and is \"-\" where less than half (or "
+"95 %%) got a response."
+msgstr ""
+"Tiempo hasta la primera respuesta de cada clase de personas (<a "
+"href=\"%(classes_url)s\">editar clases</a>). <em>Medido</em>, "
+"<em>normal</em> y <em>exponencial</em> usan solo los elementos que "
+"recibieron respuesta; <em>Kaplan-Meier</em> también cuenta los demás, como "
+"esperando al menos hasta que se cerraron o hasta ahora, y es \"-\" donde "
+"menos de la mitad (o el 95 %%) recibió respuesta."
+
+#~ msgid ""
+#~ "One row per repository. The response times are of the first response of "
+#~ "anybody but the author: the median and the 90th percentile."
+#~ msgstr ""
+#~ "Una fila por repositorio. Los tiempos de respuesta son de la primera "
+#~ "respuesta de cualquiera menos el autor: la mediana y el percentil 90."
+
+#, python-format
+#~ msgid ""
+#~ "Time until the first response of each class of people (<a "
+#~ "href=\"%(classes_url)s\">edit classes</a>). The author's own comments do not"
+#~ " count. <em>Measured</em>, <em>normal</em> and <em>exponential</em> use only"
+#~ " the items that got a response; <em>Kaplan-Meier</em> counts the others, "
+#~ "too, as waiting at least until they were closed or until now, and is \"-\" "
+#~ "where less than half (or 95 %%) got a response."
+#~ msgstr ""
+#~ "Tiempo hasta la primera respuesta de cada clase de personas (<a "
+#~ "href=\"%(classes_url)s\">editar clases</a>). Los comentarios propios del "
+#~ "autor no cuentan. <em>Medido</em>, <em>normal</em> y <em>exponencial</em> "
+#~ "usan solo los elementos que recibieron respuesta; <em>Kaplan-Meier</em> "
+#~ "también cuenta los demás, como esperando al menos hasta que se cerraron o "
+#~ "hasta ahora, y es \"-\" donde menos de la mitad (o el 95 %%) recibió "
+#~ "respuesta."
+
+#~ msgid ""
+#~ "The columns sort when you click them. A merge, and a close by somebody else "
+#~ "than the author, count as a response. “Waiting” marks the open items that no"
+#~ " collaborator or higher (owner, member or collaborator) has answered yet, "
+#~ "with the time since they were opened."
+#~ msgstr ""
+#~ "Las columnas se ordenan al hacer clic en ellas. Una fusión, y un cierre por "
+#~ "otra persona que no sea la autora o el autor, cuentan como respuesta. "
+#~ "«Esperando» marca los elementos abiertos que todavía nadie con el estado "
+#~ "collaborator o superior (owner, member o collaborator) ha respondido, con el"
+#~ " tiempo desde que se abrieron."
+
+#~ msgid ""
+#~ "The columns sort when you click them. “Waiting” is how long an item without "
+#~ "a response has waited, until it was closed or until now."
+#~ msgstr ""
+#~ "Las columnas se ordenan al hacer clic en ellas. “Esperando” es cuánto ha "
+#~ "esperado un elemento sin respuesta, hasta que se cerró o hasta ahora."
 
 #, python-format
 #~ msgid "Sign out %(name)s"

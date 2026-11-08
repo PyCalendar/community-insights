@@ -303,11 +303,11 @@ def person_items(request, scope, login):
     scope = scope_of(request, scope)
     found = PersonItemFilter(
         request.GET,
-        queryset=items_with_responses(
-            scope.repositories, scope.since, scope.until, scope.classifier()
-        ).filter(author__iexact=login),
+        queryset=stats.items_in(scope.repositories, scope.since, scope.until).filter(
+            author__iexact=login
+        ),
     )
-    table = ItemTable(found.qs)
+    table = ItemTable(found.keep(items_with_responses(found.qs, scope.classifier())))
     # django-tables2 takes the options of the paginator; its type hints say only bool
     RequestConfig(request, paginate={"per_page": 50}).configure(table)  # pyright: ignore[reportArgumentType]
     return stats_page(

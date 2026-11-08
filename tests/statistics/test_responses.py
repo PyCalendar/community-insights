@@ -84,7 +84,7 @@ def test_the_overview_selects_the_best_fit(synced, signed_in):
     """The overview selects the best fit."""
     from community_insights.models import Project
 
-    page = signed_in.get(f"/s/{Project.objects.get().pk}/").content.decode()
+    page = signed_in.get(f"/s/{Project.objects.get().pk}/response-times/").content.decode()
     assert 'data-fit-select="#fits-pr"' in page and 'id="fits-pr"' in page
     assert '<tr data-fit="Kaplan-Meier">' in page
     assert "selected>" in page and "(lowest std error)" in page
@@ -108,9 +108,13 @@ def test_kaplan_meier_with_responses_at_once():
     assert stats.quantile(fitted, 0.95) is None
 
 
-def test_kaplan_meier_of_the_first_response_of_anybody():
-    """Without a class, the fastest class of an item counts."""
-    entries = [{"bot": 60.0, "maintainer": 30.0}, {"maintainer": 90.0}, {}]
+def test_kaplan_meier_of_the_first_response_of_the_item():
+    """Without a class, the first response of the item counts (FIRST), not that of a bot."""
+    entries = [
+        {"bot": 10.0, "maintainer": 30.0, stats.FIRST: 30.0},
+        {"maintainer": 90.0, stats.FIRST: 90.0},
+        {"bot": 5.0},  # only a bot answered: no response of the item
+    ]
     fitted = stats.survival(entries, [60.0, 90.0, 1000.0], None)
     assert stats.quantile(fitted, 0.5) == 90.0
     assert stats.survival([{}, {}], [1.0, 2.0], None) is None

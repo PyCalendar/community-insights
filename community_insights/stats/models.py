@@ -3,7 +3,7 @@
 import math
 
 from ..heavy import LOCK
-from .responses import Times, percentile
+from .responses import FIRST, Times, percentile
 from .survival import quantile, survival
 
 # the models: their names in addresses, as on the overview
@@ -11,17 +11,17 @@ MODELS = ("measured", "normal", "exponential", "kaplan-meier")
 
 
 def times_of(entries: list[Times], name: str | None) -> list[float]:
-    """The seconds until the first response of a class, or of anybody.
+    """The seconds until the first response of a class, or of the item.
 
     Args:
         entries: The seconds until the first response of each class, one dictionary per item.
-        name: The class, None for the first response of anybody.
+        name: The class, None for the first response of the item (not of a bot).
 
     Returns:
         The seconds of the items with such a response.
     """
     if name is None:
-        return [min(e.values()) for e in entries if e]
+        return [e[FIRST] for e in entries if FIRST in e]
     return [e[name] for e in entries if name in e]
 
 

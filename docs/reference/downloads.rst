@@ -32,7 +32,7 @@ Tables
 ======
 
 ``responses``
-    One row per pull request or issue created in the time range: ``repository``, ``kind`` (``pr`` or ``issue``), ``number``, ``author``, ``created_at``, ``state``, ``merged``, ``closed_at``, ``responded`` (``1`` if anybody else responded), ``seconds_any`` (the seconds until the first response of anybody), ``observed_seconds`` (how long it was watched: until it was closed or until the download), and ``seconds_<class>`` for each class of people, such as ``seconds_bot``, empty without a response of the class.
+    One row per pull request or issue created in the time range: ``repository``, ``kind`` (``pr`` or ``issue``), ``number``, ``author``, ``created_at``, ``state``, ``merged``, ``closed_at``, ``responded`` (``1`` with a first response), ``seconds_any`` (the seconds until the first response of the item, not of a bot, see :ref:`first-response`), ``observed_seconds`` (how long it was watched: until it was closed or until the download), and ``seconds_<class>`` for each class of people, such as ``seconds_bot``, empty without a response of the class.
 
 ``items``
     One row per pull request or issue created in the time range: ``repository``, ``kind``, ``number``, ``title``, ``author``, ``author_association``, ``author_is_bot``, ``state``, ``merged``, ``merged_by``, ``created_at``, ``updated_at``, ``closed_at``.

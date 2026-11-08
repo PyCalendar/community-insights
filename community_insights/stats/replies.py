@@ -7,6 +7,7 @@ from fractions import Fraction
 from ..models import Event, Item, ItemCommit
 from .contributor_replies import GREEN, RED, YELLOW, ContributorReplies
 from .pull_reply import PullReply
+from .responses import bot_test, responses_to
 from .selection import items_in
 
 # what the table of replies can be sorted by, each with the worst first
@@ -110,9 +111,8 @@ def pull_replies(
 ) -> list[PullReply]:
     """The pull requests and whether their authors answered the feedback on them.
 
-    Feedback is a comment or review by somebody else than the author and not by a bot: not
-    marked as a bot by GitHub, and not of the class of bots of the classifier; an approving
-    review is no feedback either: it needs no reply. The author
+    Feedback is a response (see ``responses.responses_to``) that needs a reply, and not of a
+    bot (see ``responses.bot_test``): a comment or a review that does not approve. The author
     answers with a comment, a review or a commit after the first feedback. Pull requests
     opened by bots are left out.
 
@@ -126,9 +126,7 @@ def pull_replies(
     Returns:
         The pull requests, also the merged ones, by repository and number.
     """
-    from ..tables.items import bot_logins
-
-    bots = bot_logins(repositories, classifier) if classifier is not None else set()
+    is_bot = bot_test(classifier)
     items = items_in(repositories, since, until).filter(kind=Item.PR, author_is_bot=False)
     items = items.exclude(author="")
     if login:
@@ -147,14 +145,14 @@ def pull_replies(
         ).order_by("repository__full_name", "number")
     )
     ids = [row[0] for row in rows]
+    responses = responses_to(items)
     events: dict[int, list] = defaultdict(list)
-    for item, actor, is_bot, at, kind, state in (
+    for item, actor, at in (
         Event.objects.filter(item__in=ids)
         .exclude(kind=Event.OPENED)
-        .values_list("item", "actor", "is_bot", "at", "kind", "state")
+        .values_list("item", "actor", "at")
     ):
-        approval = kind == Event.REVIEW and state == Event.APPROVED
-        events[item].append((actor.lower(), is_bot, at, approval))
+        events[item].append((actor.lower(), at))
     commits: dict[int, list] = defaultdict(list)
     for item, actor, at in ItemCommit.objects.filter(item__in=ids).values_list(
         "item", "actor", "at"
@@ -163,12 +161,10 @@ def pull_replies(
     found = []
     for pk, author, repository, number, title, state, merged, closed_by, created in rows:
         key = author.lower()
-        feedback = [  # an approval is no feedback to reply to
-            at
-            for actor, is_bot, at, approval in events[pk]
-            if actor != key and not is_bot and actor not in bots and not approval
+        feedback = [  # an approval, a merge or a close is no feedback to reply to
+            r.at for r in responses[pk] if r.needs_reply and not is_bot(r)
         ]
-        own = [at for actor, _, at, _ in events[pk] if actor == key]
+        own = [at for actor, at in events[pk] if actor == key]
         own += [at for actor, at in commits[pk] if actor == key]
         found.append(
             PullReply(

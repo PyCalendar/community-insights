@@ -156,6 +156,9 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 SITE_ID = 1
+# the name of the site (django.contrib.sites), such as in the subjects of mails; set at each
+# start by manage.py prepare (name_site); empty keeps the name it has
+SITE_NAME = env("SITE_NAME", default="")
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"

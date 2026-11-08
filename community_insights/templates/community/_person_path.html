@@ -1,0 +1,5 @@
+{% load community i18n %}{# The path of a page of a person: the project, a drop-down of the ways to view the person (the page "active"), and the person. #}
+<nav aria-label="breadcrumb"><ol class="breadcrumb align-items-center">
+  <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}{{ scope.query }}">{{ scope.title }}</a></li>
+  <li class="breadcrumb-item">{% pages_of_person scope.text login scope.query as pages %}{% blocktranslate asvar pages_label %}Pages of {{ login }}{% endblocktranslate %}{% include "community/_pages_menu.html" with pages=pages label=pages_label active=active %}</li>
+  <li class="breadcrumb-item active" aria-current="page">{{ login }}</li></ol></nav>

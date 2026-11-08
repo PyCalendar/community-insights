@@ -22,6 +22,21 @@ Open the **Dashboard** and the tab **Add repositories**. **Refresh from GitHub**
 
 Press **Update** on the overview, or on the card of the project on the dashboard. It reads at once all the pages need: what changed, and what earlier reads missed. The first read of a large project takes minutes, later reads only fetch what changed. The drop-down next to **Update** opens the page that estimates the points and time and chooses what and how much to read.
 
+The pages of a project
+======================
+
+The drop-down at the top of every page of a project, and the menu of its card on the dashboard and on **Explore**, lead to the same pages:
+
+- **Overview**: how many pull requests and issues are open, merged and closed, how many people contributed, by class of people, and the five most active people who are not bots. It loads fast: the response times have their own page.
+- **Response times**: how long pull requests and issues waited for their first response.
+- **Contributors**: everybody who contributed, chosen and sorted with a query.
+- **Pull requests and issues**: all of them, with their state in the colours of GitHub (green open, red closed, purple merged) and their first response; *waiting* marks the open ones that no collaborator or higher has answered yet, and a merge counts as a response (see :doc:`../explanation/responses`). Kind, state and whether somebody responded are multiple choices: all are chosen at first, so choose for example *closed* and *merged* together.
+- **Replies**: who replied to the feedback on their pull requests.
+- **Badges**: the badges to put into a README.
+- **Compare repositories**, for several repositories.
+
+The pages of a person have their own drop-down in the path at the top: their **Contributions**, their **Replies**, their **Pull requests and issues**, and their **Badges**.
+
 Look at several projects
 ========================
 
@@ -44,7 +59,7 @@ See :doc:`../reference/classes` for the default classes.
 Read the response times
 =======================
 
-The overview shows, for pull requests and for issues:
+The page **Response times** shows, for pull requests and for issues:
 
 - the bars of the times until the first response of each class; point at a bar to see its numbers,
 - the curve of the share still waiting for a response (Kaplan-Meier),
@@ -61,7 +76,7 @@ Who replies to feedback
 Badges
 ======
 
-The overview has a builder of the badge of the response time: choose pull requests or issues, the percentile, optionally a class, the statistic, the text of the left side and SVG or PNG, and copy the code for Markdown, reStructuredText, HTML or the plain URL. Each person on **Replies** has a badge of their replies, with its own page and code. Every badge is also JSON. :doc:`../reference/badges` lists the badges and their colours.
+The page **Badges** has the builder of the badge of the response time: choose pull requests or issues, the percentile, optionally a class, the statistic, the text of the left side and SVG or PNG, and copy the code for Markdown, reStructuredText, HTML or the plain URL. Each person on **Replies** has a badge of their replies, with its own page and code. Every badge is also JSON. :doc:`../reference/badges` lists the badges and their colours.
 
 Share
 =====

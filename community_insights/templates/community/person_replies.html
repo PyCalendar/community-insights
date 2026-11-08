@@ -2,10 +2,7 @@
 {% load i18n %}
 {% block title %}{% blocktranslate with title=scope.title %}Replies of {{ login }} in {{ title }}{% endblocktranslate %}{% endblock %}
 {% block content %}
-<nav aria-label="breadcrumb"><ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}{{ scope.query }}">{{ scope.title }}</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'replies' scope.text %}{{ scope.query }}">{% translate "Replies" %}</a></li>
-  <li class="breadcrumb-item active" aria-current="page">{{ login }}</li></ol></nav>
+{% include "community/_person_path.html" with active="person_replies" %}
 <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
   <h1 class="h3 mb-0">{% blocktranslate %}Replies of {{ login }}{% endblocktranslate %}{% if name %} <small class="text-muted">{{ name }}</small>{% endif %}</h1>
   {% if preview %}<a href="{% url 'reply_badge_share' scope.text login %}{{ scope.query }}" title="{% translate "The badge to copy" %}"><img src="{{ preview }}" alt="{% translate "The badge to copy" %}"></a>{% endif %}

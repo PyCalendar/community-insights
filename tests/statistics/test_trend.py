@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from community_insights import stats
+from community_insights.stats import FIRST
 from community_insights.stats.trend import MIN_RESPONSES
 
 START = datetime(2026, 1, 1, tzinfo=UTC)
@@ -16,7 +17,9 @@ def rows(factor_per_month, count=40, spread=0.0):
     for index in range(count):
         days = 3 * index
         seconds = 3600 * factor_per_month ** (days / 30.44) * (1 + spread * (-1) ** index)
-        found.append((START + timedelta(days=days), {"maintainer": seconds}, seconds))
+        found.append(
+            (START + timedelta(days=days), {"maintainer": seconds, FIRST: seconds}, seconds)
+        )
     return found
 
 
@@ -56,19 +59,19 @@ def test_all_on_one_day_give_no_trend():
     assert stats.trend(same_day) is None
 
 
-def test_the_first_response_of_anybody_counts():
-    """The fastest class of an item is its first response."""
+def test_the_first_response_of_the_item_counts_not_a_bot():
+    """The first response of the item (FIRST) counts: a bot that answers at once does not."""
     found = [(created, {**times, "bot": 1.0}, seconds) for created, times, seconds in rows(2.0)]
     trend = stats.trend(found)
-    assert trend is not None and not trend.clear, "the bot answers at once, always"
-    assert trend.percent_per_month == 0
+    assert trend is not None and not trend.faster, "the bot answers at once, but is a bot"
+    assert trend.percent_per_month == pytest.approx(100, rel=0.05)
 
 
 @pytest.mark.django_db
 def test_the_overview_shows_the_trend_and_the_curves(world, signed_in):
     """The overview says the trend of each kind and shows the Kaplan-Meier curves."""
     pk = world["project"].pk
-    page = signed_in.get(f"/s/{pk}/").content.decode()
+    page = signed_in.get(f"/s/{pk}/response-times/").content.decode()
     assert 'data-trend="pr"' in page and 'data-trend="issue"' in page
     assert "too few responses to tell" in page
     assert f"/s/{pk}/chart/survival-pr.svg" in page
@@ -86,7 +89,7 @@ def test_exactly_the_least_number_of_responses_gives_a_trend():
 
 def test_responses_after_zero_seconds_are_counted():
     """log1p counts a response after 0 seconds without an error."""
-    found = [(START + timedelta(days=i), {"bot": 0.0 if i % 2 else 60.0}, 1.0) for i in range(20)]
+    found = [(START + timedelta(days=i), {FIRST: 0.0 if i % 2 else 60.0}, 1.0) for i in range(20)]
     trend = stats.trend(found)
     assert trend is not None and 0 <= trend.p_value <= 1
 
@@ -118,7 +121,7 @@ def test_the_code_of_the_documentation_gives_the_same_trend():
     table = pandas.DataFrame(
         {
             "created_at": [created.isoformat().replace("+00:00", "Z") for created, _, _ in found],
-            "seconds_any": [min(times.values()) for _, times, _ in found],
+            "seconds_any": [times[FIRST] for _, times, _ in found],
         }
     )
     # the code of the documentation

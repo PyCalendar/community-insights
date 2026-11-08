@@ -1,0 +1,7 @@
+{% load i18n %}{# A drop-down of pages ("pages": name, title, address), the page "active" shown on its button; "label" names the menu for screen readers. #}
+<div class="dropdown">
+  <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ label }}">{% for name, title, address in pages %}{% if name == active %}{{ title }}{% endif %}{% endfor %}{% if not active %}{{ label }}{% endif %}</button>
+  <ul class="dropdown-menu">
+    {% for name, title, address in pages %}<li><a class="dropdown-item{% if name == active %} active" aria-current="page{% endif %}" href="{{ address }}">{{ title }}</a></li>{% endfor %}
+  </ul>
+</div>

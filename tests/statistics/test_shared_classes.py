@@ -54,12 +54,12 @@ def test_a_shared_address_uses_the_classes_of_its_maker(synced, user, client):
     idents = "+".join(c.ident for c in user.classes.all())
     other = get_user_model().objects.create_user("kim", "kim@example.org", "pw")
     client.force_login(other)
-    page = client.get(f"/s/o~r/?classes={idents}").content.decode()
+    page = client.get(f"/s/o~r/response-times/?classes={idents}").content.decode()
     assert "Classes of people of the shared address" in page
     assert "Use my own classes" in page
     table = page[page.index('id="fits-issue"') :]
     assert "<td>maintainers</td>" in table, "dave answered the issue as a maintainer"
-    own = client.get("/s/o~r/").content.decode()
+    own = client.get("/s/o~r/response-times/").content.decode()
     assert "maintainers" not in own[own.index('id="fits-issue"') :]
 
 

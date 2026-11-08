@@ -17,10 +17,11 @@ Add the project and read it
 Look at the statistics
 ======================
 
-#. When the bar reaches 100%, the overview shows the response times: how long pull requests and issues waited for a first response, for each class of people.
+#. When the bar reaches 100%, the overview shows how many pull requests and issues are open, merged and closed, and how many people contributed. The drop-down at the top leads to the other pages of the project.
+#. Choose **Response times** in the drop-down: how long pull requests and issues waited for a first response, for each class of people.
 #. Open **Contributors**: everybody who contributed, with their pull requests, issues, comments and reviews. Click a column title to sort by it.
 #. Open a person: their contributions per month, and when in the day and the week they are active.
-#. At the bottom of the overview, build a badge of the response time for your README.
+#. Choose **Badges** in the drop-down, and build a badge of the response time for your README.
 
 You have a project with its statistics. Go on with :doc:`replies`.
 

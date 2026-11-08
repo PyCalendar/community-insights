@@ -17,7 +17,7 @@ def test_read_a_project_and_see_its_numbers_and_charts(project):
 
 def test_the_charts_are_drawn_by_chart_js(read):
     """The charts with data become canvases of Chart.js; the SVG stays for those without."""
-    read.see("Response times")
+    read.open_page("Response times")
     canvas = read.page.locator(".chart-canvas canvas").first
     expect(canvas).to_be_visible()
     expect(canvas).to_have_attribute("role", "img")
@@ -51,6 +51,7 @@ def test_the_downloads_page_shows_what_was_fetched_and_why(read):
 
 def test_build_a_badge(read):
     """The badge builder makes the Markdown and shows the badge."""
+    read.open_page("Badges")
     for part, value in (("kind", "issues"), ("percentile", "50"), ("class", "bot")):
         read.page.locator(f'[data-badge="{part}"]').select_option(label=value)
     expect(read.page.locator('[data-share="markdown"]')).to_have_value(
@@ -64,7 +65,7 @@ def test_build_a_badge(read):
 
 def test_contributors_and_their_times_in_my_time_zone(read):
     """The contributors table and a person, in the time zone of the browser."""
-    read.click("Contributors")
+    read.open_page("Contributors")
     read.see("bob")
     read.see("Berlin")
     read.page.get_by_role("link", name="bob", exact=True).first.click()
@@ -74,11 +75,13 @@ def test_contributors_and_their_times_in_my_time_zone(read):
 
 def test_dark_and_light_pages_with_charts_in_the_same_colours(read):
     """The theme switches the page and its charts, also on the next page."""
+    read.open_page("Response times")
     read.choose_theme("dark")
     read.page_is("dark")
     read.charts_are("dark")
     read.open("/dashboard/")
     read.page.get_by_role("link", name="o/r", exact=True).first.click()
+    read.open_page("Response times")
     read.page_is("dark")
     read.charts_are("dark")
     read.choose_theme("light")
@@ -88,7 +91,7 @@ def test_dark_and_light_pages_with_charts_in_the_same_colours(read):
 
 def test_write_a_query_with_the_names_of_the_variables_and_run_it_with_enter(read):
     """The query field completes the names; Enter runs the query and scrolls it to the top."""
-    read.click("Contributors")
+    read.open_page("Contributors")
     field = read.page.locator("#where")
     field.press_sequentially("prs_mer")
     expect(read.page.locator(".complete-list")).to_contain_text("prs_merged")
@@ -106,7 +109,7 @@ def test_write_a_query_with_the_names_of_the_variables_and_run_it_with_enter(rea
 
 def test_choose_the_columns_of_the_contributors(read):
     """Remove, move and add columns, then run the query."""
-    read.click("Contributors")
+    read.open_page("Contributors")
     read.column_button("user_location", "Remove").click()
     read.column_button("user_class", "Move").click()
     read.page.locator(".column-list + select").select_option(label="activity_total")
@@ -121,6 +124,7 @@ def test_choose_the_columns_of_the_contributors(read):
 
 def test_share_a_chart_with_the_page_it_comes_from(read):
     """The share page has the code for Markdown and reStructuredText."""
+    read.open_page("Response times")
     read.click("Share this chart")
     read.see("Share a chart")
     expect(read.page.locator('[data-share="markdown"]')).to_have_value(
@@ -144,7 +148,7 @@ def test_the_heading_of_a_large_table_stays_in_view(read):
     the table has no scroll bar of its own."""
     if read.page.viewport_size["width"] < 992:
         return  # phones scroll the table sideways
-    read.click("Contributors")
+    read.open_page("Contributors")
     table = read.page.locator("#contributors-table")
     table.wait_for()
     box = read.page.locator(".table-responsive:has(#contributors-table)")

@@ -7,7 +7,7 @@ Every statistics page has **Data and sources** with the tables behind the number
 Compute the fits
 ================
 
-The fits of the overview are made with scipy. This reproduces them for the class *bot*:
+The fits of the page **Response times** are made with scipy. This reproduces them for the class *bot*:
 
 .. code-block:: python
 
@@ -47,7 +47,7 @@ The badges use the measured percentile, ``numpy.percentile(x, p)``, unless their
 Count the items without a response
 ==================================
 
-Items nobody answered yet are not in ``x`` above, so the times look shorter than they are. The row *Kaplan-Meier* of the overview counts them as waiting at least as long as they were observed (until they were closed, or until the download), with lifelines:
+Items nobody answered yet are not in ``x`` above, so the times look shorter than they are. The row *Kaplan-Meier* of the page **Response times** counts them as waiting at least as long as they were observed (until they were closed, or until the download), with lifelines:
 
 .. code-block:: python
 
@@ -58,7 +58,7 @@ Items nobody answered yet are not in ``x`` above, so the times look shorter than
     fitted = lifelines.KaplanMeierFitter().fit(durations, event_observed=column.notna())
     # the median: the first time at which at most half are still waiting
     fitted.median_survival_time_
-    # the curve of the overview, with its confidence interval
+    # the curve of the page Response times, with its confidence interval
     fitted.survival_function_, fitted.confidence_interval_survival_function_
 
 scipy gives the same median with ``scipy.stats.ecdf(scipy.stats.CensoredData(uncensored=column.dropna(), right=table.loc[column.isna(), "observed_seconds"])).sf``.
@@ -68,7 +68,7 @@ If less than half of the items got a response, the median is not reached: the pa
 Compute the trend
 =================
 
-The trend under the tables of the overview is a straight line through the logarithm of the time until the first response of anybody, over the day each item was opened (:ref:`trend`):
+The trend under the tables of the page **Response times** is a straight line through the logarithm of the time until the first response of anybody, over the day each item was opened (:ref:`trend`):
 
 .. code-block:: python
 

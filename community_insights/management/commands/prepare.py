@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 STEPS = (
     ("migrate", {"interactive": False}),
     ("invalidate_cachalot", {"verbosity": 0}),  # the cache of the statistics starts fresh
+    ("name_site", {}),  # SITE_NAME, the name in mails and pages
     ("ensure_superuser", {}),  # DEFAULT_SUPERUSER, email:password, each start
     ("check_production", {}),  # stops the container if a default password is used
 )

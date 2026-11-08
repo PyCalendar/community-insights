@@ -10,7 +10,11 @@ URLs
    * - ``/dashboard/``
      - projects, adding projects, your repositories
    * - ``/s/<scope>/``
-     - overview: counts, response time charts and tables, badge builder
+     - overview: the numbers of pull requests, issues and contributors
+   * - ``/s/<scope>/response-times/``
+     - the response times: charts, tables of the statistics, and trends
+   * - ``/s/<scope>/badges/``
+     - the builder of the badge of the response time, and where the badges of replies are
    * - ``/s/<scope>/contributors/``
      - contributors table; ``q``, ``class`` and ``sort`` filter it
    * - ``/s/<scope>/people/<login>/``

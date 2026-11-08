@@ -10,6 +10,6 @@
   {% endfor %}
   <div class="col-12 col-md-auto"><button class="btn btn-sm btn-primary w-100">{% translate "Show" %}</button></div>
 </form>
-<p class="small text-muted">{% blocktranslate with count=table.paginator.count|default:table.rows|length %}{{ count }} pull requests and issues.{% endblocktranslate %} {% translate "The columns sort when you click them. “Waiting” is how long an item without a response has waited, until it was closed or until now." %}</p>
+<p class="small text-muted">{% blocktranslate with count=table.paginator.count|default:table.rows|length %}{{ count }} pull requests and issues.{% endblocktranslate %} {% translate "The columns sort when you click them." %} {% include "community/_response_note.html" with waiting=True %}</p>
 {% render_table table %}
 {% endblock %}

@@ -19,23 +19,37 @@ from .replies import (
     replies_of,
     sort_order,
 )
+from .response import Response
 from .responses import (
     BUCKETS,
+    FIRST,
     SLOWER,
     Times,
+    bot_test,
     bucket,
     class_percentile,
+    first_by_class,
+    first_response,
     histogram,
     percentile,
     response_entries,
     response_rows,
     response_times,
+    responses_to,
+    waits,
 )
 from .selection import events_in, items_in
 from .survival import quantile, survival
 from .trend import Trend, trend
 
 __all__ = [
+    "FIRST",
+    "Response",
+    "bot_test",
+    "first_by_class",
+    "first_response",
+    "responses_to",
+    "waits",
     "Trend",
     "response_rows",
     "trend",

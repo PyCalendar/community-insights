@@ -68,10 +68,10 @@ def test_unknown_charts_and_projects_of_others(synced, signed_in, client):
 def test_the_charts_link_to_their_share_page(synced, signed_in):
     """The charts link to their share page."""
     pk = Project.objects.get().pk
-    page = signed_in.get(f"/s/{pk}/?since=2026-01-01").content.decode()
+    page = signed_in.get(f"/s/{pk}/response-times/?since=2026-01-01").content.decode()
     assert "Share this chart" in page
     assert (
-        f"/s/{pk}/share/responses-pr/?since=2026-01-01&amp;from=%2Fs%2F{pk}%2F%3Fsince%3D2026-01-01"
+        f"/s/{pk}/share/responses-pr/?since=2026-01-01&amp;from=%2Fs%2F{pk}%2Fresponse-times%2F%3Fsince%3D2026-01-01"
         in page
     )
 

@@ -1,0 +1,9 @@
+{% load i18n %}{# The contributors of the overview: how many, by class of people, and the most active. #}
+<h2 class="h5">{% translate "Contributors" %}</h2>
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{{ people.total }}</div><small class="text-muted">{% translate "people who contributed" %}</small></div></div>
+  {% for name, count in people.by_class %}<div class="col-6 col-md-3"><div class="stat rounded p-3"><div class="number">{{ count }}</div><small class="text-muted">{{ name }}</small></div></div>{% endfor %}
+</div>
+{% if people.most_active %}<h3 class="h6">{% translate "Most active" %}</h3>
+<ol class="small">{% for p in people.most_active %}<li><a href="{% url 'person' scope.text p.login %}{{ scope.query }}">{{ p.login }}</a> <span class="text-muted">{% blocktranslate count count=p.activity %}{{ count }} contribution{% plural %}{{ count }} contributions{% endblocktranslate %}</span></li>{% endfor %}</ol>{% endif %}
+<p class="small"><a href="{% url 'contributors' scope.text %}{{ scope.query }}">{% translate "All contributors" %}</a> · <a href="{% url 'response_times' scope.text %}{{ scope.query }}">{% translate "Response times" %}</a> · <a href="{% url 'replies' scope.text %}{{ scope.query }}">{% translate "Replies" %}</a></p>

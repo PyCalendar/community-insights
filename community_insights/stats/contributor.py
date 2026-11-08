@@ -77,6 +77,11 @@ class Contributor:
         return round(median(self.merge_days), 1) if self.merge_days else None
 
     @property
+    def is_bot(self) -> bool:
+        """Whether the person is a bot: in the class "bot" or with a handle ending in [bot]."""
+        return self.klass == "bot" or self.login.endswith("[bot]")
+
+    @property
     def activity(self) -> int:
         """Pull requests, issues, comments, reviews and commits together."""
         return self.prs_opened + self.issues_opened + self.comments + self.reviews + self.commits

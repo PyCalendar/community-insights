@@ -71,7 +71,7 @@ def test_the_pages_draw_their_charts_with_chart_js(world, signed_in):
     page = signed_in.get(f"/s/{pk}/people/bob/").content.decode()
     assert f'data-chart-json="/s/{pk}/chart/heatmap.json?login=bob' in page
     assert "vendor/chartjs/chart.umd.js" in page and "js/charts.js" in page
-    overview = signed_in.get(f"/s/{pk}/").content.decode()
+    overview = signed_in.get(f"/s/{pk}/response-times/").content.decode()
     assert f'data-chart-json="/s/{pk}/chart/responses-pr.json' in overview
     assert f'data-chart-json="/s/{pk}/chart/survival-pr.json' not in overview
     answer = signed_in.get(f"/s/{pk}/chart/hours.json?login=bob&theme=dark")

@@ -170,7 +170,7 @@ hours_to_respond
 
 *number*: Median time until their first response on items of others.
 
-The median of the hours until the person's first response, a comment or review, on items of others: half of their first responses came faster. Infinite, shown as ``-``, for people who never responded to others. The table shows it as a time, such as ``2d 4h`` or ``3h 12min``; a query compares the hours, such as ``hours_to_respond <= 24``.
+The median of the hours until the person's first response (a comment, a review, a merge or a close, see :doc:`../explanation/responses`) on items of others: half of their first responses came faster. Infinite, shown as ``-``, for people who never responded to others. The table shows it as a time, such as ``2d 4h`` or ``3h 12min``; a query compares the hours, such as ``hours_to_respond <= 24``.
 
 .. _variable-issues_closed:
 

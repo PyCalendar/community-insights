@@ -2,10 +2,7 @@
 {% load community i18n %}
 {% block title %}{% blocktranslate with title=scope.title %}{{ login }} in {{ title }}{% endblocktranslate %}{% endblock %}
 {% block content %}
-<nav aria-label="breadcrumb"><ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}">{{ scope.title }}</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'contributors' scope.text %}">{% translate "Contributors" %}</a></li>
-  <li class="breadcrumb-item active">{{ login }}</li></ol></nav>
+{% include "community/_person_path.html" with active="person" %}
 <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
   {% if person.avatar_url %}<img class="avatar" src="{{ person.avatar_url }}" alt="">{% endif %}
   <div><h1 class="h3 mb-0"><a href="https://github.com/{{ person.login }}">{{ person.login }}</a></h1>

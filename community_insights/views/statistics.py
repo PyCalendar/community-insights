@@ -1,3 +1,4 @@
+from collections import Counter
 from urllib.parse import quote, urlencode
 
 from django.http import Http404
@@ -36,9 +37,58 @@ def fit_table(title: str, kind: str, found, names: list[str]) -> tuple:
     return title, kind, rows, stats.best_fit(rows), stats.trend(found)
 
 
+def contributor_numbers(scope, classes) -> dict:
+    """How many people contributed, by class of people, and the most active of them.
+
+    Args:
+        scope: The scope of the page.
+        classes: The classes shown, in their order.
+
+    Returns:
+        ``total``, ``by_class`` (name, count) and ``most_active``: the five people with the
+        most pull requests, issues, comments, reviews and commits, with their ``activity``;
+        bots are counted, but not among the most active.
+    """
+    people = scope.contributors()
+    counted = Counter(person.klass for person in people)
+    return {
+        "total": len(people),
+        "by_class": [(c.name, counted.get(c.name, 0)) for c in classes],
+        "most_active": sorted(
+            (p for p in people if not p.is_bot), key=lambda p: (-p.activity, p.login.lower())
+        )[:5],
+    }
+
+
 @scope_view
 def overview(request, scope):
-    """The overview of a scope: counts, response time charts and tables, badges.
+    """The overview of a scope: how many pull requests and issues, and the contributors.
+
+    The response times and the badges have pages of their own, so this page loads fast.
+
+    Args:
+        request: The request.
+        scope: The text of the scope.
+
+    Returns:
+        The page.
+    """
+    scope = scope_of(request, scope)
+    return stats_page(
+        request,
+        scope,
+        "community/overview.html",
+        {
+            "scope": scope,
+            "counts": stats.counts(scope.repositories, scope.since, scope.until),
+            "people": contributor_numbers(scope, scope.visible_classes()),
+        },
+    )
+
+
+@scope_view
+def response_times(request, scope):
+    """The response times of a scope: charts and tables of the first responses, and trends.
 
     Args:
         request: The request.
@@ -54,18 +104,43 @@ def overview(request, scope):
     return stats_page(
         request,
         scope,
-        "community/overview.html",
+        "community/response_times.html",
         {
             "scope": scope,
-            "counts": stats.counts(scope.repositories, scope.since, scope.until),
             "tables": [
                 fit_table(_("Pull requests"), "pr", found[Item.PR], names),
                 fit_table(_("Issues"), "issue", found[Item.ISSUE], names),
             ],
             "fits": FITS,
-            "classes": classes,
+        },
+    )
+
+
+@scope_view
+def badges(request, scope):
+    """The badges of a scope: the badge of the response time and those of replies.
+
+    The builder of the badge of the response time, and where the badges of the replies of
+    each person are.
+
+    Args:
+        request: The request.
+        scope: The text of the scope.
+
+    Returns:
+        The page.
+    """
+    scope = scope_of(request, scope)
+    return stats_page(
+        request,
+        scope,
+        "community/badges.html",
+        {
+            "scope": scope,
+            "fits": FITS,
+            "classes": scope.visible_classes(),
             "page_url": request.build_absolute_uri(
-                scope.shared(reverse("overview", args=[scope.text]))
+                scope.shared(reverse("response_times", args=[scope.text]))
             ),
             "badge_url": request.build_absolute_uri(
                 (

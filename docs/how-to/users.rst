@@ -16,6 +16,25 @@ Make somebody an administrator
 
 Press **Make admin** in the row of the person and confirm. An administrator can see and change all data of the site: the cache, every table in **Admin**, and this page.
 
+.. _from-the-command-line:
+
+From the command line
+=====================
+
+An administrator can also be made at the command line of the server, with the email address of the account. The address must be confirmed, so that nobody becomes an administrator with an address that is not theirs:
+
+.. code-block:: bash
+
+    docker compose exec community-insights python manage.py make_admin kim@example.org
+
+.. vale off
+
+It says *kim@example.org is an administrator now*. Without an account with this address it stops with the error :class:`~community_insights.errors.users.UnknownEmailAddress`; with an address that is not confirmed, with :class:`~community_insights.errors.users.EmailAddressNotConfirmed`: the person confirms it with the link of the confirmation mail, or sends the mail again on their page **Profile**. Without a mail server, the confirmation mail is written to the log of the container.
+
+.. vale on
+
+The first administrator of a new site is made with ``DEFAULT_SUPERUSER``, see :ref:`configure-administrator`.
+
 Remove the administrator access
 ===============================
 

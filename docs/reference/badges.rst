@@ -41,7 +41,7 @@ Example, the 95th percentile of the first response of collaborators to pull requ
 
     ![PR response](https://community.example.org/badge/TOKEN.svg?kind=pr&percentile=95&class=collaborator%20or%20higher)
 
-Without data the badge says *no data*. An unknown class gives a 404. The badge builder on the overview of a project makes the code; it links the badge to the overview:
+Without data the badge says *no data*. An unknown class gives a 404. The builder on the page **Badges** of a project makes the code; it links the badge to the page **Response times**:
 
 .. code-block:: rst
 

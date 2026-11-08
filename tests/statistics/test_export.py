@@ -20,7 +20,8 @@ def test_response_table_matches_the_statistics(world):  # noqa: F811
     pr1 = next(r for r in rows if r["kind"] == "pr" and r["number"] == 1)
     assert pr1["seconds_bot"] == 600 and pr1["seconds_collaborator_or_higher"] == 7200
     assert pr1["seconds_external"] is None  # the author's own comment does not count
-    assert pr1["seconds_any"] == 600 and pr1["responded"] == 1
+    assert pr1["seconds_any"] == 7200, "the first response that is not of a bot"
+    assert pr1["responded"] == 1
     silent = next(r for r in rows if r["kind"] == "issue" and r["number"] == 2)
     assert silent["responded"] == 0 and silent["observed_seconds"] > 0  # censored
     entries = stats.response_entries(Repository.objects.all(), Classifier(alice))

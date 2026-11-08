@@ -1,0 +1,1 @@
+The pull requests and issues show their state as the second column, in the colours of GitHub: green open, red closed, purple merged. Kind, state and whether somebody responded are multiple choices, all chosen at first, such as closed and merged together.

@@ -3,42 +3,10 @@
 from datetime import datetime
 
 from ..models import Commit, Event, Item, Person
+from .associations import more_privileged
 from .contributor import Contributor
+from .responses import responses_to
 from .selection import events_in
-
-# the statuses in a repository, the most privileged first, as GitHub names them
-ASSOCIATIONS = [
-    "owner",
-    "member",
-    "collaborator",
-    "contributor",
-    "first_timer",
-    "first_time_contributor",
-    "mannequin",
-    "none",
-]
-
-
-def more_privileged(first: str, second: str) -> str:
-    """The more privileged of two statuses in a repository.
-
-    Args:
-        first: A status such as ``member``, any case; "" for none known.
-        second: Another one.
-
-    Returns:
-        The more privileged one, lowercase.
-
-    Examples:
-        >>> more_privileged("CONTRIBUTOR", "member"), more_privileged("", "none")
-        ('member', 'none')
-    """
-    first, second = first.lower(), second.lower()
-
-    def rank(name: str) -> int:
-        return ASSOCIATIONS.index(name) if name in ASSOCIATIONS else len(ASSOCIATIONS)
-
-    return first if rank(first) <= rank(second) else second
 
 
 def contributors(
@@ -66,7 +34,6 @@ def contributors(
     def get(login: str) -> Contributor:
         return people.setdefault(login.lower(), Contributor(login))
 
-    responded: set[tuple[int, str]] = set()
     events = (
         events_in(Event.objects.filter(item__in=items.keys()), since, until)
         .order_by("at")
@@ -100,9 +67,14 @@ def contributors(
             else:
                 person.reviews += 1
                 person.prs_reviewed.add(pk)
-            if (pk, actor.lower()) not in responded:
-                responded.add((pk, actor.lower()))
-                person.delays.append(max((at - created).total_seconds(), 0))
+    for found in responses_to(
+        Item.objects.filter(repository__in=repositories), since, until
+    ).values():
+        responded: set[str] = set()
+        for response in found:  # their first response on each item of others
+            if response.actor.lower() not in responded:
+                responded.add(response.actor.lower())
+                get(response.actor).delays.append(response.seconds)
     actions = Item.objects.filter(repository__in=repositories, closed_at__isnull=False)
     if since:
         actions = actions.filter(closed_at__gte=since)

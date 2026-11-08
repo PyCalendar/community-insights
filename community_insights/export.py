@@ -55,7 +55,8 @@ def responses(
     """The time until the first response of each item, per class.
 
     One row per pull request or issue: the seconds until the first response of each class (empty
-    if there was none) and of anybody. Without a response the time is censored:
+    if there was none) and the first response that is not of a bot (``seconds_any``), see
+    ``stats.responses``. Without a response the time is censored:
     `observed_seconds` says how long it was waited for, until it was closed or until now.
 
     Args:
@@ -74,23 +75,12 @@ def responses(
         .select_related("repository")
         .order_by("repository__full_name", "kind", "number")
     )
-    first = {item.pk: {} for item in items}
     by_pk = {item.pk: item for item in items}
-    events = (
-        Event.objects.filter(item__in=by_pk.keys())
-        .exclude(kind=Event.OPENED)
-        .order_by("at")
-        .values_list("item_id", "actor", "association", "is_bot", "at")
-    )
-    for pk, actor, association, bot, at in events.iterator():
-        item = by_pk[pk]
-        if actor.lower() == item.author.lower():
-            continue
-        seconds = max((at - item.created_at).total_seconds(), 0)
-        first[pk].setdefault("", seconds)
-        person_class = classifier(actor, association, bot)
-        if person_class is not None:
-            first[pk].setdefault(person_class.name, seconds)
+    first = {}
+    is_bot = stats.bot_test(classifier)
+    for pk, responses in stats.responses_to(stats.items_in(repositories, since, until)).items():
+        if pk in by_pk:  # the first response of the item (FIRST), and of each class
+            first[pk] = stats.first_by_class(responses, classifier, is_bot)
     rows = []
     for item in items:
         found = first[item.pk]
@@ -104,8 +94,8 @@ def responses(
             "state": item.state,
             "merged": int(item.merged),
             "closed_at": iso(item.closed_at),
-            "responded": int("" in found),
-            "seconds_any": found.get(""),
+            "responded": int(stats.FIRST in found),
+            "seconds_any": found.get(stats.FIRST),
             "observed_seconds": max((end - item.created_at).total_seconds(), 0),
         }
         for name in class_names:

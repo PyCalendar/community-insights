@@ -49,11 +49,11 @@ def test_the_left_side_is_escaped(synced, client):
 def test_the_overview_builds_the_badge_with_all_formats(synced, signed_in):
     """The overview builds the badge with all formats."""
     pk = Project.objects.get().pk
-    page = signed_in.get(f"/s/{pk}/").content.decode()
+    page = signed_in.get(f"/s/{pk}/badges/").content.decode()
     assert 'data-badge="label"' in page
     for name in ("markdown", "rst", "html", "link"):
         assert f'data-copy="#badge-{name}"' in page
-    assert 'data-share-link="http://testserver/s/o~r/"' in page, "opens without a sign in"
+    assert 'data-share-link="http://testserver/s/o~r/response-times/"' in page, "without a sign in"
     assert page.index("js/share.js") < page.index("js/badge.js"), "badge.js uses share.js"
 
 
@@ -116,6 +116,6 @@ def test_the_public_badge_in_each_format(synced, client):
 
 def test_the_overview_switches_the_format_and_links_the_json(synced, signed_in):
     """The builder has the format and the link to the JSON."""
-    page = signed_in.get(f"/s/{Project.objects.get().pk}/").content.decode()
+    page = signed_in.get(f"/s/{Project.objects.get().pk}/badges/").content.decode()
     assert 'data-badge="format"' in page and '<option value="png">PNG</option>' in page
     assert 'data-badge="json"' in page

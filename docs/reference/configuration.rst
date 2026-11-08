@@ -47,6 +47,9 @@ The application reads its settings from environment variables. With Docker, put 
    * - ``DATA_DIR``
      - ``./data`` (``/app/data`` in Docker)
      - Directory of the SQLite file and the secret key.
+   * - ``SITE_NAME``
+     - none
+     - The name of the site, such as in the subjects of the mails it sends (*[name] Please confirm your email address*): each start gives it to the first site of ``django.contrib.sites`` (``SITE_ID``). Empty keeps the name it has, ``example.com`` at first.
    * - ``ALLOWED_HOSTS``
      - ``*``
      - Comma separated host names. The health check of the container asks the site with the first of them, as Django refuses other hosts with 400.

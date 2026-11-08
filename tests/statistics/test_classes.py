@@ -16,7 +16,7 @@ def test_custom_class_by_handle_wins_by_its_order(synced, user):
     maintainers.top()
     maintainers.rules.create(kind=ClassRule.HANDLE, value="DAVE")
     entries = stats.response_entries(Repository.objects.all(), Classifier(user))
-    assert entries["issue"][0] == {"maintainers": 2 * 86400}
+    assert entries["issue"][0] == {"maintainers": 2 * 86400, stats.FIRST: 2 * 86400}
 
 
 def test_class_rules_pattern_and_location(user):
@@ -171,7 +171,7 @@ def test_a_hidden_class_still_sorts_people(synced, user, signed_in):
     assert all("external" not in e or e["external"] != 600 for e in entries["pr"]), (
         "the bot's answer after 10 minutes is no external response"
     )
-    page = signed_in.get(f"/s/{Project.objects.get().pk}/").content.decode()
+    page = signed_in.get(f"/s/{Project.objects.get().pk}/response-times/").content.decode()
     table = page[page.index('id="fits-pr"') :]
     assert "<td>bot</td>" not in table
 

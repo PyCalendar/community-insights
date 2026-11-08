@@ -96,7 +96,7 @@ VARIABLES: dict[str, tuple[Any, str, Callable]] = {
     "user_bot": (
         gettext_lazy("True for bots"),
         "bool",
-        lambda c, now: c.klass == "bot" or c.login.endswith("[bot]"),
+        lambda c, now: c.is_bot,
     ),
     "user_association": (
         gettext_lazy("most privileged status seen, such as member or contributor"),

@@ -37,6 +37,19 @@ For confirmation and password mails, add your mail server to ``.env``:
 
 The port chooses the encryption: 587 switches to TLS with STARTTLS, 465 speaks TLS from the start. If the mail server closes the connection (``SMTPServerDisconnected``), the port and the encryption do not fit; see ``EMAIL_USE_TLS`` and ``EMAIL_USE_SSL`` in :doc:`../reference/configuration`.
 
+.. _configure-site-name:
+
+Name the site
+=============
+
+The site sends mails, such as to confirm an email address, with its name in the subject. At first it is ``example.com``. Put the name into ``.env`` and start again:
+
+.. code-block:: shell
+
+    SITE_NAME=Insights of PyCalendar
+
+Each start gives this name to the site; without ``SITE_NAME`` it keeps the name it has. The name can also be changed in the administration at ``/admin/sites/site/``, but the next start with ``SITE_NAME`` sets it again.
+
 .. _configure-administrator:
 
 Add an administrator
@@ -58,6 +71,8 @@ To change the password, change it in ``.env`` and start again. A superuser witho
 .. code-block:: bash
 
     docker compose exec community-insights python manage.py createsuperuser
+
+To make an account that signed up an administrator, use :doc:`users`: the page **Users**, or at the command line ``manage.py make_admin`` with its confirmed email address.
 
 A site others can reach keeps ``PRODUCTION`` on, the default: then the container does not start while a superuser has a default password, such as ``admin`` or their own name, and says so in the log. Only a test site on your own computer may set ``PRODUCTION=false`` and use ``DEFAULT_SUPERUSER=admin@example.com:admin``.
 

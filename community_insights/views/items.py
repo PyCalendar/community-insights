@@ -1,5 +1,6 @@
 from django_tables2 import RequestConfig
 
+from ..stats import items_in
 from ..tables import ItemFilter, ItemTable, items_with_responses
 from .scope import scope_of, scope_view, stats_page
 
@@ -19,13 +20,8 @@ def items(request, scope):
         The page.
     """
     scope = scope_of(request, scope)
-    found = ItemFilter(
-        request.GET,
-        queryset=items_with_responses(
-            scope.repositories, scope.since, scope.until, scope.classifier()
-        ),
-    )
-    table = ItemTable(found.qs)
+    found = ItemFilter(request.GET, queryset=items_in(scope.repositories, scope.since, scope.until))
+    table = ItemTable(found.keep(items_with_responses(found.qs, scope.classifier())))
     # django-tables2 takes the options of the paginator; its type hints say only bool
     RequestConfig(request, paginate={"per_page": 50}).configure(table)  # pyright: ignore[reportArgumentType]
     return stats_page(

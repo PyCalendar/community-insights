@@ -2,12 +2,12 @@
 Read the response times
 =========================
 
-The overview of a project shows how long pull requests and issues waited for their first response, for each class of people. **Statistic** chooses how these times are summed up: *measured*, *normal*, *exponential* or *Kaplan-Meier*. This page explains what each one shows and when to trust it. :doc:`../how-to/verify` shows how to compute the same numbers yourself.
+The page **Response times** of a project shows how long pull requests and issues waited for their first response, for each class of people. **Statistic** chooses how these times are summed up: *measured*, *normal*, *exponential* or *Kaplan-Meier*. This page explains what each one shows and when to trust it. :doc:`../how-to/verify` shows how to compute the same numbers yourself.
 
 What is counted
 ===============
 
-A response is a comment or a review by somebody other than the author of the pull request or issue. For each item, the site takes the first response of each class of people (see :doc:`../reference/classes`): the first response of a bot does not hide the first response of a maintainer. The time is from the creation of the item to that response. The list of pull requests and issues shows one first response for each: the first comment or review by somebody other than the author and not by a bot, that is, not by somebody of the first class with the rule *is a bot*. Without such a rule, bots count as everyone else.
+A response is defined once for the whole site, see :doc:`responses`: a comment, a review, a merge, or a close by somebody other than the author. For each item, the site takes the first response of each class of people (see :doc:`../reference/classes`): the first response of a bot does not hide the first response of a maintainer. The time is from the creation of the item to that response. Without a class, such as in a badge without ``class``, the first response of the item counts: its first response that is not of a bot (:ref:`first-response`).
 
 Some items never got a response of a class: they were closed without one, or they still wait. The statistics treat them differently, see below.
 
@@ -65,7 +65,7 @@ Use it when many items wait or were closed without an answer: it honestly answer
 The curve of Kaplan-Meier
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Below the bars of the response times, the overview draws a curve for each class: the share of the items that are still waiting for a response of the class, over the time since they were opened. It starts at 100 % and steps down at each response. Where the curve is at 50 %, half of the items got a response: that is the median of the table. A curve that stays high never reaches that share; the table then shows ``-``.
+Below the bars of the response times, the page draws a curve for each class: the share of the items that are still waiting for a response of the class, over the time since they were opened. It starts at 100 % and steps down at each response. Where the curve is at 50 %, half of the items got a response: that is the median of the table. A curve that stays high never reaches that share; the table then shows ``-``.
 
 The light band around a curve is its 95 % confidence interval: with this data, the true curve lies within the band with a probability of 95 %. Few items give a wide band, so read the curve only where the band is narrow. The curves are computed with `lifelines <https://lifelines.readthedocs.io/>`_.
 
@@ -74,14 +74,14 @@ The light band around a curve is its 95 % confidence interval: with this data, t
 Trend
 =====
 
-Below each table, the overview says whether the first responses get faster or slower. It draws a straight line through the logarithm of the time until the first response of anybody, over the day each item was opened, with the ordinary least squares of `statsmodels <https://www.statsmodels.org/>`_. On the logarithm, a straight line means that the times change by the same factor each month: *10 % faster per month* means that a response that took 10 hours takes 9 hours a month later.
+Below each table, the page says whether the first responses get faster or slower. It draws a straight line through the logarithm of the time until the first response of anybody, over the day each item was opened, with the ordinary least squares of `statsmodels <https://www.statsmodels.org/>`_. On the logarithm, a straight line means that the times change by the same factor each month: *10 % faster per month* means that a response that took 10 hours takes 9 hours a month later.
 
-The p-value says how likely such a change, or a bigger one, would be if the times did not change at all. Below 0.05 the overview calls the trend clear and shows the change with its 95 % confidence interval. With fewer than 10 responses, it shows no trend. Items without a response are left out, as for *measured*: when many items wait, read the trend together with *Kaplan-Meier*.
+The p-value says how likely such a change, or a bigger one, would be if the times did not change at all. Below 0.05 the page calls the trend clear and shows the change with its 95 % confidence interval. With fewer than 10 responses, it shows no trend. Items without a response are left out, as for *measured*: when many items wait, read the trend together with *Kaplan-Meier*.
 
 Which one to look at
 ====================
 
-A badge uses *measured* unless its parameter ``model`` names another one (see :doc:`../reference/badges`); the badge builder on the overview has the same choice.
+A badge uses *measured* unless its parameter ``model`` names another one (see :doc:`../reference/badges`); the badge builder on the page **Badges** has the same choice.
 
 The page first shows the fit with the lowest standard error, summed over the classes: the one whose average is the most certain. That is a choice of precision, not of truth, so compare:
 

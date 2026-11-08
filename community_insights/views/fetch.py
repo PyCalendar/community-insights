@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
@@ -130,7 +130,7 @@ def fetch(request, scope):
                 _("%(extra)s more points of your tokens are fine until %(until)s.")
                 % {"extra": extra, "until": f"{until:%H:%M}"},
             )
-        return redirect(f"{request.path}?next={back}")
+        return redirect(f"{request.path}?{urlencode({'next': back})}")
     if request.method == "POST":
         limit_text = request.POST.get("limit", "").strip()
         limit = whole_above_zero(limit_text) if limit_text else None
@@ -142,7 +142,7 @@ def fetch(request, scope):
                     % {"limit_text": repr(limit_text)}
                 ),
             )
-            return redirect(f"{request.path}?next={back}")
+            return redirect(f"{request.path}?{urlencode({'next': back})}")
         if points > ask_above and limit is None:
             show_error(
                 request,
@@ -150,7 +150,7 @@ def fetch(request, scope):
                     gettext("This fetch needs about %(points)s points.") % {"points": points}
                 ),
             )
-            return redirect(f"{request.path}?next={back}")
+            return redirect(f"{request.path}?{urlencode({'next': back})}")
         try:
             priority = int(request.POST.get("priority", FetchJob.NORMAL))
         except ValueError:

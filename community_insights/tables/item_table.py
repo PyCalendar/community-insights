@@ -1,9 +1,12 @@
 import django_tables2 as tables
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 
 from ..models import Item
 from ..stats import format_duration
+
+STATE_NAMES = {"open": _("open"), "closed": _("closed"), "merged": _("merged")}
 
 
 class ItemTable(tables.Table):
@@ -19,7 +22,7 @@ class ItemTable(tables.Table):
 
     class Meta:
         model = Item
-        fields = ["number", "author", "created_at", "state", "response"]
+        fields = ["number", "state", "author", "created_at", "response"]
         order_by = "-created_at"
         attrs = {"class": "table table-sm table-hover align-middle"}
 
@@ -44,7 +47,7 @@ class ItemTable(tables.Table):
         )
 
     def render_state(self, record):
-        """merged, open or closed.
+        """merged, open or closed, in the colours of GitHub.
 
         Args:
             record: The item.
@@ -52,20 +55,29 @@ class ItemTable(tables.Table):
         Returns:
             The state.
         """
-        return "merged" if record.merged else record.state
+        state = "merged" if record.merged else record.state
+        return format_html('<span class="badge state-{}">{}</span>', state, STATE_NAMES[state])
 
     def render_response(self, record, value):
-        """The time until the first response, or how long it waits.
+        """The time until the first response, and how long an open item waits.
 
         Args:
-            record: The item.
+            record: The item, with ``waiting``: open, and no response of a collaborator or
+                higher.
             value: The time until its first response, None without one.
 
         Returns:
-            The duration, or how long it waits.
+            The duration, how long it waits, or that a closed item got no response.
         """
-        if value is not None:
+        if not record.waiting:
+            if value is None:
+                return format_html('<span class="text-muted">{}</span>', _("no response"))
             return format_duration(value.total_seconds())
-        end = record.closed_at or timezone.now()
-        waited = format_duration(max((end - record.created_at).total_seconds(), 0))
-        return format_html('<span class="text-muted">waiting {}</span>', waited)
+        waited = format_duration(max((timezone.now() - record.created_at).total_seconds(), 0))
+        label = format_html(
+            '<span class="badge text-bg-warning">{}</span>',
+            _("waiting %(time)s") % {"time": waited},
+        )
+        if value is None:
+            return label
+        return format_html("{} {}", format_duration(value.total_seconds()), label)

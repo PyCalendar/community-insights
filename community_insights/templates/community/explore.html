@@ -46,9 +46,7 @@
         <div class="dropdown">
           <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% blocktranslate with name=r.full_name %}Menu of {{ name }}{% endblocktranslate %}">&#8942;</button>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="{% url 'overview' card.scope %}">{% translate "Statistics" %}</a></li>
-            <li><a class="dropdown-item" href="{% url 'contributors' card.scope %}">{% translate "Contributors" %}</a></li>
-            <li><a class="dropdown-item" href="{% url 'items' card.scope %}">{% translate "Pull requests and issues" %}</a></li>
+            {% pages_of_project card.scope "" False as pages %}{% for name, title, address in pages %}<li><a class="dropdown-item" href="{{ address }}">{{ title }}</a></li>{% endfor %}
           </ul>
         </div></div>
       </div>

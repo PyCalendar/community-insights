@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from ..heavy import LOCK
-from .responses import Times
+from .responses import FIRST, Times
 
 MIN_RESPONSES = 10  # fewer give no trend
 DAYS_PER_MONTH = 30.44
@@ -91,7 +91,7 @@ def trend(rows: list[tuple[datetime, Times, float]]) -> Trend | None:
         import numpy
         import statsmodels.api as sm  # loaded when needed: it is large
 
-    answered = [(created, min(times.values())) for created, times, _ in rows if times]
+    answered = [(created, times[FIRST]) for created, times, _ in rows if FIRST in times]
     if len(answered) < MIN_RESPONSES:
         return None
     start = min(created for created, _ in answered)

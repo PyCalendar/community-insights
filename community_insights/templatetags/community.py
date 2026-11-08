@@ -285,3 +285,37 @@ def anchor(name: str) -> str:
         'prs-merged'
     """
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+@register.simple_tag
+def pages_of_project(scope_text, query="", several=True) -> list[tuple]:
+    """The pages of a project for a menu (views/project_pages.py holds the list).
+
+    Args:
+        scope_text: The text of the scope, such as a project number.
+        query: The time range and the classes to keep.
+        several: Whether the scope has several repositories.
+
+    Returns:
+        The name, title and address of each page.
+    """
+    from ..views.project_pages import project_pages
+
+    return project_pages(str(scope_text), query, several)
+
+
+@register.simple_tag
+def pages_of_person(scope_text, login, query="") -> list[tuple]:
+    """The pages of a person in a project for a menu.
+
+    Args:
+        scope_text: The text of the scope.
+        login: The handle of the person.
+        query: The time range and the classes to keep.
+
+    Returns:
+        The name, title and address of each page.
+    """
+    from ..views.project_pages import person_pages
+
+    return person_pages(str(scope_text), login, query)

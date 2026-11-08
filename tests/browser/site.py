@@ -89,6 +89,16 @@ class Site:
             toggler.click()
             expect(self.page.locator("#menu")).to_have_class(re.compile(r"(^|\s)show(\s|$)"))
 
+    def open_page(self, title: str) -> None:
+        """Open a page of the project with the drop-down at the top.
+
+        Args:
+            title: The title of the page, such as ``Contributors``.
+        """
+        self.page.get_by_role("button", name="Pages of the project").click()
+        self.page.locator(".dropdown-menu.show").get_by_role("link", name=title, exact=True).click()
+        self.page.wait_for_load_state("load")
+
     def click_in_menu(self, text: str) -> None:
         """Click a link of the menu, opening it (and the account menu) first.
 

@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from ..heavy import LOCK
 from ..models import Commit, Event, Item
+from .responses import responses_to
 from .selection import events_in
 
 
@@ -126,8 +127,8 @@ def responses_by_month(
 ) -> dict[tuple[int, int], list[float]]:
     """The time until a person's first responses, by month.
 
-    The seconds until the first response of a person on each item of others, by the month (in
-    the time zone) of the response.
+    The seconds until the first response of a person on each item of others (see
+    ``responses.responses_to``), by the month (in the time zone) of the response.
 
     Args:
         repositories: The repositories.
@@ -142,26 +143,16 @@ def responses_by_month(
     with LOCK:  # see heavy.py
         import pandas as pd  # loaded when needed: it is large
 
-    events = events_in(
-        Event.objects.filter(item__repository__in=repositories, actor__iexact=login).exclude(
-            kind=Event.OPENED
-        ),
-        since,
-        until,
-    ).select_related("item")
-    first: dict[int, Event] = {}
-    for event in events.order_by("at"):
-        if event.item.author.lower() != login.lower():
-            first.setdefault(event.item_id, event)
-    if not first:
+    found = responses_to(Item.objects.filter(repository__in=repositories), since, until, login)
+    responses = [listed[0] for listed in found.values() if listed]  # the first on each item
+    if not responses:
         return {}
-    responses = list(first.values())
-    local = local_times([event.at for event in responses], tz)
+    local = local_times([response.at for response in responses], tz)
     frame = pd.DataFrame(
         {
             "year": local.dt.year,
             "month": local.dt.month,
-            "seconds": [max((e.at - e.item.created_at).total_seconds(), 0) for e in responses],
+            "seconds": [response.seconds for response in responses],
         }
     )
     months: dict[tuple[int, int], list[float]] = {}

@@ -10,7 +10,7 @@ The replies of everybody
 ========================
 
 #. Open the project and choose **Replies** at the top.
-#. The table lists everybody who got feedback on a pull request: a comment or review by somebody else, not by a bot. People with an open pull request without a reply come first.
+#. The table lists everybody who got feedback on a pull request: a comment or review by somebody else, not by a bot (see :ref:`feedback`). People with an open pull request without a reply come first.
 #. Each row has a label: **answered** (green), **only one, not answered** (yellow) or **not answered** (red). **PRs replied to** says how many of their pull requests that count were replied to, such as ``1/3``; **Not replied to and open** and **Not replied to and closed** link those pull requests on GitHub.
 #. Above the table, the page says how many contributors it shows of all, with a link to why the others are not shown, such as merged pull requests, which need no reply.
 

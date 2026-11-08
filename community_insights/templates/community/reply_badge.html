@@ -2,11 +2,7 @@
 {% load static i18n %}
 {% block title %}{% blocktranslate %}Badge of {{ login }}{% endblocktranslate %}{% endblock %}
 {% block content %}
-<nav aria-label="breadcrumb"><ol class="breadcrumb">
-  <li class="breadcrumb-item"><a href="{% url 'overview' scope.text %}{{ scope.query }}">{{ scope.title }}</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'replies' scope.text %}{{ scope.query }}">{% translate "Replies" %}</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'person_replies' scope.text login %}{{ scope.query }}">{{ login }}</a></li>
-  <li class="breadcrumb-item active" aria-current="page">{% translate "Badge" %}</li></ol></nav>
+{% include "community/_person_path.html" with active="reply_badge_share" %}
 <h1 class="h3">{% blocktranslate %}Badge of {{ login }}{% endblocktranslate %}{% if name %} <small class="text-muted">{{ name }}</small>{% endif %}</h1>
 <p class="small text-muted">{% blocktranslate %}Green: every comment and review on the pull requests of {{ login }} was answered. Yellow: the only pull request was not answered. Red: some were not answered. The badge links to <a href="{{ page }}">the replies of {{ login }}</a>. When it is opened, it reads what changed on GitHub first, a few seconds at most.{% endblocktranslate %} <a href="{{ links.documentation }}reference/badges.html#reply-badge-{{ status }}">{% translate "What the colour of this badge means" %}</a> · <a href="{{ links.documentation }}reference/badges.html#reply-badges">{% translate "All badges of replies" %}</a> {% translate "Browsers and the image proxy of GitHub keep each badge for one hour: a README shows a change at most an hour later." %}</p>
 {% if image %}

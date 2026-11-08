@@ -5,11 +5,7 @@
   </div>
   <div class="d-flex flex-wrap gap-2">
     <button type="button" class="btn btn-sm btn-outline-secondary" data-copy-url="{% shared_url %}" title="{% translate "Copy the address of this page" %}">{% translate "Share" %}</button>
-    <a class="btn btn-sm {% if active == 'overview' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'overview' scope.text %}{{ scope.query }}">{% translate "Overview" %}</a>
-    <a class="btn btn-sm {% if active == 'contributors' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'contributors' scope.text %}{{ scope.query }}">{% translate "Contributors" %}</a>
-    <a class="btn btn-sm {% if active == 'items' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'items' scope.text %}{{ scope.query }}">{% translate "Pull requests and issues" %}</a>
-    <a class="btn btn-sm {% if active == 'replies' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'replies' scope.text %}{{ scope.query }}">{% translate "Replies" %}</a>
-    {% if scope.repositories.count > 1 %}<a class="btn btn-sm {% if active == 'compare' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'compare' scope.text %}{{ scope.query }}">{% translate "Compare repositories" %}</a>{% endif %}
+    {% pages_of_project scope.text scope.query scope.repositories.count|add:"-1" as pages %}{% translate "Pages of the project" as pages_label %}{% include "community/_pages_menu.html" with pages=pages label=pages_label %}
   </div>
 </div>
 {% include "community/_data.html" %}

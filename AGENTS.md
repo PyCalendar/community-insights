@@ -64,6 +64,9 @@ see also [Contribute](https://community-insights.readthedocs.io/en/latest/contri
 
 - Every change comes with tests, also of its edge cases and of the errors people
   can see. Tests are sorted by topic into the directories of `tests/`.
+- A case that the person reports on real data (an address of the site or of GitHub,
+  and what is right) becomes a test in `tests/feedback/test_maintainer_feedback.py`,
+  with the address, what was wrong and the rule they gave, and the data copied by hand.
 - Run what the CI runs, with the same commands: `make lint`, `make typecheck`, `make test`,
   `make test-js`, `make test-browser` (also `WINDOW=375x812`), `make check-graphql`,
   `make check-site-links`, `make check-vendor`, `make build`, `make docs`,

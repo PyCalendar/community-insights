@@ -1,0 +1,1 @@
+The pages of a project are in one drop-down at the top of each of them, and the menus of the cards of the dashboard and of Explore offer the same pages, from one list: Overview, Response times, Contributors, Pull requests and issues, Replies, Badges. The pages of a person have their own drop-down in the path: Contributions, Replies, Pull requests and issues, Badges.

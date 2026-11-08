@@ -5,14 +5,20 @@ import scipy.stats
 
 from community_insights import stats
 
-ENTRIES = [{"bot": 60.0, "maint": 600.0}, {"bot": 120.0}, {"maint": 3600.0}, {}]
+# under FIRST the first response of the item, not of a bot: the second got only a bot's
+ENTRIES = [
+    {"bot": 60.0, "maint": 600.0, stats.FIRST: 600.0},
+    {"bot": 120.0},
+    {"maint": 3600.0, stats.FIRST: 3600.0},
+    {},
+]
 OBSERVED = [7200.0, 7200.0, 7200.0, 10.0]
 
 
 def test_measured_is_the_percentile_of_the_times():
     """Measured is the percentile of the times."""
     assert stats.model_percentile(ENTRIES, OBSERVED, "bot", 50, "measured") == (90.0, 2)
-    assert stats.model_percentile(ENTRIES, OBSERVED, None, 50, "measured") == (120.0, 3)
+    assert stats.model_percentile(ENTRIES, OBSERVED, None, 50, "measured") == (2100.0, 2)
 
 
 def test_normal_and_exponential_are_the_quantiles_of_the_fits():

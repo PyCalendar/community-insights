@@ -2,7 +2,8 @@
 
 from dataclasses import dataclass
 
-from ..models import Event, Item
+from ..models import Item
+from .responses import responses_to
 
 FAST = 120  # seconds: a person rarely answers that fast
 AT_LEAST = 10  # pull requests and issues: fewer say little
@@ -39,27 +40,16 @@ def bot_suggestions(repositories, fast: float = FAST, at_least: int = AT_LEAST):
     Returns:
         The suggestions, the account with the most responses first.
     """
-    items = {
-        pk: (author.lower(), created)
-        for pk, author, created in Item.objects.filter(repository__in=repositories).values_list(
-            "id", "author", "created_at"
-        )
-    }
     first: dict[tuple[int, str], float] = {}
     names: dict[str, str] = {}
-    events = (
-        Event.objects.filter(item__in=items.keys(), is_bot=False)
-        .exclude(kind=Event.OPENED)
-        .order_by("at")
-        .values_list("item_id", "actor", "at")
-    )
-    for pk, actor, at in events.iterator():
-        author, created = items[pk]
-        login = actor.lower()
-        if login == author:
-            continue
-        names.setdefault(login, actor)
-        first.setdefault((pk, login), (at - created).total_seconds())
+    found = responses_to(Item.objects.filter(repository__in=repositories))
+    for pk, responses in found.items():
+        for response in responses:  # those GitHub marks as bots are bots already
+            if response.is_bot:
+                continue
+            login = response.actor.lower()
+            names.setdefault(login, response.actor)
+            first.setdefault((pk, login), response.seconds)
     counted: dict[str, list[int]] = {}
     for (_, login), seconds in first.items():
         total = counted.setdefault(login, [0, 0])

@@ -8,7 +8,7 @@ import math
 import warnings
 
 from ..heavy import LOCK
-from .responses import Times
+from .responses import FIRST, Times
 
 
 def waits(entries: list[Times], observed: list[float], name: str | None):
@@ -17,7 +17,7 @@ def waits(entries: list[Times], observed: list[float], name: str | None):
     Args:
         entries: The seconds until the first response of each class, one dictionary per item.
         observed: How long each item was observed.
-        name: The class, None for the first response of anybody.
+        name: The class, None for the first response of the item (not of a bot).
 
     Returns:
         The seconds of each item, and for each whether it got a response; an item without
@@ -29,7 +29,7 @@ def waits(entries: list[Times], observed: list[float], name: str | None):
     """
     durations, responded = [], []
     for entry, seconds in zip(entries, observed, strict=True):
-        found = entry.get(name) if name else (min(entry.values()) if entry else None)
+        found = entry.get(name or FIRST)
         durations.append(seconds if found is None else found)
         responded.append(found is not None)
     return durations, responded
@@ -45,7 +45,7 @@ def survival(entries: list[Times], observed: list[float], name: str | None):
     Args:
         entries: The seconds until the first response of each class, one dictionary per item.
         observed: How long each item was observed.
-        name: The class, None for the first response of anybody.
+        name: The class, None for the first response of the item (not of a bot).
 
     Returns:
         The fitted ``lifelines.KaplanMeierFitter``, or None.

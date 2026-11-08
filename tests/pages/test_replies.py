@@ -142,7 +142,7 @@ def test_the_badge_page_has_the_code_to_copy(replied, signed_in):
     image = f"http://testserver/badge/{project.badge_token}/replies/cid.svg"
     assert f'data-share-image="{image}"' in page
     assert 'data-share-link="http://testserver/s/o~r/replies/cid/' in page, "to the replies of cid"
-    assert f'href="/s/{project.pk}/replies/cid/">cid</a>' in page, "the path names the person"
+    assert f'href="/s/{project.pk}/replies/cid/">Replies</a>' in page, "the views of the person"
     assert "js/share.js" in page
 
 
@@ -234,10 +234,13 @@ def test_merged_and_closed_pull_requests_of_a_person(replied, client):
 
 
 def test_the_path_of_the_replies_of_a_person(replied, client):
-    """The project, Replies and the person, each linked but the page itself."""
+    """The project, a drop-down of the views of the person, and the person."""
     page = page_of(client.get("/s/o~r/replies/ben/"))
-    path = page[page.index('class="breadcrumb"') : page.index("</ol>")]
-    assert 'href="/s/o~r/"' in path and 'href="/s/o~r/replies/"' in path
+    path = page[page.index('class="breadcrumb') : page.index("</ol>")]
+    assert 'href="/s/o~r/"' in path
+    for view in ("people/ben/", "replies/ben/", "people/ben/items/", "replies/ben/badge/"):
+        assert f'href="/s/o~r/{view}"' in path
+    assert 'aria-current="page" href="/s/o~r/replies/ben/">Replies</a>' in path
     assert 'aria-current="page">ben</li>' in path
 
 

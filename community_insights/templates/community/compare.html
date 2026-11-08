@@ -3,7 +3,7 @@
 {% block title %}{% blocktranslate with title=scope.title %}Compare the repositories of {{ title }}{% endblocktranslate %}{% endblock %}
 {% block content %}
 {% include "community/_scope_nav.html" with active="compare" %}
-<p class="small text-muted">{% translate "One row per repository. The response times are of the first response of anybody but the author: the median and the 90th percentile." %}</p>
+<p class="small text-muted">{% translate "One row per repository. The response times are of the first response: the median and the 90th percentile." %} {% include "community/_response_note.html" %}</p>
 <div class="table-responsive"><table class="table table-sm table-hover align-middle">
   <thead><tr>
     <th><a href="?sort=name{{ scope.query_more }}">{% translate "Repository" %}</a></th>

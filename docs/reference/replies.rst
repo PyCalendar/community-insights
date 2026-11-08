@@ -14,7 +14,7 @@ A pull request of the time range (by the day it was opened) counts for the repli
 #. A person opened it: pull requests opened by bots are left out.
 #. It was not merged. A merged pull request needs no answer any more; it only counts in **PRs merged**.
 #. Its author did not close it. A pull request its author closed without merging was given up by the author: there is nothing to answer, so it does not count at all. The page of the person still lists it, marked *closed by the author: not counted*.
-#. It got feedback: a comment or review by somebody else than its author, and not by a bot. Bots are the accounts GitHub marks as bots and the accounts of the class of bots of your :doc:`classes`. A pull request without feedback has nothing to answer.
+#. It got feedback: a response that needs a reply, a comment or a review that does not approve by somebody else than its author, and not by a bot (see :ref:`feedback`). Bots are the people of the class of bots of your :doc:`classes`, by default the accounts GitHub marks as bots. A pull request without feedback has nothing to answer.
 
 So the pull requests that count are the open ones and those somebody else closed without merging them, each with feedback.
 
