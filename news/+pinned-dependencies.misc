@@ -1,1 +1,0 @@
-The versions of the Python packages are pinned in ``uv.lock``: the CI, the Docker image and Read the Docs install exactly these. Badges stay valid SVG with anybadge 1.18, which writes its own title and label.

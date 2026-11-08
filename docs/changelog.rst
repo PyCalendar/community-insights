@@ -8,6 +8,41 @@ Changes are collected as small files in `news/ <https://github.com/PyCalendar/co
 
 .. towncrier release notes start
 
+0.3.0 (2026-11-08)
+------------------
+
+New features
+~~~~~~~~~~~~
+
+- A response is defined once for the whole site, in the new page *What a response is* of the documentation: a comment, a review, a merge, or a close by somebody other than the author. The list of pull requests and issues, the response times, the badges, the dashboard, Compare repositories, the contributors, the page of a person, Replies and the downloads all use it. A merge now counts as a response everywhere; without a class, the first response is the first one that is not of a bot, also in ``seconds_any`` of the downloads. *waiting* marks only open items that no collaborator or higher has answered yet; a closed item without a response shows *no response*.
+- SITE_NAME names the site, such as in the subjects of its mails, at each start.
+- The most active people of the overview leave out the bots; they are still counted.
+- The overview loads fast and shows the contributors: how many, by class of people, and the most active. The response times and the badge builder have pages of their own.
+- The pages of a project are in one drop-down at the top of each of them, and the menus of the cards of the dashboard and of Explore offer the same pages, from one list: Overview, Response times, Contributors, Pull requests and issues, Replies, Badges. The pages of a person have their own drop-down in the path: Contributions, Replies, Pull requests and issues, Badges.
+- The pull requests and issues show their state as the second column, in the colours of GitHub: green open, red closed, purple merged. Kind, state and whether somebody responded are multiple choices, all chosen at first, such as closed and merged together.
+- manage.py make_admin makes the account with a confirmed email address an administrator.
+
+
+Bug fixes
+~~~~~~~~~
+
+- The button **Update** returns to the page with its filters, such as those of the list of pull requests and issues.
+
+
+Documentation
+~~~~~~~~~~~~~
+
+- The documentation has a section Tutorials with three tutorials, each on its own page: set up your own installation, your first project, and who replies to feedback. The user guide, the pages, the addresses and the explanations describe the current version.
+- The page Badges of the documentation shows every badge of replies in a table, with what each colour means, also the grey badge of somebody who is not on the page, and has an anchor for each kind and colour of badge; the page of a badge links to the description of its colour.
+
+
+Maintenance
+~~~~~~~~~~~
+
+- The versions of the Python packages are pinned in ``uv.lock``: the CI, the Docker image and Read the Docs install exactly these. Badges stay valid SVG with anybadge 1.18, which writes its own title and label.
+- certifi is 2026.10.23: 2026.7.22 bundled root certificates of emSign with compromised intermediate keys (GHSA-6q48-6c7w-9gw2).
+
+
 0.2.0 (2026-11-05)
 ------------------
 
