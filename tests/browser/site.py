@@ -83,7 +83,12 @@ class Site:
         ).first.click()
 
     def open_menu(self) -> None:
-        """Open the menu on a phone; on a wide screen it is always open."""
+        """Open the menu on a phone; on a wide screen it is always open.
+
+        It waits for the page to load: before, the toggler may not show yet, such as right
+        after the sign out, and the menu would stay closed.
+        """
+        self.page.wait_for_load_state("load")
         toggler = self.page.locator(".navbar-toggler")
         if toggler.is_visible() and toggler.get_attribute("aria-expanded") != "true":
             toggler.click()
