@@ -150,7 +150,7 @@ docs:  ## Build the documentation into docs/_build/html; warnings and broken ref
 	@uv run --extra docs sphinx-build -W -n --keep-going -b html docs docs/_build/html
 
 .PHONY: build
-build:  ## Build the package into dist/, as pip install .[docs] does on Read the Docs
+build:  ## Build the package into dist/
 	@uv build -o dist
 
 .PHONY: livehtml

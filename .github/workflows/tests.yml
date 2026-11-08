@@ -18,6 +18,10 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Install the versions of uv.lock; fail if it does not match pyproject.toml.
+  UV_LOCKED: "1"
+
 jobs:
   changelog:
     name: Check for a news fragment (make changelog)

@@ -111,6 +111,8 @@ The documentation is in ``docs/``, written in reStructuredText and built with Sp
 Update the JavaScript and CSS of other projects
 ===============================================
 
+The versions of the Python packages are pinned in ``uv.lock``: the CI, the Docker image and Read the Docs install exactly these, and fail if ``uv.lock`` does not match ``pyproject.toml`` (``UV_LOCKED=1``, ``uv sync --locked``). After a change of the dependencies in ``pyproject.toml``, run ``uv lock``. To update a package, run ``uv lock --upgrade-package NAME``, or ``uv lock --upgrade`` for all of them; then run the tests and commit ``uv.lock``.
+
 The pages load Bootstrap and other libraries from ``static/vendor/``, never from other servers. Their versions are in ``package.json`` and ``package-lock.json``; ``make vendor`` installs them with ``npm ci`` and copies the files the pages need, without their source maps. To update one, change its version with ``npm install --save-exact NAME@VERSION``, run ``make vendor``, and update ``static/vendor/vendor.json`` and ``REUSE.toml``.
 
 ``make check-vendor`` copies them again into ``.cache/vendor`` and compares: the CI fails when ``static/vendor`` is not what ``make vendor`` makes.

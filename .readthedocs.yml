@@ -8,13 +8,15 @@ build:
     post_checkout:
       # sphinx-last-updated-by-git needs the full history
       - git fetch --unshallow || true
+    # The versions of uv.lock, as in the CI and the Docker image
+    pre_create_environment:
+      - asdf plugin add uv
+      - asdf install uv 0.13.5
+      - asdf global uv 0.13.5
+    create_environment:
+      - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+    install:
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --locked --extra docs --no-dev
 
 sphinx:
   configuration: docs/conf.py
-
-python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs

@@ -21,6 +21,7 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
       - id: check-added-large-files
+        exclude: ^uv\.lock$  # the pinned versions of all packages
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.10 # also update pyproject.toml

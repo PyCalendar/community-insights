@@ -26,11 +26,11 @@ RUN mkdir /app
 WORKDIR /app
 
 # Install packages. The versions are locked in uv.lock.
-COPY pyproject.toml uv.lock* README.md ./
+COPY pyproject.toml uv.lock README.md ./
 COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN uv sync --no-dev --no-install-project --frozen || uv sync --no-dev --no-install-project
+RUN uv sync --no-dev --no-install-project --locked
 
 # Add the app
 COPY manage.py REUSE.toml ./

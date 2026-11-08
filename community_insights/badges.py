@@ -6,12 +6,17 @@ from xml.sax.saxutils import escape, quoteattr
 
 import anybadge
 
+# anybadge 1.18 and newer write a role, a label and a title of their own: the same attributes
+# twice make the SVG invalid, so theirs are replaced by those of badge()
+OWN_TITLE = re.compile(r"\s*<title>[^<]*</title>")
+OWN_NAME = re.compile(r' (?:role|aria-label)="[^"]*"')
+
 
 def badge(label: str, value: str, color: str = "#2a7de1") -> bytes:
     """A flat SVG badge: the label on grey, the value on the colour.
 
-    anybadge measures the text, so long and short texts fit; the badge gets a title and a
-    label for screen readers. anybadge numbers its mask ids with a counter; the id is
+    anybadge measures the text, so long and short texts fit; the badge gets one title and
+    one label for screen readers, also with the versions of anybadge that write their own. anybadge numbers its mask ids with a counter; the id is
     derived from the texts instead, so the same badge is always the same bytes.
 
     Args:
@@ -35,10 +40,11 @@ def badge(label: str, value: str, color: str = "#2a7de1") -> bytes:
     svg = drawn.badge_svg_text.replace(f'"{drawn.mask_str}"', f'"{stable}"').replace(
         f"#{drawn.mask_str})", f"#{stable})"
     )
+    svg = OWN_TITLE.sub("", svg, count=1)
     return re.sub(
         r"<svg ([^>]*)>",
         lambda found: (
-            f'<svg {found.group(1)} role="img" aria-label={quoteattr(spoken)}>'
+            f'<svg {OWN_NAME.sub("", found.group(1))} role="img" aria-label={quoteattr(spoken)}>'
             f"<title>{escape(spoken)}</title>"
         ),
         svg,
