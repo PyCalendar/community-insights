@@ -8,6 +8,15 @@ Changes are collected as small files in `news/ <https://github.com/PyCalendar/co
 
 .. towncrier release notes start
 
+0.3.1 (2026-11-08)
+------------------
+
+Maintenance
+~~~~~~~~~~~
+
+- ``make vale`` also checks the news fragments, so that the change log of a release passes it. The Docker image of 0.3.0 was not published, because its change log did not; 0.3.1 has the changes of 0.3.0.
+
+
 0.3.0 (2026-11-08)
 ------------------
 
