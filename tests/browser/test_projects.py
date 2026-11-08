@@ -125,6 +125,7 @@ def test_choose_the_columns_of_the_contributors(read):
 def test_share_a_chart_with_the_page_it_comes_from(read):
     """The share page has the code for Markdown and reStructuredText."""
     read.open_page("Response times")
+    read.images_are_loaded()  # the charts move the link while they load: the click missed it
     read.click("Share this chart")
     read.see("Share a chart")
     expect(read.page.locator('[data-share="markdown"]')).to_have_value(

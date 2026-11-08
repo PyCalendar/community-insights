@@ -171,9 +171,12 @@ reuse:  ## Check the licensing (REUSE)
 	@uvx --quiet reuse lint
 
 .PHONY: vale
-vale:  ## Check the prose of the documentation with Vale; errors fail, suggestions are shown
+vale:  ## Check the prose of the documentation and of the news fragments with Vale; errors fail
 	@$(VALE) sync
 	@$(VALE) docs/
+	@# the news fragments become docs/changelog.rst at the release; they have no extension
+	@for fragment in news/+*; do [ -f "$$fragment" ] || continue; \
+	  echo "$$fragment"; $(VALE) --ext=.rst --minAlertLevel=error < "$$fragment" || exit 1; done
 
 .PHONY: zizmor
 zizmor:  ## Check the security of the GitHub Actions workflows

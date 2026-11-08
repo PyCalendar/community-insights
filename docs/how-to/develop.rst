@@ -104,9 +104,9 @@ The documentation is in ``docs/``, written in reStructuredText and built with Sp
     make livehtml      # show the documentation while editing it, rebuilt on every change
     make docs          # build it; warnings and references that do not resolve fail
     make linkcheck     # check that its links work; needs the internet
-    make vale          # check the prose with Vale; errors fail, suggestions are shown
+    make vale          # check the prose of the docs and news/ with Vale; errors fail
 
-``make vale`` installs Vale with uvx; nothing else is needed. Words of the project that Vale does not know, such as names of tools, go into ``docs/.vale/styles/config/vocabularies/Base/accept.txt``. Write examples that people type, such as a location, as literals, such as ``Berlin, Germany``, so that their punctuation stays as it is. ``make linkcheck`` skips the files of this repository on GitHub, because a new file is there only after its pull request is merged. A server that the machine cannot reach at all (``Network is unreachable``, such as an IPv6 address on a runner without IPv6) is listed, but does not fail the check; ``tests/linkchecker/docs.py`` decides this from ``docs/_build/linkcheck/output.json``.
+``make vale`` installs Vale with uvx; nothing else is needed. It also checks the news fragments of ``news/``, which become the change log at the release. Words of the project that Vale does not know, such as names of tools, go into ``docs/.vale/styles/config/vocabularies/Base/accept.txt``. Write examples that people type, such as a location, as literals, such as ``Berlin, Germany``, so that their punctuation stays as it is. ``make linkcheck`` skips the files of this repository on GitHub, because a new file is there only after its pull request is merged. A server that the machine cannot reach at all (``Network is unreachable``, such as an IPv6 address on a runner without IPv6) is listed, but does not fail the check; ``tests/linkchecker/docs.py`` decides this from ``docs/_build/linkcheck/output.json``.
 
 Update the JavaScript and CSS of other projects
 ===============================================
