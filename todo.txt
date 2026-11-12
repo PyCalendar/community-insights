@@ -171,6 +171,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The import tests of the health check and the worker ignore `sitecustomize`, which Python loads at the start on Debian; local tools installed: uv, gettext, Node.js (Debian's Node 20 does not expand the glob of `make test-js`: run with the shell's glob), Firefox of Playwright
 - [ ] `make docker-test` and `make docker-scan` locally: installing Docker on this machine was refused by the permission check; they run in the CI
 - [x] Release after the menu and the page Users (asked by the person): all tests locally (except Docker); CI on main: the phone browser test raced after the sign out (fixed in b1aa68b), then all green except the link check of the docs, which passed locally and in the run before (a flaky external link); changelog by towncrier, version 0.2.0 (new features), tag v0.2.0
+- [x] The status badge of the example at insight.pycal.org (https://kuma.hosted.quelltext.eu/api/badge/49/status) in the README and the start page of the docs, linked to the status page https://kuma.hosted.quelltext.eu/status/pycal; commit and deploy (asked by the person)
 
 ## Code structure
 - [x] One Python package, not two: the app `community` is merged into `community_insights` (project and app in one); the app label stays `community`, so the tables, the migrations and the admin addresses of existing databases keep working

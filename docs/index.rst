@@ -7,6 +7,20 @@ Contributor Community Insights
 
 Contributor Community Insights is a web application that shows how healthy the community of a GitHub project is: how long issues and pull requests wait for a response, who contributes, when and from where. Sign in with GitHub, add your public or private projects and embed badges in your README.
 
+Example
+=======
+
+An example of the site runs at https://insight.pycal.org; it is deployed from ``main`` after the tests pass.
+
+.. image:: https://kuma.hosted.quelltext.eu/api/badge/49/status
+   :alt: Status of insight.pycal.org
+   :target: https://kuma.hosted.quelltext.eu/status/pycal
+
+The badge shows whether it is up; it links to the `status page <https://kuma.hosted.quelltext.eu/status/pycal>`_.
+
+Contents
+========
+
 .. grid:: 2
     :gutter: 2
 
