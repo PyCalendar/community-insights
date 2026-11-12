@@ -59,6 +59,8 @@ exclude_patterns = ["_build"]
 # make linkcheck
 linkcheck_ignore = [
     r"http://localhost",  # the site started while developing
+    # the example deployment: its status badge shows whether it is up; the docs do not fail with it
+    r"https://insight\.pycal\.org",
     # Files of this repository: a new one is on GitHub only after its pull request is merged.
     r"https://github\.com/PyCalendar/community-insights/(blob|tree)/",
 ]
