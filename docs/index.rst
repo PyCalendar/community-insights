@@ -10,7 +10,7 @@ Contributor Community Insights is a web application that shows how healthy the c
 Example
 =======
 
-An example of the site runs at https://insight.pycal.org; it is deployed from ``main`` after the tests pass.
+An example of the site runs at https://insight.pycal.org; it is deployed from ``main`` after the tests pass, and the CI then checks that it runs the new version (``make check-live``).
 
 .. image:: https://kuma.hosted.quelltext.eu/api/badge/49/status
    :alt: Status of insight.pycal.org

@@ -118,24 +118,52 @@
     return doc.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
   }
 
+  /* The frame of a chart shows a spinner (data-loading) until its image has loaded or
+     Chart.js has drawn it; the frame keeps the size of the chart all along. */
+  function loading(img, on) {
+    var frame = img.closest && img.closest("[data-chart-frame]");
+    if (frame) frame.toggleAttribute("data-loading", Boolean(on));
+  }
+
+  /* Until the image has loaded (or failed), its frame shows the spinner. */
+  function whenLoaded(img, done) {
+    if (img.complete && img.naturalWidth !== 0) { done(); return; }
+    img.addEventListener("load", done, { once: true });
+    img.addEventListener("error", done, { once: true });
+  }
+
+  /* A chart drawn by the server only: the spinner until the SVG is there. */
+  function watch(img) {
+    img.setAttribute("data-chart-ready", "");
+    loading(img, true);
+    whenLoaded(img, function () { loading(img, false); });
+  }
+
   /* Draw the chart of an image with Chart.js; the image stays when there is no data. */
   function setup(img, Chart, fetchJson) {
     var doc = img.ownerDocument;
     img.setAttribute("data-chart-ready", "");
+    loading(img, true);
     var state = { img: img, chart: null, asked: 0 };
+    function svgInstead() {
+      whenLoaded(img, function () { loading(img, false); });
+      return null;
+    }
     function draw() {
       var theme = themeOf(doc);
       var asked = ++state.asked;
       return fetchJson(withTheme(img.getAttribute("data-chart-json"), theme)).then(function (data) {
         if (asked !== state.asked) return state.chart;  /* a newer draw, such as of a new theme */
         if (state.chart) state.chart.destroy();
-        if (data.empty) return null;
+        if (data.empty) return svgInstead();
         var box = state.box;
         if (!box) {
           box = state.box = doc.createElement("div");
           box.className = "chart-canvas";
           box.style.position = "relative";
-          box.style.height = (data.type === "matrix" ? 16 : 18) + "rem";
+          var width = Number(img.getAttribute("width")), height = Number(img.getAttribute("height"));
+          if (width && height) box.style.aspectRatio = width + " / " + height;  /* as the SVG */
+          else box.style.height = (data.type === "matrix" ? 16 : 18) + "rem";
           var canvas = doc.createElement("canvas");
           canvas.setAttribute("role", "img");
           canvas.setAttribute("aria-label", img.getAttribute("alt") || "");
@@ -145,9 +173,10 @@
         img.hidden = true;
         box.setAttribute("data-chart-theme", theme);
         state.chart = new Chart(box.firstChild, toConfig(data));
+        loading(img, false);
         return state.chart;
       }, function () {
-        return null;  /* the SVG stays */
+        return svgInstead();  /* the SVG stays */
       });
     }
     state.draw = draw;
@@ -156,7 +185,7 @@
 
   var api = {
     formatHours: formatHours, withTheme: withTheme, heatColor: heatColor, toConfig: toConfig,
-    themeOf: themeOf, setup: setup,
+    themeOf: themeOf, setup: setup, watch: watch, loading: loading,
   };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
@@ -174,6 +203,7 @@
         drawn.push(state);
         state.draw();
       });
+      document.querySelectorAll("img[data-chart-src]:not([data-chart-ready])").forEach(watch);
     };
     drawNew();
     document.addEventListener("htmx:afterSettle", drawNew);  /* the result of a query */

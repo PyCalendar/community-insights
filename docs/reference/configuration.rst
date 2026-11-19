@@ -104,6 +104,12 @@ The application reads its settings from environment variables. With Docker, put 
    * - ``GITHUB_API``
      - ``https://api.github.com``
      - The API address, for GitHub Enterprise.
+   * - ``NOMINATIM_URL``
+     - ``https://nominatim.openstreetmap.org``
+     - The search of OpenStreetMap that finds the places of locations GeoNames does not know, for the page **Countries** (see :doc:`../explanation/countries`). Only the fetch worker asks it, at most once a second, each location once; the pages never do. Empty never asks it: then GeoNames alone finds the places. Use your own Nominatim server for many locations, as the public one allows only light use.
+   * - ``NOMINATIM_PER_FETCH``
+     - ``100``
+     - How many locations a fetch may ask Nominatim for. The others are asked for in later fetches.
    * - ``PRIVATE_REPOSITORIES``
      - ``false``
      - Private repositories are refused for now; ``true`` allows them.

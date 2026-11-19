@@ -90,6 +90,7 @@ def worker(tmp_path_factory):
         "DATABASE_URL": f"sqlite:///{data / 'db.sqlite3'}",
         "CACHE_URL": f"filecache://{data / 'cache'}",
         "FETCH_WORKER": "external-http-container",
+        "NOMINATIM_URL": "",  # the tests do not use the network, also not to locate people
         "PRODUCTION": "false",
         "DEBUG": "",
     }

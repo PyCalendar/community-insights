@@ -1,0 +1,58 @@
+{% extends "community/base.html" %}
+{% load community i18n static %}
+{% block title %}{% blocktranslate with title=scope.title %}Countries of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="countries" %}
+
+<p class="lead mb-1" data-mapped="{{ found.mapped }}/{{ found.contributors }}">{% blocktranslate with mapped=found.mapped total=found.contributors %}<strong>{{ mapped }}/{{ total }}</strong> contributors mapped{% endblocktranslate %}</p>
+<p class="small text-muted">{% blocktranslate count count=found.without_location %}{{ count }} contributor has no location in the profile or was not read yet{% plural %}{{ count }} contributors have no location in their profile or were not read yet{% endblocktranslate %}{% if found.unknown %}; {% blocktranslate count count=found.unknown|length %}the location of {{ count }} contributor names no known country{% plural %}the locations of {{ count }} contributors name no known country{% endblocktranslate %}{% endif %}.
+<a href="{{ links.documentation }}explanation/countries.html" target="_blank" rel="noopener">{% translate "How the countries are found" %}</a></p>
+
+<div class="world-map-box mb-2" data-world-map data-src="{% static 'maps/world.svg' %}" data-places="{{ places_json }}" data-names="{{ names_json }}" data-nobody="{{ nobody }}" data-label="{% translate "Map of the countries of the contributors" %}">
+  <div class="world-map-zoom btn-group-vertical btn-group-sm" role="group" aria-label="{% translate "Zoom" %}">
+    <button type="button" class="btn btn-outline-secondary" data-zoom="in" aria-label="{% translate "Zoom in" %}" title="{% translate "Zoom in" %}">+</button>
+    <button type="button" class="btn btn-outline-secondary" data-zoom="out" aria-label="{% translate "Zoom out" %}" title="{% translate "Zoom out" %}">−</button>
+    <button type="button" class="btn btn-outline-secondary" data-zoom="reset" aria-label="{% translate "Show the whole world" %}" title="{% translate "Show the whole world" %}">⟲</button>
+  </div>
+  <div class="world-map-tip" data-map-tip hidden></div>
+  <noscript><img src="{% static 'maps/world.svg' %}" alt="{% translate "Map of the world" %}" class="w-100"></noscript>
+</div>
+<p class="small text-muted heat-legend">
+  <span class="swatch heat-0"></span> {% translate "nobody" %}
+  <span class="swatch heat-1 ms-2"></span> {% translate "few" %}
+  <span class="swatch heat-3"></span>
+  <span class="swatch heat-5"></span> {% translate "most contributors" %}
+  {% if found.places %}<span class="swatch ms-2 place-swatch"></span> {% translate "a city or place of contributors" %}{% endif %}
+  · {% translate "Scroll or pinch to zoom, drag to move, click a country for its contributors." %}
+</p>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-4">
+    <h2 class="h5">{% translate "Countries" %}</h2>
+    {% if rows %}<ol class="small" data-country-list>
+      {% for row in rows %}<li data-country="{{ row.stats.code }}" data-count="{{ row.stats.count }}" data-heat="{{ row.heat }}" data-tip="{{ row.tip }}"><a href="#country={{ row.stats.code }}">{{ row.name }}</a> <span class="text-muted">{{ row.stats.count }}</span></li>{% endfor %}
+    </ol>{% else %}<p class="small text-muted">{% translate "No contributor of this time has a location with a known country." %}</p>{% endif %}
+    {% if found.unknown %}<h3 class="h6">{% translate "Locations without a known country" %}</h3>
+    <ul class="small list-unstyled" data-unknown>{% for login, location in found.unknown %}<li><a href="{% url 'person' scope.text login %}{{ scope.query }}">{{ login }}</a> <span class="text-muted">{{ location }}</span></li>{% endfor %}</ul>{% endif %}
+  </div>
+  <div class="col-12 col-lg-8" data-country-details>
+    {% if rows %}<p class="small text-muted" data-choose-country hidden>{% translate "Choose a country on the map or in the list." %}</p>{% endif %}
+    {% for row in rows %}{% with country=row.stats %}
+    <section class="mb-4" id="country-{{ country.code }}" data-country-detail="{{ country.code }}" aria-labelledby="country-title-{{ country.code }}">
+      <h2 class="h5" id="country-title-{{ country.code }}">{{ row.name }}</h2>
+      <dl class="row small mb-2">
+        <dt class="col-sm-4">{% translate "Contributors" %}</dt><dd class="col-sm-8">{{ country.count }}</dd>
+        <dt class="col-sm-4">{% translate "First contribution" %}</dt><dd class="col-sm-8" data-first>{{ country.first|date:"Y-m-d" }}</dd>
+        <dt class="col-sm-4">{% translate "Last contribution" %}</dt><dd class="col-sm-8" data-last>{{ country.last|date:"Y-m-d" }}</dd>
+        <dt class="col-sm-4">{% translate "Official languages" %}</dt><dd class="col-sm-8" data-languages>{{ row.languages|join:", "|default:"-" }}</dd>
+      </dl>
+      <table class="table table-sm small">
+        <thead><tr><th scope="col">{% translate "Contributor" %}</th><th scope="col">{% translate "Location" %}</th><th scope="col">{% translate "Place on the map" %}</th></tr></thead>
+        <tbody>{% for login, location, city, region in country.people %}<tr><td><a href="{% url 'person' scope.text login %}{{ scope.query }}">{{ login }}</a></td><td>{{ location }}</td><td>{{ city|default:"-" }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </section>
+    {% endwith %}{% endfor %}
+  </div>
+</div>
+<script src="{% static 'js/country-map.js' %}" defer></script>
+{% endblock %}

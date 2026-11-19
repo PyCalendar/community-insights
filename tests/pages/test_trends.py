@@ -62,13 +62,15 @@ def test_issues_on_one_side_and_pull_requests_on_the_other(pk, signed_in):
         "2",
         "2",
     ], "bob opens, dave comments"
-    assert [number(pulls, n) for n in ("opened", "closed", "contributions", "newcomers")] == [
+    names = ("opened", "merged", "closed", "contributions", "newcomers")
+    assert [number(pulls, n) for n in names] == [
         "2",
         "1",
+        "0",
         "4",
         "3",
     ], "bob and carol open, bob comments, maint reviews; the bot is left out"
-    assert "1/1 merged" in pulls
+    assert "closed without merging" in pulls and 'data-change="merged"' not in issues
     assert "contributions by 3 people" in pulls
 
 
@@ -128,14 +130,17 @@ def test_the_charts(pk, signed_in, name):
     assert svg.status_code == 200 and svg["Content-Type"] == "image/svg+xml"
     data = json.loads(signed_in.get(f"/s/{pk}/chart/{name}.json?{WEEK}").content)
     assert data["labels"] == [f"2026-01-{d:02d}" for d in range(5, 12)]
-    assert data["x"] == "day" and len(data["datasets"]) == 2 and not data["empty"]
+    bars = 3 if name == "trend-pr" else 2  # opened, closed without merging, merged
+    assert data["x"] == "day" and len(data["datasets"]) == bars and not data["empty"]
 
 
 def test_the_opened_and_closed_pull_requests_per_day(pk, signed_in):
     """The bars of the chart count by day in the time zone of the reader (Tokyo)."""
     data = json.loads(signed_in.get(f"/s/{pk}/chart/trend-pr.json?{WEEK}").content)
-    opened, closed = (d["data"] for d in data["datasets"])
-    assert opened == [1, 1, 0, 0, 0, 0, 0] and closed == [1, 0, 0, 0, 0, 0, 0]
+    assert [d["label"] for d in data["datasets"]] == ["opened", "closed without merging", "merged"]
+    opened, closed, merged = (d["data"] for d in data["datasets"])
+    assert opened == [1, 1, 0, 0, 0, 0, 0] and merged == [1, 0, 0, 0, 0, 0, 0]
+    assert closed == [0] * 7, "the only closed one was merged"
 
 
 def test_a_chart_without_anything_in_the_time(pk, signed_in):
@@ -195,3 +200,114 @@ def test_the_page_in_german(pk, signed_in):
     page = signed_in.get(f"/s/{pk}/trends/?{WEEK}", HTTP_ACCEPT_LANGUAGE="de").content.decode()
     assert "Neue Beitragende" in page and "Letzte 30 Tage" in page
     assert "Beiträge von 3 Personen" in page
+
+
+def test_what_a_contribution_is(pk, signed_in):
+    """The page says what counts: openings, comments, reviews by people; commits do not."""
+    page = signed_in.get(f"/s/{pk}/trends/?{WEEK}").content.decode()
+    text = re.search(r"<p[^>]*data-contributions>.*?</p>", page, re.S).group(0)
+    assert "a comment or a review" in text and "bots are left out" in text
+    assert "Commits, reactions, labels and closing are no contributions" in text
+    assert "explanation/trends.html#contributions" in text
+
+
+def test_too_little_data_for_a_statistical_trend(pk, signed_in):
+    """A week of the fixture has too few contributions for a trend."""
+    pulls = side(signed_in.get(f"/s/{pk}/trends/?{WEEK}").content.decode(), "pr")
+    assert "Contributions: too little data for a trend." in pulls
+    assert "Contributors: too little data for a trend." in pulls
+    assert "data-p-value" not in pulls
+
+
+@pytest.fixture
+def busy(pk):
+    """More and more comments on the issue each day of a week (3, 6, ... 21), by more people."""
+    from community_insights.models import Event
+
+    issue = Item.objects.get(kind=Item.ISSUE)
+    for number in range(1, 8):
+        for person in range(number * 3):
+            Event.objects.create(
+                item=issue,
+                actor=f"p{person}",
+                kind=Event.COMMENT,
+                at=f"2026-02-{number + 1:02d}T03:00:00Z",
+            )
+    return pk
+
+
+def test_a_statistically_significant_growth(busy, signed_in):
+    """The trend says how much, with the error margin, the interval and the p-value."""
+    page = signed_in.get(f"/s/{busy}/trends/?since=2026-02-02&until=2026-02-08").content.decode()
+    issues = side(page, "issue")
+    model = re.search(r'<li[^>]*data-count-trend="contributions".*?</li>', issues, re.S).group(0)
+    assert 'data-significant="yes"' in model
+    assert re.search(r"Contributions <strong>grow by \d+ %</strong>\s+per day", model)
+    assert "with an error margin of ±" in model and "95 % confidence interval is +" in model
+    assert "<strong>Statistically significant</strong> (p = 0.0" in model
+    assert "The fitted line goes from" in model
+    people = re.search(r'<li[^>]*data-count-trend="contributors".*?</li>', issues, re.S).group(0)
+    assert "Contributors <strong>grow by" in people
+
+
+def test_a_trend_that_is_not_significant(pk, signed_in):
+    """The same few comments each day: no clear trend, said in words."""
+    from community_insights.models import Event
+
+    issue = Item.objects.get(kind=Item.ISSUE)
+    for number, count in enumerate([3, 2, 3, 2, 3, 2, 3], start=2):
+        for person in range(count):
+            Event.objects.create(
+                item=issue,
+                actor=f"p{person}",
+                kind=Event.COMMENT,
+                at=f"2026-02-{number:02d}T03:00:00Z",
+            )
+    page = signed_in.get(f"/s/{pk}/trends/?since=2026-02-02&until=2026-02-08").content.decode()
+    issues = side(page, "issue")
+    assert "<strong>Not statistically significant</strong>" in issues
+    assert "the change may be chance" in issues
+
+
+@pytest.mark.parametrize(
+    ("query", "x", "first"),
+    [
+        ("since=2026-01-05&until=2026-01-11", "day", "2026-01-05"),
+        ("since=2026-01-01&until=2026-03-01", "calendar week (ISO 8601, from Monday)", "CW 1 2026"),
+        ("since=2026-01-01&until=2026-12-31", "month", "2026-01"),
+        ("since=2022-01-01&until=2026-12-31", "year", "2022"),
+    ],
+)
+def test_the_bars_follow_the_time_range(pk, signed_in, query, x, first):
+    """A week by day, two months by calendar week, a year by month, five years by year."""
+    data = json.loads(signed_in.get(f"/s/{pk}/chart/trend-pr.json?{query}").content)
+    assert data["labels"][0] == first and len(data["labels"]) <= 31
+    assert data["x"] == x
+
+
+def test_the_reader_chooses_the_bars(pk, signed_in):
+    """?by=month: the charts of the page keep it; the choice is on the page."""
+    page = signed_in.get(f"/s/{pk}/trends/?{WEEK}&by=month").content.decode()
+    assert f"/chart/trend-pr.svg?{WEEK.replace('&', '&amp;')}&amp;by=month" in page
+    assert '<option value="month" selected>months</option>' in page
+    assert 'name="by" data-submit-on-change' in page
+    data = json.loads(signed_in.get(f"/s/{pk}/chart/trend-pr.json?{WEEK}&by=month").content)
+    assert data["labels"] == ["2026-01"]
+
+
+def test_an_unknown_choice_of_bars_is_automatic(pk, signed_in):
+    """?by=decade is ignored."""
+    page = signed_in.get(f"/s/{pk}/trends/?{WEEK}&by=decade").content.decode()
+    assert '<option value="" selected>automatic</option>' in page
+    assert "by=decade" not in page.split("data-chart-src")[1], "not in the charts"
+
+
+def test_charts_keep_their_space_while_they_load(pk, signed_in):
+    """Each chart has the width and height of its SVG, in a frame for the spinner."""
+    page = signed_in.get(f"/s/{pk}/trends/?{WEEK}").content.decode()
+    assert page.count("data-chart-frame") == 4
+    assert 'width="504" height="202" loading="lazy"' in page
+    svg = signed_in.get(f"/s/{pk}/chart/trend-pr.svg?{WEEK}").content.decode()
+    assert 'width="504pt" height="201.6pt"' in svg, "the SVG has exactly that size"
+    empty = signed_in.get(f"/s/{pk}/chart/trend-pr.svg?since=2026-03-01&until=2026-03-07")
+    assert b'width="504pt" height="201.6pt"' in empty.content, "also without data"

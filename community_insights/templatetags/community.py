@@ -75,6 +75,24 @@ def number(value):
 
 
 @register.filter
+def signed(value) -> str:
+    """A percent with its sign and without decimals, such as +12 or -3; 0 without a sign.
+
+    Args:
+        value: A number.
+
+    Returns:
+        The number to show.
+
+    Examples:
+        >>> signed(12.4), signed(-3.6), signed(0.2)
+        ('+12', '-4', '0')
+    """
+    rounded = round(float(value))
+    return f"{rounded:+d}" if rounded else "0"
+
+
+@register.filter
 def split(text):
     """The words of a text in a template.
 
@@ -139,6 +157,29 @@ def share_formats() -> list[tuple[str, str]]:
         ("html", "HTML"),
         ("link", _("URL")),
     ]
+
+
+@register.simple_tag
+def chart_size(src: str) -> tuple[int, int]:
+    """The width and the height of a chart, so the page reserves its space before it loads.
+
+    Args:
+        src: The address of the chart as SVG.
+
+    Returns:
+        The width and the height in the units of the SVG.
+
+    Examples:
+        >>> chart_size("/s/1/chart/hours.svg?login=bob")
+        (432, 173)
+    """
+    from ..charts import chart_size as size_of_chart
+
+    try:
+        match = resolve(urlsplit(src).path)
+    except Resolver404:
+        return size_of_chart("")
+    return size_of_chart(match.kwargs.get("name", ""))
 
 
 @register.simple_tag

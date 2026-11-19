@@ -262,13 +262,13 @@ def month_chart(months, theme: str = "light") -> dict:
 def pair_chart(
     title: str, labels: list[str], series: list[tuple[str, list[int]]], size: str, theme: str
 ) -> dict:
-    """Two series of numbers per day, week or month as bars side by side (page Trends).
+    """Series of numbers per day, week or month as bars side by side (page Trends).
 
     Args:
         title: What the chart shows.
         labels: The days, weeks or months.
-        series: The name and the numbers of each series, at most two.
-        size: ``day``, ``week`` or ``month``: the title of the time axis.
+        series: The name and the numbers of each series, at most three.
+        size: ``day``, ``week``, ``month`` or ``year``: the title of the time axis.
         theme: ``light`` or ``dark``: the colours of the page the chart is on.
 
     Returns:

@@ -11,6 +11,7 @@ path = [
     "community_insights/**",
     "docker/**",
     "docs/**",
+    "scripts/**",
     "locale/**",
     "news/**",
     "tests/**",
@@ -66,3 +67,11 @@ path = "static/vendor/htmx/**"
 precedence = "override"
 SPDX-FileCopyrightText = "2020 Big Sky Software"
 SPDX-License-Identifier = "0BSD"
+
+# The map of the world of the page Countries, made from Natural Earth (public domain) by
+# scripts/world_map.py
+[[annotations]]
+path = ["static/maps/world.svg", "static/maps/NATURAL-EARTH.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "Natural Earth (Tom Patterson, Nathaniel Vaughn Kelso and contributors)"
+SPDX-License-Identifier = "LicenseRef-NaturalEarth"

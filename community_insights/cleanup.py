@@ -16,7 +16,7 @@ from django.db import connection
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Event, FetchJob, Person, Repository
+from .models import Event, FetchJob, Location, Person, Repository
 
 LAST_CLEANUP = "community:last-cleanup"
 LAST_SHRINK = "community:last-shrink"  # the report of the last check of the size
@@ -46,6 +46,8 @@ def clear_unused(days: int) -> tuple[int, int]:
     counts = repositories.count(), people.count()
     repositories.delete()
     people.delete()
+    # the places of locations that nobody has any more
+    Location.objects.exclude(text__in=Person.objects.values("location")).delete()
     return counts
 
 

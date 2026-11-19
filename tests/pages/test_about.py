@@ -74,9 +74,13 @@ def test_a_checkout_knows_its_commit():
 def test_reused_code_is_read_from_reuse_toml():
     """Reused code is read from reuse toml."""
     found = licenses.reused()
-    assert {p.license for p in found} == {"MIT", "BSD-2-Clause", "0BSD", "CC-BY-SA-4.0"}, (
-        "not the project"
-    )
+    assert {p.license for p in found} == {
+        "MIT",
+        "BSD-2-Clause",
+        "0BSD",
+        "CC-BY-SA-4.0",
+        "LicenseRef-NaturalEarth",
+    }, "not the project"
     icon = next(p for p in found if p.name == "static/img/favicon.png")
     assert (icon.version, icon.license) == ("2026 the pycal team", "CC-BY-SA-4.0")
     icalendar = next(p for p in found if p.license == "BSD-2-Clause")
@@ -89,6 +93,7 @@ def test_reused_code_is_read_from_reuse_toml():
         "static/vendor/sortable",
         "static/vendor/htmx",
         "static/img/favicon.png",
+        "static/maps/world.svg",
     }
     root = Path(licenses.__file__).parent.parent
     for entry in found:

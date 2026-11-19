@@ -15,6 +15,7 @@ from ..models import (
 from .contributors import CHART_TOP, query_parameters, run_query
 from .scope import scope_of, scope_view
 from .stamped import stamped
+from .statistics import bars_of
 
 # the charts and what they show, for the page to share them
 CHARTS = {
@@ -27,7 +28,7 @@ CHARTS = {
     "hours": _("activities across the day"),
     "heatmap": _("activities across the week and the day"),
     "months": _("contributions per month"),
-    "trend-pr": _("pull requests opened and closed"),
+    "trend-pr": _("pull requests opened, closed and merged"),
     "trend-issue": _("issues opened and closed"),
     "people-pr": _("contributions and new contributors to pull requests"),
     "people-issue": _("contributions and new contributors to issues"),
@@ -97,13 +98,13 @@ def draw(request, scope, name, drawing):
                 drawing.hour_chart(grid, theme) if name == "hours" else drawing.heatmap(grid, theme)
             )
     elif name in ("trend-pr", "trend-issue", "people-pr", "people-issue"):
-        data = trend_chart(scope, name, drawing, theme)
+        data = trend_chart(scope, name, drawing, theme, bars_of(request))
     else:
         raise Http404
     return data
 
 
-def trend_chart(scope, name: str, drawing, theme: str):
+def trend_chart(scope, name: str, drawing, theme: str, by: str = ""):
     """A chart of the page Trends: opened and closed, or contributions and new contributors.
 
     Args:
@@ -111,6 +112,7 @@ def trend_chart(scope, name: str, drawing, theme: str):
         name: ``trend-pr``, ``trend-issue``, ``people-pr`` or ``people-issue``.
         drawing: The module that draws: ``charts`` or ``chart_data``.
         theme: ``light`` or ``dark``.
+        by: The length of the bars, "" to choose it by the time range.
 
     Returns:
         What the module drew.
@@ -123,10 +125,17 @@ def trend_chart(scope, name: str, drawing, theme: str):
         scope.until,
         timezone.now(),
         timezone.get_current_timezone(),
+        by,
     )
     if part == "trend":
         title = gettext("Pull requests") if kind == Item.PR else gettext("Issues")
         series = [(gettext("opened"), found["opened"]), (gettext("closed"), found["closed"])]
+        if kind == Item.PR:  # closed without merging, and merged
+            series = [
+                (gettext("opened"), found["opened"]),
+                (gettext("closed without merging"), found["closed"]),
+                (gettext("merged"), found["merged"]),
+            ]
     else:
         title = (
             gettext("Contributions to pull requests")

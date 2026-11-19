@@ -1,0 +1,1 @@
+The page Trends shows a statistical trend of the contributions and of the contributors: how much they grow or shrink per day, week or month, the error margin with the 95 % confidence interval, and whether the trend is statistically significant. The page also says what a contribution is: commits do not count.

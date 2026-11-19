@@ -3,14 +3,20 @@
 Everything here is synchronous; the async Syncer calls it with sync_to_async.
 """
 
+import logging
+import subprocess
+import sys
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from ..models import Commit, Event, Item, ItemCommit, Person, Repository
 from .events import closer, commits, is_bot
+
+logger = logging.getLogger(__name__)
 
 PEOPLE_MAX_AGE = timedelta(days=30)
 
@@ -298,6 +304,55 @@ def people_to_read(repository: Repository) -> list[str]:
         else:
             todo.append(login)
     return todo
+
+
+def locate_people(repository: Repository) -> None:
+    """Find the places of the locations of the people of a repository that are new.
+
+    The fetch worker of its own (``FETCH_WORKER=external-...``) stays small: it runs
+    ``manage.py locate`` in a process that ends, as the names of GeoNames take 100 MB. A web
+    process loads them for its pages anyway and locates in itself. A failure leaves the
+    locations to the next fetch; the pages find them offline meanwhile.
+
+    Args:
+        repository: The repository whose actors are looked at.
+    """
+    if not str(settings.FETCH_WORKER).startswith("external"):
+        locate_here(repository)
+        return
+    command = [sys.executable, str(settings.BASE_DIR / "manage.py"), "locate", str(repository.pk)]
+    try:
+        subprocess.run(  # noqa: S603 - our own command with a number
+            command,
+            check=True,
+            capture_output=True,
+            timeout=settings.NOMINATIM_PER_FETCH * 2 + 300,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        logger.warning("locating the people of %s failed: %s", repository, error)
+
+
+def locate_here(repository: Repository, locator=None) -> int:
+    """Find the places of the new locations of the people of a repository, in this process.
+
+    A location found before is kept; a person who changes theirs gets the new one found.
+
+    Args:
+        repository: The repository whose actors are looked at.
+        locator: Finds the places (``locations.Locator``); the one of the settings by default.
+
+    Returns:
+        How many locations are known for the people.
+    """
+    from ..locations.locator import Locator
+
+    logins = Event.objects.filter(item__repository=repository).values("actor")
+    texts = set(
+        Person.objects.filter(login__in=logins, is_bot=False)
+        .exclude(location="")
+        .values_list("location", flat=True)
+    )
+    return len((locator or Locator.from_settings()).locate(texts))
 
 
 def save_people(found: dict[str, dict | None]) -> None:

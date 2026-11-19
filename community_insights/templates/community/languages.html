@@ -1,0 +1,33 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Languages of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="languages" %}
+
+<p class="small text-muted">{% blocktranslate with mapped=found.mapped total=found.contributors %}An estimate from the countries of {{ mapped }}/{{ total }} contributors: each counts for the official languages of their country, or of their region if it has its own, such as Welsh in Wales. A country with several official languages counts for each of them. Nobody is asked what they speak.{% endblocktranslate %}
+<a href="{{ links.documentation }}explanation/countries.html#languages" target="_blank" rel="noopener">{% translate "How the languages are estimated" %}</a></p>
+
+{% if rows %}
+<div class="table-responsive">
+<table class="table table-sm" data-languages>
+  <thead><tr>
+    <th scope="col">#</th>
+    <th scope="col">{% translate "Language" %}</th>
+    <th scope="col" class="text-end">{% translate "Contributors" %}</th>
+    <th scope="col" class="text-end">{% translate "Share" %}</th>
+    <th scope="col" class="text-end" title="{% translate "How many of all mapped contributors likely speak it, from the share of the people of their countries who do (CLDR), official or not" %}">{% translate "Likely speakers" %}</th>
+    <th scope="col">{% translate "From" %}</th>
+  </tr></thead>
+  <tbody>{% for row in rows %}<tr data-language="{{ row.share.code }}">
+    <td>{{ forloop.counter }}</td>
+    <td>{{ row.name }} <span class="text-muted small">{{ row.share.code }}</span></td>
+    <td class="text-end">{{ row.share.contributors }}</td>
+    <td class="text-end">{{ row.percent|floatformat:0 }} %</td>
+    <td class="text-end">{{ row.share.speakers|floatformat:0 }}</td>
+    <td class="small">{% for code, name, count in row.countries %}<a href="{% url 'countries' scope.text %}{{ scope.query }}#country={{ code }}">{{ name }}</a> {{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+  </tr>{% endfor %}</tbody>
+</table>
+</div>
+<p class="small text-muted">{% translate "The shares add up to more than 100 %, as a contributor can count for several languages." %}</p>
+{% else %}<p class="text-muted">{% translate "No contributor of this time has a location with a known country." %}</p>{% endif %}
+{% endblock %}

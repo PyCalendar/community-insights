@@ -230,6 +230,11 @@ AUTO_FETCH_TIMEOUT = env.float("AUTO_FETCH_TIMEOUT", default=10)
 AUTO_FETCH_BADGE_TIMEOUT = env.float("AUTO_FETCH_BADGE_TIMEOUT", default=4)
 AUTO_FETCH_AFTER_MINUTES = env.float("AUTO_FETCH_AFTER_MINUTES", default=15)
 
+# OpenStreetMap's search finds the places of locations that GeoNames does not know; the fetch
+# worker asks it at most once a second and at most NOMINATIM_PER_FETCH times a fetch; "" never
+NOMINATIM_URL = env("NOMINATIM_URL", default="https://nominatim.openstreetmap.org")
+NOMINATIM_PER_FETCH = env.int("NOMINATIM_PER_FETCH", default=100)
+
 CACHE_KEEP_DAYS = env.int("CACHE_KEEP_DAYS", default=90)  # unused data is deleted after
 DATABASE_MAX_MB = env.float("DATABASE_MAX_MB", default=1024)  # 1 GB; 0: no limit
 DATABASE_MIN_AGE_HOURS = env.float("DATABASE_MIN_AGE_HOURS", default=24)  # never deleted for space

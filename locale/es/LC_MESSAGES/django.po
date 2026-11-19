@@ -2977,63 +2977,24 @@ msgstr ""
 "esperando al menos hasta que se cerraron o hasta ahora, y es \"-\" donde "
 "menos de la mitad (o el 95 %%) recibió respuesta."
 
-#~ msgid ""
-#~ "One row per repository. The response times are of the first response of "
-#~ "anybody but the author: the median and the 90th percentile."
-#~ msgstr ""
-#~ "Una fila por repositorio. Los tiempos de respuesta son de la primera "
-#~ "respuesta de cualquiera menos el autor: la mediana y el percentil 90."
-
-#, python-format
-#~ msgid ""
-#~ "Time until the first response of each class of people (<a "
-#~ "href=\"%(classes_url)s\">edit classes</a>). The author's own comments do not"
-#~ " count. <em>Measured</em>, <em>normal</em> and <em>exponential</em> use only"
-#~ " the items that got a response; <em>Kaplan-Meier</em> counts the others, "
-#~ "too, as waiting at least until they were closed or until now, and is \"-\" "
-#~ "where less than half (or 95 %%) got a response."
-#~ msgstr ""
-#~ "Tiempo hasta la primera respuesta de cada clase de personas (<a "
-#~ "href=\"%(classes_url)s\">editar clases</a>). Los comentarios propios del "
-#~ "autor no cuentan. <em>Medido</em>, <em>normal</em> y <em>exponencial</em> "
-#~ "usan solo los elementos que recibieron respuesta; <em>Kaplan-Meier</em> "
-#~ "también cuenta los demás, como esperando al menos hasta que se cerraron o "
-#~ "hasta ahora, y es \"-\" donde menos de la mitad (o el 95 %%) recibió "
-#~ "respuesta."
-
-#~ msgid ""
-#~ "The columns sort when you click them. A merge, and a close by somebody else "
-#~ "than the author, count as a response. “Waiting” marks the open items that no"
-#~ " collaborator or higher (owner, member or collaborator) has answered yet, "
-#~ "with the time since they were opened."
-#~ msgstr ""
-#~ "Las columnas se ordenan al hacer clic en ellas. Una fusión, y un cierre por "
-#~ "otra persona que no sea la autora o el autor, cuentan como respuesta. "
-#~ "«Esperando» marca los elementos abiertos que todavía nadie con el estado "
-#~ "collaborator o superior (owner, member o collaborator) ha respondido, con el"
-#~ " tiempo desde que se abrieron."
-
-#~ msgid ""
-#~ "The columns sort when you click them. “Waiting” is how long an item without "
-#~ "a response has waited, until it was closed or until now."
-#~ msgstr ""
-#~ "Las columnas se ordenan al hacer clic en ellas. “Esperando” es cuánto ha "
-#~ "esperado un elemento sin respuesta, hasta que se cerró o hasta ahora."
-
-#, python-format
-#~ msgid "Sign out %(name)s"
-#~ msgstr "Cerrar la sesión de %(name)s"
-
 #, python-format
 msgid "Trends of %(title)s"
 msgstr "Tendencias de %(title)s"
 
 #, python-format
-msgid "Each number is compared with the time of the same length just before: %(since)s to %(until)s."
-msgstr "Cada número se compara con el tiempo de la misma duración justo antes: del %(since)s al %(until)s."
+msgid ""
+"Each number is compared with the time of the same length just before: "
+"%(since)s to %(until)s."
+msgstr ""
+"Cada número se compara con el tiempo de la misma duración justo antes: del "
+"%(since)s al %(until)s."
 
-msgid "Choose a time range, such as the last 30 days, to compare it with the time just before."
-msgstr "Elige un intervalo de tiempo, como los últimos 30 días, para compararlo con el tiempo justo antes."
+msgid ""
+"Choose a time range, such as the last 30 days, to compare it with the time "
+"just before."
+msgstr ""
+"Elige un intervalo de tiempo, como los últimos 30 días, para compararlo con "
+"el tiempo justo antes."
 
 msgid "How the trends are counted"
 msgstr "Cómo se cuentan las tendencias"
@@ -3126,3 +3087,408 @@ msgstr "mes"
 
 msgid "nothing in this time"
 msgstr "nada en este tiempo"
+
+#: community_insights/charts.py
+msgid "calendar week (ISO 8601, from Monday)"
+msgstr "semana del año (ISO 8601, desde el lunes)"
+
+#: community_insights/charts.py
+msgid "year"
+msgstr "año"
+
+#: community_insights/stats/periods.py
+#, python-format
+msgid "CW %(week)s %(year)s"
+msgstr "S%(week)s %(year)s"
+
+#: community_insights/templates/community/countries.html
+msgid "Countries"
+msgstr "Países"
+
+#: community_insights/views/project_pages.py
+msgid "Languages"
+msgstr "Idiomas"
+
+#: community_insights/views/geography.py
+#, python-format
+msgid "%(count)s contributor from %(country)s"
+msgid_plural "%(count)s contributors from %(country)s"
+msgstr[0] "%(count)s colaborador de %(country)s"
+msgstr[1] "%(count)s colaboradores de %(country)s"
+
+#: community_insights/views/geography.py
+#, python-format
+msgid "%(place)s: %(count)s contributor"
+msgid_plural "%(place)s: %(count)s contributors"
+msgstr[0] "%(place)s: %(count)s colaborador"
+msgstr[1] "%(place)s: %(count)s colaboradores"
+
+#: community_insights/views/geography.py
+#, python-format
+msgid "No contributors from %(country)s"
+msgstr "Ningún colaborador de %(country)s"
+
+#: community_insights/views/statistics.py
+msgid "per day"
+msgstr "por día"
+
+#: community_insights/views/statistics.py
+msgid "per week"
+msgstr "por semana"
+
+#: community_insights/views/statistics.py
+msgid "per month"
+msgstr "por mes"
+
+#: community_insights/views/statistics.py
+msgid "per year"
+msgstr "por año"
+
+#: community_insights/views/statistics.py
+msgid "automatic"
+msgstr "automático"
+
+#: community_insights/views/statistics.py
+msgid "calendar weeks"
+msgstr "semanas del año"
+
+#: community_insights/views/statistics.py
+msgid "months"
+msgstr "meses"
+
+#: community_insights/views/statistics.py
+msgid "years"
+msgstr "años"
+
+#: community_insights/views/charts.py
+msgid "pull requests opened, closed and merged"
+msgstr "pull requests abiertos, cerrados y fusionados"
+
+#: community_insights/templates/community/trends.html
+msgid "closed without merging"
+msgstr "cerrados sin fusionar"
+
+#: community_insights/templates/community/trends.html
+msgid "Bars of the charts"
+msgstr "Barras de los gráficos"
+
+#: community_insights/templates/community/trends.html
+msgid ""
+"Automatic: days, calendar weeks, months or years, the shortest with at most "
+"31 bars."
+msgstr ""
+"Automático: días, semanas del año, meses o años, lo más corto con 31 barras "
+"como máximo."
+
+#: community_insights/templates/community/trends.html
+msgid ""
+"A <strong>contribution</strong> is opening a pull request or an issue, a "
+"comment or a review, by a person: bots are left out. Commits, reactions, "
+"labels and closing are no contributions. <strong>Contributors</strong> are "
+"the people who made contributions; <strong>new contributors</strong> made "
+"their first one to pull requests or to issues in the time range, as far as "
+"this site has read the repositories."
+msgstr ""
+"Una <strong>contribución</strong> es abrir un pull request o un issue, un "
+"comentario o una revisión, por una persona: los bots no cuentan. Los "
+"commits, las reacciones, las etiquetas y el cierre no son contribuciones. "
+"Los <strong>colaboradores</strong> son las personas que hicieron "
+"contribuciones; los <strong>nuevos colaboradores</strong> hicieron su "
+"primera contribución a pull requests o a issues en el periodo, hasta donde "
+"este sitio ha leído los repositorios."
+
+#: community_insights/templates/community/trends.html
+msgid "What counts"
+msgstr "Qué cuenta"
+
+#: community_insights/templates/community/trends.html
+msgid "Opened, closed and merged"
+msgstr "Abiertos, cerrados y fusionados"
+
+#: community_insights/templates/community/trends.html
+msgid "Statistical trend"
+msgstr "Tendencia estadística"
+
+#: community_insights/templates/community/_count_trend.html
+msgid "Contributions: too little data for a trend."
+msgstr "Contribuciones: muy pocos datos para una tendencia."
+
+#: community_insights/templates/community/_count_trend.html
+msgid "Contributors: too little data for a trend."
+msgstr "Colaboradores: muy pocos datos para una tendencia."
+
+#: community_insights/templates/community/_count_trend.html
+msgid ""
+"A trend needs at least 4 bars of the chart, with at least 5 in all, in at "
+"least 2 of them."
+msgstr ""
+"Una tendencia necesita al menos 4 barras del gráfico, con al menos 5 en "
+"total, en al menos 2 de ellas."
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid "Contributions <strong>grow by %(size)s %%</strong>"
+msgstr "Las contribuciones <strong>crecen un %(size)s %%</strong>"
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid "Contributors <strong>grow by %(size)s %%</strong>"
+msgstr "Los colaboradores <strong>crecen un %(size)s %%</strong>"
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid "Contributions <strong>shrink by %(size)s %%</strong>"
+msgstr "Las contribuciones <strong>bajan un %(size)s %%</strong>"
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid "Contributors <strong>shrink by %(size)s %%</strong>"
+msgstr "Los colaboradores <strong>bajan un %(size)s %%</strong>"
+
+#: community_insights/templates/community/_count_trend.html
+msgid "Contributions <strong>do not change</strong>"
+msgstr "Las contribuciones <strong>no cambian</strong>"
+
+#: community_insights/templates/community/_count_trend.html
+msgid "Contributors <strong>do not change</strong>"
+msgstr "Los colaboradores <strong>no cambian</strong>"
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid ""
+", with an error margin of ±%(margin)s percentage points: the 95 %% "
+"confidence interval is %(low)s %% to %(high)s %%."
+msgstr ""
+", con un margen de error de ±%(margin)s puntos porcentuales: el intervalo de"
+" confianza del 95 %% va de %(low)s %% a %(high)s %%."
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid ""
+"The fitted line goes from %(first)s to %(last)s %(per)s over %(bars)s bars."
+msgstr ""
+"La línea ajustada va de %(first)s a %(last)s %(per)s en %(bars)s barras."
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid ""
+"<strong>Statistically significant</strong> (p = %(p)s, below 0.05): a change"
+" this big would be unlikely without a real trend."
+msgstr ""
+"<strong>Estadísticamente significativa</strong> (p = %(p)s, por debajo de "
+"0,05): un cambio tan grande sería improbable sin una tendencia real."
+
+#: community_insights/templates/community/_count_trend.html
+#, python-format
+msgid ""
+"<strong>Not statistically significant</strong> (p = %(p)s, not below 0.05): "
+"the change may be chance, the data shows no clear trend."
+msgstr ""
+"<strong>No es estadísticamente significativa</strong> (p = %(p)s, no por "
+"debajo de 0,05): el cambio puede ser casualidad, los datos no muestran una "
+"tendencia clara."
+
+#: community_insights/templates/community/languages.html
+#, python-format
+msgid "Languages of %(title)s"
+msgstr "Idiomas de %(title)s"
+
+#: community_insights/templates/community/languages.html
+#, python-format
+msgid ""
+"An estimate from the countries of %(mapped)s/%(total)s contributors: each "
+"counts for the official languages of their country, or of their region if it"
+" has its own, such as Welsh in Wales. A country with several official "
+"languages counts for each of them. Nobody is asked what they speak."
+msgstr ""
+"Una estimación a partir de los países de %(mapped)s/%(total)s colaboradores:"
+" cada persona cuenta para los idiomas oficiales de su país, o de su región "
+"si tiene los suyos, como el galés en Gales. Un país con varios idiomas "
+"oficiales cuenta para cada uno. A nadie se le pregunta qué habla."
+
+#: community_insights/templates/community/languages.html
+msgid "How the languages are estimated"
+msgstr "Cómo se estiman los idiomas"
+
+#: community_insights/templates/community/languages.html
+msgid ""
+"How many of all mapped contributors likely speak it, from the share of the "
+"people of their countries who do (CLDR), official or not"
+msgstr ""
+"Cuántos de todos los colaboradores ubicados probablemente lo hablan, según "
+"la parte de la población de sus países que lo habla (CLDR), oficial o no"
+
+#: community_insights/templates/community/languages.html
+msgid "Likely speakers"
+msgstr "Hablantes probables"
+
+#: community_insights/templates/community/languages.html
+#, python-format
+msgid ""
+"The shares add up to more than 100 %%, as a contributor can count for "
+"several languages."
+msgstr ""
+"Las partes suman más del 100 %%, ya que una persona puede contar para varios"
+" idiomas."
+
+#: community_insights/templates/community/countries.html
+msgid "No contributor of this time has a location with a known country."
+msgstr ""
+"Ningún colaborador de este periodo tiene una ubicación con un país conocido."
+
+#: community_insights/templates/community/countries.html
+#, python-format
+msgid "Countries of %(title)s"
+msgstr "Países de %(title)s"
+
+#: community_insights/templates/community/countries.html
+#, python-format
+msgid "<strong>%(mapped)s/%(total)s</strong> contributors mapped"
+msgstr "<strong>%(mapped)s/%(total)s</strong> colaboradores ubicados"
+
+#: community_insights/templates/community/countries.html
+#, python-format
+msgid ""
+"%(count)s contributor has no location in the profile or was not read yet"
+msgid_plural ""
+"%(count)s contributors have no location in their profile or were not read "
+"yet"
+msgstr[0] ""
+"%(count)s colaborador no tiene ubicación en su perfil o aún no se ha leído"
+msgstr[1] ""
+"%(count)s colaboradores no tienen ubicación en su perfil o aún no se han "
+"leído"
+
+#: community_insights/templates/community/countries.html
+#, python-format
+msgid "the location of %(count)s contributor names no known country"
+msgid_plural "the locations of %(count)s contributors name no known country"
+msgstr[0] "la ubicación de %(count)s colaborador no nombra un país conocido"
+msgstr[1] ""
+"las ubicaciones de %(count)s colaboradores no nombran un país conocido"
+
+#: community_insights/templates/community/countries.html
+msgid "How the countries are found"
+msgstr "Cómo se encuentran los países"
+
+#: community_insights/templates/community/countries.html
+msgid "Map of the countries of the contributors"
+msgstr "Mapa de los países de los colaboradores"
+
+#: community_insights/templates/community/countries.html
+msgid "Zoom"
+msgstr "Zoom"
+
+#: community_insights/templates/community/countries.html
+msgid "Zoom in"
+msgstr "Acercar"
+
+#: community_insights/templates/community/countries.html
+msgid "Zoom out"
+msgstr "Alejar"
+
+#: community_insights/templates/community/countries.html
+msgid "Show the whole world"
+msgstr "Mostrar el mundo entero"
+
+#: community_insights/templates/community/countries.html
+msgid "Map of the world"
+msgstr "Mapa del mundo"
+
+#: community_insights/templates/community/countries.html
+msgid "few"
+msgstr "pocos"
+
+#: community_insights/templates/community/countries.html
+msgid "most contributors"
+msgstr "la mayoría de colaboradores"
+
+#: community_insights/templates/community/countries.html
+msgid "a city or place of contributors"
+msgstr "una ciudad o lugar de colaboradores"
+
+#: community_insights/templates/community/countries.html
+msgid ""
+"Scroll or pinch to zoom, drag to move, click a country for its contributors."
+msgstr ""
+"Desplaza o pellizca para acercar, arrastra para mover, haz clic en un país "
+"para ver sus colaboradores."
+
+#: community_insights/templates/community/countries.html
+msgid "Locations without a known country"
+msgstr "Ubicaciones sin un país conocido"
+
+#: community_insights/templates/community/countries.html
+msgid "Choose a country on the map or in the list."
+msgstr "Elige un país en el mapa o en la lista."
+
+#: community_insights/templates/community/countries.html
+msgid "First contribution"
+msgstr "Primera contribución"
+
+#: community_insights/templates/community/countries.html
+msgid "Last contribution"
+msgstr "Última contribución"
+
+#: community_insights/templates/community/countries.html
+msgid "Official languages"
+msgstr "Idiomas oficiales"
+
+#: community_insights/templates/community/countries.html
+msgid "Contributor"
+msgstr "Colaborador"
+
+#: community_insights/templates/community/countries.html
+msgid "Location"
+msgstr "Ubicación"
+
+#: community_insights/templates/community/countries.html
+msgid "Place on the map"
+msgstr "Lugar en el mapa"
+
+#~ msgid ""
+#~ "One row per repository. The response times are of the first response of "
+#~ "anybody but the author: the median and the 90th percentile."
+#~ msgstr ""
+#~ "Una fila por repositorio. Los tiempos de respuesta son de la primera "
+#~ "respuesta de cualquiera menos el autor: la mediana y el percentil 90."
+
+#, python-format
+#~ msgid ""
+#~ "Time until the first response of each class of people (<a "
+#~ "href=\"%(classes_url)s\">edit classes</a>). The author's own comments do not"
+#~ " count. <em>Measured</em>, <em>normal</em> and <em>exponential</em> use only"
+#~ " the items that got a response; <em>Kaplan-Meier</em> counts the others, "
+#~ "too, as waiting at least until they were closed or until now, and is \"-\" "
+#~ "where less than half (or 95 %%) got a response."
+#~ msgstr ""
+#~ "Tiempo hasta la primera respuesta de cada clase de personas (<a "
+#~ "href=\"%(classes_url)s\">editar clases</a>). Los comentarios propios del "
+#~ "autor no cuentan. <em>Medido</em>, <em>normal</em> y <em>exponencial</em> "
+#~ "usan solo los elementos que recibieron respuesta; <em>Kaplan-Meier</em> "
+#~ "también cuenta los demás, como esperando al menos hasta que se cerraron o "
+#~ "hasta ahora, y es \"-\" donde menos de la mitad (o el 95 %%) recibió "
+#~ "respuesta."
+
+#~ msgid ""
+#~ "The columns sort when you click them. A merge, and a close by somebody else "
+#~ "than the author, count as a response. “Waiting” marks the open items that no"
+#~ " collaborator or higher (owner, member or collaborator) has answered yet, "
+#~ "with the time since they were opened."
+#~ msgstr ""
+#~ "Las columnas se ordenan al hacer clic en ellas. Una fusión, y un cierre por "
+#~ "otra persona que no sea la autora o el autor, cuentan como respuesta. "
+#~ "«Esperando» marca los elementos abiertos que todavía nadie con el estado "
+#~ "collaborator o superior (owner, member o collaborator) ha respondido, con el"
+#~ " tiempo desde que se abrieron."
+
+#~ msgid ""
+#~ "The columns sort when you click them. “Waiting” is how long an item without "
+#~ "a response has waited, until it was closed or until now."
+#~ msgstr ""
+#~ "Las columnas se ordenan al hacer clic en ellas. “Esperando” es cuánto ha "
+#~ "esperado un elemento sin respuesta, hasta que se cerró o hasta ahora."
+
+#, python-format
+#~ msgid "Sign out %(name)s"
+#~ msgstr "Cerrar la sesión de %(name)s"

@@ -9,6 +9,8 @@ PROJECT_PAGES = [
     ("response_times", _("Response times")),
     ("trends", _("Trends")),
     ("contributors", _("Contributors")),
+    ("countries", _("Countries")),
+    ("languages", _("Languages")),
     ("items", _("Pull requests and issues")),
     ("replies", _("Replies")),
     ("badges", _("Badges")),

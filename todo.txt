@@ -135,8 +135,27 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Time range of the page Trends: From/To dates, and quick choices Last 7, 30 and 90 days on every statistics page (`views/scope.py` `presets`)
 - [x] Tests (`tests/statistics/test_trends.py`, `tests/pages/test_trends.py`), German and Spanish texts, docs (`explanation/trends.rst`, how-to use, URLs, pages), news fragment
 - [ ] `make messages` could not run: GNU gettext is not installed on this machine and installing it was refused; the new texts were added to `locale/` with polib (same entries, appended); run `make messages` once gettext is there to sort and wrap them
-- [x] The person checks the page Trends live (asked): served by make run; then commit and deploy (asked by the person)
+- [x] The person checks the page Trends live (asked): served by make run; then commit and deploy (asked by the person): bb33eb8, all CI jobs green up to the deploy
+- [x] A live check after the deploy, like sign.pycal.org (the person's choice): job `live` after `deploy`, `make check-live` (`scripts/check_live.py`, own version for this site): waits up to 10 minutes for /health/ and for About to name the commit pushed (the old container answers until the new one runs), opens the public pages, the pages of the first public repository of Explore (with Trends, a chart and the badge; only one, the statistics are computed on request), robots.txt and the error pages; tested against the site of the tests (`tests/quality/test_check_live.py`); run once against insight.pycal.org before the deploy: only robots.txt and Trends were missing, as expected for the old version
 - [x] The performance test grouped by `class`, renamed to `user_class`: fixed; the page Trends takes 0.3 s with 5000 items
+- [x] Trends: the new contributors are sorted by their handle (username), in any case
+- [x] Trends: pull requests distinguish merged and closed (without merging): own numbers, compared with the time before, and own bars in the chart (purple as on GitHub)
+- [x] Trends: a statistical trend of the contributions and of the contributors: how much they grow per bar, the error margin (95 % confidence interval), the p-value and whether it is significant; clear on the page, explained in the docs (asked): quasi-Poisson GLM of statsmodels with the exposure of partial bars, dispersion of Pearson at least 1, t with n - 2 degrees of freedom (`stats/count_trend.py`, docs explanation/trends.rst)
+- [x] Trends: the page says what a contribution is, which data is included, and that commits do not count (also explanation/trends.rst#contributions)
+- [x] Statistics are for three readers (remembered in the memory): the pages need the least statistical knowledge; the docs explain how the data comes about, what it portrays and why; experts can validate the approach from the docs ("The model, for statisticians")
+- [x] Trends: group the bars by days, (calendar) weeks, months or years (a choice, `?by=`); automatically the shortest with at most 31 bars, at least 4 if possible: a week or a month by day, two months by week, a year by month, five years by year; a choice of more than 400 bars is replaced by the automatic one
+- [x] Weeks are named by their calendar week of ISO 8601 (CW, KW in German)
+- [x] Every chart shows a loading animation while it loads and takes the space it will have, so the text of the page does not move when it appears: the SVGs have a fixed size (constrained layout instead of cropping; empty charts as big as the chart), the images have width and height, Chart.js takes the same aspect ratio (`chart_size`, `static/js/charts.js`)
+- [x] Page Countries (`/s/<scope>/countries/`): "X/Y contributors mapped"; an SVG map of the world and its countries as a heat map, gray for countries without contributors; a tool tip on hover "X contributors from <country>"; a click opens `#country=XX`
+- [x] Below the map, the statistics of the country chosen: the contributors and their locations, the first and last date of their contributions, the official languages of the country and those of the regions the contributors name (as a set)
+- [x] Small countries can be hovered and clicked: the nearest center of a country within a minimum distance is chosen
+- [x] The map can be zoomed into (buttons, wheel, pinch) and moved
+- [x] Contributors whose location is a clear city or place are dots on the map (not clickable for now)
+- [x] The places of the locations are kept in the database (model `Location`, one per text) and only found again when a location changes; offline with GeoNames first, then OpenStreetMap Nominatim (in the fetch, at most one request a second and NOMINATIM_PER_FETCH, never from pages); the fetch worker of its own runs `manage.py locate` in a process of its own, as GeoNames takes 100 MB
+- [x] Page Languages (`/s/<scope>/languages/`): an estimate of the languages, ranked by the contributors, with the countries each comes from; a country can count for several languages (Wales: English and Welsh); German counts for Austria too
+- [x] Look for a database or package for the languages of countries and regions: Babel (CLDR) has the official languages of countries and their speakers, not of regions; pycountry and iso3166-2 have regions without languages; Wikidata (P37) needs the network. Used: Babel and an own table of regions (`locations/regions.py`, after Wikipedia). A new Python package: none exists; the table is small, kept here until another project needs it
+- [x] The documentation explains the heuristics (places, countries, languages)
+- [ ] When done: translate, commit, deploy, tell the person (asked); this also commits the live check
 
 ## Badges
 - [x] SVG badge for the response time of issues or pull requests, percentile configurable (50, 95, ...)
@@ -276,6 +295,12 @@ Mark the ones to use; nothing below is used yet unless it says so.
 - [x] Implemented: `statsmodels`: the trend of the first responses per month on the overview (OLS of the logarithm, p-value and confidence interval)
 - [ ] Django's `TruncDay`/`TruncWeek`/`TruncMonth` (with `tzinfo`) could count the bars of the charts of Trends in the database; not used: the new contributors need the first contribution of each person first, so the bars are counted in Python for all series alike (fast enough: 0.3 s for 5000 items)
 - [ ] pandas `resample` (already installed) for the bars of Trends: not used, a few lines of Python with `datetime` suffice and keep the Monday weeks and local days explicit
+
+- [x] Implemented: Babel (CLDR) for the official languages of countries, the share of their speakers and the names of countries and languages in the language of the page
+- [x] Implemented: Natural Earth (public domain) for the map of the world, made into an SVG by `scripts/world_map.py` (no package at run time)
+- [x] Implemented: OpenStreetMap Nominatim for the places GeoNames does not know (an own small client with httpx; `geopy` would add a package for one request)
+- [ ] `geopy` (Nominatim client with rate limiting): not used, see above
+- [ ] Wikidata for the official languages of regions (P37): not used, it needs the network or a large download
 
 ### GitHub data
 - [x] Rejected: `githubkit`: typed GitHub REST and GraphQL client with rate limit handling and retries - replaces `community_insights/github.py`

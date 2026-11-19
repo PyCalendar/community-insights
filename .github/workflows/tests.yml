@@ -394,3 +394,26 @@ jobs:
           --header "Authorization: Bearer $SENCHO_TOKEN"
         env:
           SENCHO_TOKEN: ${{ secrets.SENCHO_TOKEN }}
+
+  live:
+    name: Check the live site
+    needs: [deploy]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # without secrets: it only visits the public pages, as a visitor (scripts/check_live.py)
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: false
+      # waits while the updated container starts and until it runs this commit, then walks
+      # the public pages
+      - name: Run make check-live
+        run: make check-live
+        env:
+          LIVE_URL: https://insight.pycal.org
+          LIVE_COMMIT: ${{ github.sha }}

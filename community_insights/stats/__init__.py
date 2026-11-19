@@ -6,11 +6,15 @@ from .change import Change
 from .contributor import Contributor
 from .contributor_replies import ContributorReplies
 from .contributors import contributors
+from .count_trend import CountTrend, count_trend
+from .country_map import CountryMap, country_map
+from .country_stats import CountryStats
 from .counts import counts
 from .fit import FitRow, best_fit, summary
 from .format import format_duration
 from .kind_series import kind_series
 from .kind_trend import KindTrend, kind_trend
+from .language_share import LanguageShare, language_shares
 from .models import MODELS, model_percentile, times_of
 from .pull_reply import PullReply
 from .replies import (
@@ -47,6 +51,13 @@ from .trend import Trend, trend
 
 __all__ = [
     "Change",
+    "CountTrend",
+    "count_trend",
+    "CountryMap",
+    "CountryStats",
+    "country_map",
+    "LanguageShare",
+    "language_shares",
     "KindTrend",
     "kind_series",
     "kind_trend",

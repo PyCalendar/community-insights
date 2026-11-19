@@ -14,6 +14,7 @@ from .event import Event
 from .fetch_job import FetchJob
 from .item import Item
 from .item_commit import ItemCommit
+from .location import Location
 from .message import Message
 from .person import Person
 from .person_class import PersonClass
@@ -33,6 +34,7 @@ __all__ = [
     "FetchJob",
     "Item",
     "ItemCommit",
+    "Location",
     "Message",
     "Person",
     "PersonClass",

@@ -172,6 +172,8 @@ class Syncer:
             await sync_to_async(store.save_people)(await self.source.people(batch))
 
         await together(*(read(batch) for batch in batches))
+        # the places of their locations, for the page Countries; new locations only
+        await sync_to_async(store.locate_people)(repository)
 
     async def sync_details(self, repository: Repository, count: bool = True) -> str:
         """Read the commits and closers of the pull requests read before these were read.

@@ -75,6 +75,7 @@
       "js/columns.js",
       "js/confirm.js",
       "js/copy.js",
+      "js/country-map.js",
       "js/fit-select.js",
       "js/query-complete.js",
       "js/query-scroll.js",
@@ -85,6 +86,16 @@
       "js/theme.js",
       "js/time-zone.js",
       "js/token-sliders.js"
+    ]
+  },
+  {
+    "name": "Natural Earth (the countries of the map)",
+    "version": "5.1.2",
+    "license": "Public domain",
+    "url": "https://www.naturalearthdata.com/",
+    "license_url": "maps/NATURAL-EARTH.txt",
+    "files": [
+      "maps/world.svg"
     ]
   }
 ]

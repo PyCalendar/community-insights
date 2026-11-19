@@ -6,6 +6,7 @@ from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from .. import stats
 from ..models import (
@@ -19,6 +20,21 @@ from .scope import scope_of, scope_view, stats_page
 FITS = ["measured", "normal", "exponential", "Kaplan-Meier"]
 # the new contributors of each side of the page Trends shown by name; the others are counted
 NEWCOMERS_SHOWN = 30
+# the length of a bar of the page Trends, for "grows by 5 % per week"
+PER = {
+    "day": gettext_lazy("per day"),
+    "week": gettext_lazy("per week"),
+    "month": gettext_lazy("per month"),
+    "year": gettext_lazy("per year"),
+}
+# the choice of the length of the bars of the page Trends: "" chooses itself
+BAR_CHOICES = [
+    ("", gettext_lazy("automatic")),
+    ("day", gettext_lazy("days")),
+    ("week", gettext_lazy("calendar weeks")),
+    ("month", gettext_lazy("months")),
+    ("year", gettext_lazy("years")),
+]
 
 
 def fit_table(title: str, kind: str, found, names: list[str]) -> tuple:
@@ -136,14 +152,33 @@ def trends(request, scope):
     """
     scope = scope_of(request, scope)
     now = timezone.now()
+    by = bars_of(request)
     sides = []
     for kind in (Item.ISSUE, Item.PR):
         found = stats.kind_trend(scope.repositories, kind, scope.since, scope.until, now)
+        series = stats.kind_series(
+            scope.repositories,
+            kind,
+            scope.since,
+            scope.until,
+            now,
+            timezone.get_current_timezone(),
+            by,
+        )
         sides.append(
             {
                 "trend": found,
                 "newcomers": found.newcomer_logins[:NEWCOMERS_SHOWN],
                 "more": max(0, len(found.newcomer_logins) - NEWCOMERS_SHOWN),
+                "per": PER.get(series["size"], ""),
+                # the statistical trends of the contributions and of the contributors
+                "models": [
+                    (
+                        name,
+                        stats.count_trend(series[name], series["exposure"], series["size"]),
+                    )
+                    for name in ("contributions", "contributors")
+                ],
             }
         )
     before = previous(scope.since, scope.until, now)
@@ -154,6 +189,11 @@ def trends(request, scope):
         {
             "scope": scope,
             "sides": sides,
+            "by": by,
+            "bar_choices": BAR_CHOICES,
+            # the charts keep the length of the bars chosen
+            "chart_query": scope.query + (("&" if scope.query else "?") + f"by={by}" if by else ""),
+            "parameters": {"by": by},
             # the days of the time before, the last one included, in the time zone shown
             "before": [
                 timezone.localdate(before[0]),
@@ -163,6 +203,19 @@ def trends(request, scope):
             else None,
         },
     )
+
+
+def bars_of(request) -> str:
+    """The length of the bars chosen with ``?by=``: ``day``, ``week``, ``month``, ``year``.
+
+    Args:
+        request: The request.
+
+    Returns:
+        The length; "" to choose it by the time range, also for anything else.
+    """
+    by = request.GET.get("by", "")
+    return by if by in {value for value, _ in BAR_CHOICES} else ""
 
 
 @scope_view

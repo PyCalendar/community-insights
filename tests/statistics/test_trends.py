@@ -116,11 +116,13 @@ def test_issues_of_the_week_next_to_the_week_before(week):
 
 
 def test_pull_requests_of_the_week(week):
-    """Merged pull requests are a part of the closed ones; bots are no contributors."""
+    """Merged and closed without merging are apart; bots are no contributors."""
     found = stats.kind_trend(Repository.objects.all(), Item.PR, SINCE, UNTIL, NOW)
     assert found.opened == Change(3, 1), "the pull request of the bot is opened, too"
-    assert found.closed == Change(1, 0), "#12 closed after the week"
-    assert found.merged == Change(1, 0)
+    assert found.merged == Change(1, 0), "#11 merged in the week"
+    assert found.closed == Change(0, 0), "#12 closed without merging after the week"
+    later = stats.kind_trend(Repository.objects.all(), Item.PR, SINCE, day(21), NOW)
+    assert (later.closed.now, later.merged.now) == (1, 1), "#12 is closed, not merged"
     assert found.contributions == Change(3, 1)
     assert found.contributors == Change(2, 1)
     assert found.newcomer_logins == ("dot",), "bob opened one before, the bot is no person"
@@ -137,7 +139,7 @@ def test_all_time_has_nothing_to_compare_with(week):
     """Without a start of the time range, there is no time before it."""
     found = stats.kind_trend(Repository.objects.all(), Item.ISSUE, None, None, NOW)
     assert found.opened == Change(4, None)
-    assert found.newcomer_logins == ("ann", "eve", "bob", "cid"), "the first one first"
+    assert found.newcomer_logins == ("ann", "bob", "cid", "eve"), "by the handle"
 
 
 def test_a_range_until_now_is_compared_with_as_long_before(week):
@@ -180,16 +182,30 @@ def test_series_of_all_time_starts_with_the_first_item(week):
     later = datetime(2026, 3, 1, tzinfo=UTC)
     found = stats.kind_series(Repository.objects.all(), Item.PR, None, None, later, UTC)
     assert found["size"] == "week"
-    assert found["labels"][0] == "2025-12-29", "the Monday of the week of January 4"
+    assert found["labels"][0] == "CW 1 2026", (
+        "the calendar week of January 4, from Monday 2025-12-29"
+    )
     assert sum(found["opened"]) == 4 and sum(found["newcomers"]) == 2
 
 
 @pytest.mark.parametrize(
     ("days", "size", "bars"),
-    [(7, "day", 7), (30, "day", 30), (90, "week", 14), (365, "month", 13)],
+    [
+        (7, "day", 7),
+        (30, "day", 30),
+        (31, "day", 31),
+        (61, "week", 10),
+        (90, "week", 14),
+        (210, "week", 31),
+        (365, "month", 13),
+        (2 * 365, "month", 25),
+        (5 * 365, "year", 6),
+        (3 * 365, "year", 4),
+    ],
 )
 def test_the_length_of_the_bars(days, size, bars):
-    """The last 7 and 30 days per day, 90 per week, a year per month."""
+    """The shortest bars that make at most 31: a week or a month by day, two months by week,
+    a year by month, five years by year."""
     end = datetime(2026, 11, 20, tzinfo=UTC)
     start = end - timedelta(days=days)
     assert periods.size_of(start, end) == size
@@ -222,3 +238,61 @@ def test_the_change(change, difference, percent):
     """In percent of before; without before or from 0 no percent."""
     assert change.difference == difference
     assert change.percent == percent
+
+
+def test_series_have_contributors_and_the_part_of_each_bar(week):
+    """Each bar has its contributors, each once, and the part of it inside the range."""
+    found = stats.kind_series(Repository.objects.all(), Item.ISSUE, SINCE, UNTIL, NOW, UTC)
+    assert len(found["contributors"]) == len(found["labels"]) == len(found["exposure"])
+    assert all(
+        people <= count
+        for people, count in zip(found["contributors"], found["contributions"], strict=True)
+    )
+    assert found["exposure"] == [1.0] * 7
+    assert found["merged"] == [], "issues are not merged"
+
+
+def test_the_length_of_the_bars_can_be_chosen(week):
+    """The reader chooses months for a week: one bar; years: one bar."""
+    repositories = Repository.objects.all()
+    months = stats.kind_series(repositories, Item.ISSUE, SINCE, UNTIL, NOW, UTC, "month")
+    assert (months["size"], months["labels"]) == ("month", ["2026-01"])
+    years = stats.kind_series(repositories, Item.ISSUE, SINCE, UNTIL, NOW, UTC, "year")
+    assert (years["size"], years["labels"], sum(years["opened"])) == ("year", ["2026"], 2)
+
+
+def test_a_choice_with_too_many_bars_is_replaced(week):
+    """Days of ten years would be thousands of bars: the length is chosen instead."""
+    since = datetime(2016, 1, 1, tzinfo=UTC)
+    found = stats.kind_series(Repository.objects.all(), Item.ISSUE, since, UNTIL, NOW, UTC, "day")
+    assert found["size"] == "year"
+    unknown = stats.kind_series(Repository.objects.all(), Item.ISSUE, SINCE, UNTIL, NOW, UTC, "x")
+    assert unknown["size"] == "day"
+
+
+def test_weeks_are_calendar_weeks():
+    """Weeks start on Monday and are named by their calendar week of ISO 8601."""
+    from datetime import date
+
+    assert periods.label(date(2026, 1, 5), "week") == "CW 2 2026"
+    assert periods.label(date(2025, 12, 29), "week") == "CW 1 2026", "the week of 1 January"
+    assert periods.bucket(date(2026, 1, 1), "week") == date(2025, 12, 29)
+
+
+def test_calendar_weeks_in_german():
+    """KW in German."""
+    from datetime import date
+
+    from django.utils import translation
+
+    with translation.override("de"):
+        assert periods.label(date(2026, 1, 5), "week") == "KW 2 2026"
+
+
+def test_years():
+    """A year starts on 1 January; the next year follows."""
+    from datetime import date
+
+    assert periods.bucket(date(2026, 11, 19), "year") == date(2026, 1, 1)
+    assert periods.next_bucket(date(2026, 1, 1), "year") == date(2027, 1, 1)
+    assert periods.label(date(2026, 1, 1), "year") == "2026"

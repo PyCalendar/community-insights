@@ -17,14 +17,15 @@ class KindTrend:
     Attributes:
         kind: ``pr`` or ``issue``.
         opened: How many were opened.
-        closed: How many were closed, merged pull requests included.
-        merged: How many pull requests were merged, a part of ``closed``; None for issues.
+        closed: How many issues were closed; of pull requests, how many were closed without
+            being merged.
+        merged: How many pull requests were merged; None for issues.
         contributions: Openings, comments and reviews by people, not bots.
         contributors: How many people, not bots, made the contributions.
         newcomers: How many people made their first contribution to this kind in the
             repositories: the first that the site has read.
-        newcomer_logins: The handles of the new contributors of the time range, the first
-            one first.
+        newcomer_logins: The handles of the new contributors of the time range, sorted by the
+            handle in any case.
     """
 
     kind: str
@@ -142,12 +143,15 @@ def kind_trend(
         return found.values("person").distinct().count()
 
     firsts = first_contributions(repositories, kind)
-    newcomers = tuple(login for login, at in firsts if within(at, since, until))
+    newcomers = tuple(
+        sorted((login for login, at in firsts if within(at, since, until)), key=str.casefold)
+    )
+    pr = kind == Item.PR
     return KindTrend(
         kind=kind,
         opened=change(items, "created_at"),
-        closed=change(closed, "closed_at"),
-        merged=change(closed.filter(merged=True), "closed_at") if kind == Item.PR else None,
+        closed=change(closed.filter(merged=False) if pr else closed, "closed_at"),
+        merged=change(closed.filter(merged=True), "closed_at") if pr else None,
         contributions=change(events, "at"),
         contributors=Change(people(since, until), people(*before) if before else None),
         newcomers=Change(

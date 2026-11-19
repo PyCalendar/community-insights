@@ -86,6 +86,14 @@ check-vendor:  ## Check that static/vendor is what make vendor copies from packa
 	@$(MAKE) --no-print-directory vendor VENDOR=.cache/vendor
 	@diff -r --exclude=vendor.json .cache/vendor static/vendor
 
+.PHONY: world-map
+world-map: .venv  ## Make the map of the page Countries again from Natural Earth (static/maps/world.svg)
+	uv run python scripts/world_map.py
+
+.PHONY: check-live
+check-live: .venv  ## Check a live site as a visitor: LIVE_URL (default https://insight.pycal.org), waits while it starts, LIVE_COMMIT for that version
+	@uv run python scripts/check_live.py
+
 .PHONY: check-site-links
 check-site-links: .venv  ## Check every link of the running site, signed in, with linkchecker
 	@./tests/linkchecker/check-site.sh

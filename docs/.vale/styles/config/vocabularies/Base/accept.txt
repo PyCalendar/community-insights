@@ -49,3 +49,11 @@ PRs
 Camo
 Sencho
 Trivy
+Nominatim
+Catalunya
+Wikidata
+[Oo]verdispersion
+[Oo]verdispersed
+[Uu]nderdispersed
+reweighted
+facto

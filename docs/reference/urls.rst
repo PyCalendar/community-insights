@@ -14,7 +14,11 @@ URLs
    * - ``/s/<scope>/response-times/``
      - the response times: charts, tables of the statistics, and trends
    * - ``/s/<scope>/trends/``
-     - issues and pull requests opened and closed, contributions and new contributors, next to the time before, see :doc:`../explanation/trends`
+     - issues and pull requests opened, closed and merged, contributions and new contributors, next to the time before, with a statistical trend; ``?by=day``, ``week``, ``month`` or ``year`` chooses the bars of the charts, see :doc:`../explanation/trends`
+   * - ``/s/<scope>/countries/``
+     - a map of the world with the countries of the contributors; ``#country=DE`` shows a country below the map, see :doc:`../explanation/countries`
+   * - ``/s/<scope>/languages/``
+     - an estimate of the languages of the contributors from their countries, see :doc:`../explanation/countries`
    * - ``/s/<scope>/badges/``
      - the builder of the badge of the response time, and where the badges of replies are
    * - ``/s/<scope>/contributors/``

@@ -160,3 +160,55 @@ test("toConfig without titles shows none and copies the series", () => {
   config.data.datasets[0].label = "changed";
   assert.equal(data.datasets[0].label, "one", "the data of the server stays");
 });
+
+function framed(extra) {
+  return new JSDOM(
+    `<html data-bs-theme="light"><body><div class="chart-frame" data-chart-frame><img src="/s/1/chart/trend-pr.svg" alt="Bars" width="504" height="202" ${extra || ""}></div></body></html>`,
+    { runScripts: "outside-only", pretendToBeVisual: true },
+  );
+}
+
+test("the frame shows the spinner until Chart.js has drawn, with the size of the SVG", async () => {
+  const dom = framed('data-chart-json="/s/1/chart/trend-pr.json"');
+  const img = dom.window.document.querySelector("img");
+  const frame = dom.window.document.querySelector("[data-chart-frame]");
+  let answer;
+  const state = charts.setup(img, class { destroy() {} }, () => new Promise((resolve) => { answer = resolve; }));
+  const drawn = state.draw();
+  assert.equal(frame.hasAttribute("data-loading"), true, "loading while the data comes");
+  answer(BARS);
+  await drawn;
+  assert.equal(frame.hasAttribute("data-loading"), false);
+  const box = dom.window.document.querySelector(".chart-canvas");
+  assert.equal(box.style.aspectRatio, "504 / 202", "the canvas takes the place of the SVG");
+  assert.equal(box.style.height, "");
+});
+
+test("without data, the spinner stays until the SVG has loaded", async () => {
+  const dom = framed('data-chart-json="/s/1/chart/trend-pr.json"');
+  const img = dom.window.document.querySelector("img");
+  const frame = dom.window.document.querySelector("[data-chart-frame]");
+  const state = charts.setup(img, class {}, () => Promise.resolve({ ...BARS, empty: true }));
+  await state.draw();
+  assert.equal(frame.hasAttribute("data-loading"), true);
+  img.dispatchEvent(new dom.window.Event("load"));
+  assert.equal(frame.hasAttribute("data-loading"), false);
+});
+
+test("a chart of the server only: the spinner until the image loads or fails", () => {
+  for (const event of ["load", "error"]) {
+    const dom = framed();
+    const img = dom.window.document.querySelector("img");
+    const frame = dom.window.document.querySelector("[data-chart-frame]");
+    charts.watch(img);
+    assert.equal(frame.hasAttribute("data-loading"), true);
+    img.dispatchEvent(new dom.window.Event(event));
+    assert.equal(frame.hasAttribute("data-loading"), false, event);
+  }
+});
+
+test("an image without a frame is no problem", () => {
+  const img = page("light").window.document.querySelector("img");
+  charts.loading(img, true);
+  assert.equal(img.parentNode.hasAttribute("data-loading"), false);
+});

@@ -24,6 +24,16 @@
   --button-text: #ffffff;
   --button-hover-bg: #2b5329;
   --danger-text: #a3242f;
+  /* the map of the page Countries: no contributors, then from few (1) to most (5) */
+  --heat-0: #d9ddd9;
+  --heat-1: #c7e6c7;
+  --heat-2: #9ccc9c;
+  --heat-3: #5fae5f;
+  --heat-4: #149414;
+  --heat-5: #0e6b0e;
+  --map-sea: #f4f8f4;
+  --map-line: #ffffff;
+  --map-place: #a3242f;
 
   --bs-primary: var(--button-bg);
   --bs-primary-rgb: 14, 107, 14;
@@ -54,6 +64,15 @@
   --button-text: #ffffff;
   --button-hover-bg: #2b5329;
   --danger-text: #f1aeb5;
+  --heat-0: #3a423a;
+  --heat-1: #2f5a2e;
+  --heat-2: #3f7e3d;
+  --heat-3: #5fae5f;
+  --heat-4: #8fd18f;
+  --heat-5: #c9f0c9;
+  --map-sea: #0b140b;
+  --map-line: #101a10;
+  --map-place: #f1aeb5;
   --bs-link-color-rgb: 156, 204, 156;
   color-scheme: dark;
 }
@@ -73,6 +92,15 @@
     --button-text: #ffffff;
     --button-hover-bg: #2b5329;
     --danger-text: #f1aeb5;
+    --heat-0: #3a423a;
+    --heat-1: #2f5a2e;
+    --heat-2: #3f7e3d;
+    --heat-3: #5fae5f;
+    --heat-4: #8fd18f;
+    --heat-5: #c9f0c9;
+    --map-sea: #0b140b;
+    --map-line: #101a10;
+    --map-place: #f1aeb5;
     --bs-link-color-rgb: 156, 204, 156;
     color-scheme: dark;
   }
@@ -115,6 +143,21 @@ a { color: var(--link); }
 .table { --bs-table-bg: transparent; --bs-table-color: var(--text); --bs-table-border-color: var(--border); }
 .table-hover > tbody > tr:hover > * { --bs-table-hover-bg: var(--surface-tint); }
 .chart img { width: 100%; height: auto; max-width: 760px; }
+/* a chart keeps its space while it loads (width and height of the image, the same aspect
+   for Chart.js), with a spinner until charts.js removes data-loading */
+.chart-frame { position: relative; max-width: 760px; }
+.chart-frame img { display: block; width: 100%; height: auto; }
+.chart-frame .chart-canvas { width: 100%; }
+.chart-frame[data-loading] img, .chart-frame[data-loading] .chart-canvas { visibility: hidden; }
+.chart-frame[data-loading]::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 2.25rem; height: 2.25rem;
+  margin: -1.125rem 0 0 -1.125rem; border: .25rem solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%; animation: chart-spin .9s linear infinite;
+}
+@keyframes chart-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .chart-frame[data-loading]::after { animation-duration: 3s; }
+}
 .swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; vertical-align: -.05rem; }
 .hero { background: var(--green-deepest); color: #fff; }
 .hero .lead { color: var(--green-light); }
@@ -156,3 +199,26 @@ code.snippet { word-break: break-all; }
 .badge.state-open { background-color: #1a7f37; color: #fff; }
 .badge.state-closed { background-color: #cf222e; color: #fff; }
 .badge.state-merged { background-color: #8250df; color: #fff; }
+
+/* the map of the page Countries (static/js/country-map.js) */
+.world-map-box { position: relative; background: var(--map-sea); border: 1px solid var(--border); border-radius: .375rem; overflow: hidden; touch-action: none; }
+.world-map-box svg { display: block; width: 100%; height: auto; cursor: grab; user-select: none; }
+.world-map-box svg.dragging { cursor: grabbing; }
+.world-map path { fill: var(--heat-0); stroke: var(--map-line); stroke-width: .4; vector-effect: non-scaling-stroke; }
+.world-map path.heat-1, .world-map circle.heat-1 { fill: var(--heat-1); }
+.world-map path.heat-2, .world-map circle.heat-2 { fill: var(--heat-2); }
+.world-map path.heat-3, .world-map circle.heat-3 { fill: var(--heat-3); }
+.world-map path.heat-4, .world-map circle.heat-4 { fill: var(--heat-4); }
+.world-map path.heat-5, .world-map circle.heat-5 { fill: var(--heat-5); }
+.world-map .hover { stroke: var(--text); stroke-width: 1.5; }
+.world-map .chosen { stroke: var(--map-place); stroke-width: 2; }
+.world-map circle.small-country { stroke: var(--map-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.world-map circle.place { fill: var(--map-place); stroke: var(--map-line); stroke-width: 1; vector-effect: non-scaling-stroke; pointer-events: none; }
+.world-map-tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: .25rem; padding: .15rem .4rem; font-size: .85rem; white-space: nowrap; z-index: 2; }
+.world-map-zoom { position: absolute; top: .5rem; right: .5rem; z-index: 2; }
+.heat-legend .swatch { border-radius: .15rem; }
+.heat-legend .heat-0 { background: var(--heat-0); }
+.heat-legend .heat-1 { background: var(--heat-1); }
+.heat-legend .heat-3 { background: var(--heat-3); }
+.heat-legend .heat-5 { background: var(--heat-5); }
+.heat-legend .place-swatch { background: var(--map-place); border-radius: 50%; }

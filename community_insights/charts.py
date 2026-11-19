@@ -104,6 +104,68 @@ HOURS = [f"{hour:02d}:00" for hour in range(0, 24, 3)]
 # the marks of a time axis, in hours: from a minute to a year
 DURATION_TICKS = [0, 1 / 60, 10 / 60, 1, 6, 24, 24 * 7, 24 * 30, 24 * 365]
 THEMES = ("light", "dark")
+# the size of each kind of chart, in inches: the SVG has exactly this size (a constrained
+# layout instead of cropping), so a page reserves its space before it loads (chart_size)
+SIZES = {
+    "responses": (7, 3.2),
+    "query": (7, 3.2),  # its height grows with the people or groups shown
+    "hours": (6, 2.4),
+    "heatmap": (7, 2.8),
+    "response_months": (7, 2.6),
+    "survival": (7, 3.2),
+    "months": (7, 2.8),
+    "pair": (7, 2.8),
+}
+# the kind of each chart of a page, by its name in the address
+CHART_KINDS = {
+    "query": "query",
+    "responses-pr": "responses",
+    "responses-issue": "responses",
+    "survival-pr": "survival",
+    "survival-issue": "survival",
+    "responses": "response_months",
+    "hours": "hours",
+    "heatmap": "heatmap",
+    "months": "months",
+    "trend-pr": "pair",
+    "trend-issue": "pair",
+    "people-pr": "pair",
+    "people-issue": "pair",
+}
+POINTS = 72  # an inch of matplotlib's SVG, in the units of its width and height
+
+
+def figure_of(kind: str, height: float | None = None):
+    """A figure of the size of a kind of chart, laid out to fit in it.
+
+    Args:
+        kind: A key of ``SIZES``.
+        height: Another height in inches, for a chart that grows.
+
+    Returns:
+        The figure and its axes.
+    """
+    plt = pyplot()
+    width, standard = SIZES[kind]
+    return plt.subplots(figsize=(width, height or standard), layout="constrained")
+
+
+def chart_size(name: str) -> tuple[int, int]:
+    """The width and the height of the SVG of a chart, to reserve its space on a page.
+
+    Args:
+        name: The name of the chart in its address, such as ``trend-pr``.
+
+    Returns:
+        The width and the height in the units of the SVG; that of a chart with a bar per
+        person for a query.
+
+    Examples:
+        >>> chart_size("trend-pr"), chart_size("unknown")
+        ((504, 202), (504, 230))
+    """
+    width, height = SIZES[CHART_KINDS.get(name, "responses")]
+    return round(width * POINTS), round(height * POINTS)
 
 
 def svg(figure) -> bytes:
@@ -117,7 +179,7 @@ def svg(figure) -> bytes:
     """
     plt = pyplot()
     buffer = io.BytesIO()
-    figure.savefig(buffer, format="svg", bbox_inches="tight", transparent=True)
+    figure.savefig(buffer, format="svg", transparent=True)  # at its size: see SIZES
     plt.close(figure)
     return buffer.getvalue()
 
@@ -144,18 +206,18 @@ def style(axes, theme: str, legend: bool = False):
             text.set_color(ink)
 
 
-def empty(message: str, theme: str = "light") -> bytes:
-    """A small chart that only says why there is nothing to show.
+def empty(message: str, theme: str = "light", kind: str = "responses") -> bytes:
+    """A chart that only says why there is nothing to show, as big as the chart it replaces.
 
     Args:
         message: Why there is nothing to show.
         theme: ``light`` or ``dark``: the colours of the page the chart is on.
+        kind: The kind of chart it replaces (``SIZES``), so the page keeps its space.
 
     Returns:
         The SVG.
     """
-    plt = pyplot()
-    figure, axes = plt.subplots(figsize=(6, 1.2))
+    figure, axes = figure_of(kind)
     axes.axis("off")
     axes.text(0.5, 0.5, message, ha="center", va="center", color=INK[theme])
     return svg(figure)
@@ -176,12 +238,11 @@ def response_chart(title: str, entries, classes, theme: str = "light") -> bytes:
     Returns:
         The SVG; a chart that says so without responses.
     """
-    plt = pyplot()
     names = [c.name for c in classes]
     rows = histogram(entries, names)
     if not any(any(c.values()) for _, c in rows):
-        return empty(gettext("%(title)s: no responses yet") % {"title": title}, theme)
-    figure, axes = plt.subplots(figsize=(7, 3.2))
+        return empty(gettext("%(title)s: no responses yet") % {"title": title}, theme, "responses")
+    figure, axes = figure_of("responses")
     width = 0.8 / max(1, len(classes))
     for index, person_class in enumerate(classes):
         offset = (index - (len(classes) - 1) / 2) * width
@@ -220,10 +281,9 @@ def query_chart(
     Returns:
         The SVG; a chart that says so when nobody matches.
     """
-    plt = pyplot()
     if not labels:
-        return empty(gettext("nobody matches the query"), theme)
-    figure, axes = plt.subplots(figsize=(7, max(1.6, 0.28 * len(labels) + 0.8)))
+        return empty(gettext("nobody matches the query"), theme, "query")
+    figure, axes = figure_of("query", max(1.6, 0.28 * len(labels) + 0.8))
     axes.barh(labels[::-1], values[::-1], color=BAR[theme])
     axes.set_xlabel(title)
     style(axes, theme)
@@ -240,9 +300,8 @@ def hour_chart(grid, theme: str = "light") -> bytes:
     Returns:
         The SVG.
     """
-    plt = pyplot()
     totals = [sum(grid[day][hour] for day in range(7)) for hour in range(24)]
-    figure, axes = plt.subplots(figsize=(6, 2.4))
+    figure, axes = figure_of("hours")
     axes.bar(range(24), totals, color=BAR[theme])
     axes.set_xticks(range(0, 24, 3), HOURS)
     axes.set_xlabel(gettext("time of the day (your time zone)"))
@@ -261,8 +320,7 @@ def heatmap(grid, theme: str = "light") -> bytes:
     Returns:
         The SVG.
     """
-    plt = pyplot()
-    figure, axes = plt.subplots(figsize=(7, 2.8))
+    figure, axes = figure_of("heatmap")
     image = axes.imshow(grid, aspect="auto", cmap=heat(theme))
     axes.set_yticks(range(7), [str(day) for day in WEEKDAYS])
     axes.set_xticks(range(0, 24, 3), HOURS)
@@ -307,16 +365,15 @@ def response_month_chart(months, theme: str = "light") -> bytes:
     Returns:
         The SVG; a chart that says so without responses.
     """
-    plt = pyplot()
     import statistics
 
     if not months:
-        return empty(gettext("no responses to others"), theme)
+        return empty(gettext("no responses to others"), theme, "response_months")
     span = month_span(list(months))
     labels = [f"{y}-{m:02d}" for y, m in span]
     medians = [statistics.median(months[k]) / 3600 if months.get(k) else None for k in span]
     counts = [len(months.get(k, [])) for k in span]
-    figure, axes = plt.subplots(figsize=(7, 2.6))
+    figure, axes = figure_of("response_months")
     shown = [
         (i, v, c) for i, (v, c) in enumerate(zip(medians, counts, strict=True)) if v is not None
     ]
@@ -382,12 +439,11 @@ def survival_chart(title: str, entries, observed, classes, theme: str = "light")
     with LOCK:  # see heavy.py
         from matplotlib.ticker import FuncFormatter
 
-    plt = pyplot()
     curves = [(c, survival(entries, observed, c.name)) for c in classes]
     curves = [(c, fitted) for c, fitted in curves if fitted is not None]
     if not curves:
-        return empty(gettext("%(title)s: no responses yet") % {"title": title}, theme)
-    figure, axes = plt.subplots(figsize=(7, 3.2))
+        return empty(gettext("%(title)s: no responses yet") % {"title": title}, theme, "survival")
+    figure, axes = figure_of("survival")
     highest = 0.0
     for person_class, fitted in curves:
         hours = fitted.survival_function_.index.to_numpy() / 3600
@@ -421,9 +477,8 @@ def month_chart(months, theme: str = "light") -> bytes:
     Returns:
         The SVG; a chart that says so without activity.
     """
-    plt = pyplot()
     if not months:
-        return empty(gettext("no activity"), theme)
+        return empty(gettext("no activity"), theme, "months")
     keys = sorted(months)
     # every month between the first and the last, also those without activity
     (y0, m0), (y1, m1) = keys[0], keys[-1]
@@ -431,7 +486,7 @@ def month_chart(months, theme: str = "light") -> bytes:
         (y0 + (m0 - 1 + i) // 12, (m0 - 1 + i) % 12 + 1)
         for i in range((y1 - y0) * 12 + m1 - m0 + 1)
     ]
-    figure, axes = plt.subplots(figsize=(7, 2.8))
+    figure, axes = figure_of("months")
     bottoms = [0] * len(span)
     labels = [f"{y}-{m:02d}" for y, m in span]
     for kind, color in KIND_COLORS[theme].items():
@@ -454,36 +509,39 @@ def month_chart(months, theme: str = "light") -> bytes:
 
 
 # two series side by side, as the first two kinds of activity
+# the third is the purple of merged pull requests, as on GitHub
+MERGED_COLORS = {"light": "#8250df", "dark": "#a371f7"}
 PAIR_COLORS = {
-    theme: [colors["pull request"], colors["issue"]] for theme, colors in KIND_COLORS.items()
+    theme: [colors["pull request"], colors["issue"], MERGED_COLORS[theme]]
+    for theme, colors in KIND_COLORS.items()
 }
 # the time axis of the charts of the page Trends, by the length of a bar
 BAR_LENGTHS = {
     "day": gettext_lazy("day"),
-    "week": gettext_lazy("week, from Monday"),
+    "week": gettext_lazy("calendar week (ISO 8601, from Monday)"),
     "month": gettext_lazy("month"),
+    "year": gettext_lazy("year"),
 }
 
 
 def pair_chart(
     title: str, labels: list[str], series: list[tuple[str, list[int]]], size: str, theme: str
 ) -> bytes:
-    """Two series of numbers per day, week or month as bars side by side (page Trends).
+    """Series of numbers per day, week or month as bars side by side (page Trends).
 
     Args:
         title: What the chart shows.
         labels: The days, weeks or months.
-        series: The name and the numbers of each series, at most two.
-        size: ``day``, ``week`` or ``month``: the title of the time axis.
+        series: The name and the numbers of each series, at most three.
+        size: ``day``, ``week``, ``month`` or ``year``: the title of the time axis.
         theme: ``light`` or ``dark``: the colours of the page the chart is on.
 
     Returns:
         The SVG; a chart that says so without anything in the time range.
     """
-    plt = pyplot()
     if not any(any(values) for _, values in series):
-        return empty(gettext("nothing in this time"), theme)
-    figure, axes = plt.subplots(figsize=(7, 2.8))
+        return empty(gettext("nothing in this time"), theme, "pair")
+    figure, axes = figure_of("pair")
     width = 0.8 / len(series)
     for index, ((name, values), color) in enumerate(zip(series, PAIR_COLORS[theme], strict=False)):
         axes.bar(

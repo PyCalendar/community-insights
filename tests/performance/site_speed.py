@@ -24,7 +24,7 @@ from urllib.parse import urljoin, urlsplit
 import httpx
 
 LIMIT = 1.0  # seconds
-PAGES = ["", "trends/", "contributors/", "items/", "compare/"]
+PAGES = ["", "trends/", "contributors/", "countries/", "languages/", "items/", "compare/"]
 PEOPLE = 3  # pages of people, the first ones linked from the overview
 PROC = Path("/proc")
 

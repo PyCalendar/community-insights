@@ -11,6 +11,7 @@ def _settings(settings, tmp_path):
     """The settings of all tests: work in the request, files in a temporary folder."""
     settings.FETCH_WORKER = "inline"  # fetches and documents run in the request
     settings.DATA_DIR = tmp_path  # the documents made
+    settings.NOMINATIM_URL = ""  # places are found offline; tests of Nominatim fake it
     settings.STORAGES = {
         **settings.STORAGES,
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},

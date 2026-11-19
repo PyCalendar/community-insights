@@ -47,6 +47,8 @@ Run what the CI runs, with the same commands:
     make typecheck          # the type hints, with pyright
     make check-graphql      # the GraphQL queries against the schema of GitHub
     make check-site-links   # every link of the running site, with LinkChecker
+    make check-live         # the live site, as a visitor, see below
+    make world-map          # the map of the page Countries again, from Natural Earth
     make check-vendor       # static/vendor is what make vendor makes
     make test-all           # all of them and the checks of the documentation
 
@@ -73,6 +75,7 @@ Watch the browser tests
 Check the links and the queries
 -------------------------------
 
+- ``make check-live`` checks a site that runs elsewhere as a visitor: ``LIVE_URL`` is its address (by default https://insight.pycal.org). It waits up to ``LIVE_WAIT`` seconds (600) until ``/health/`` answers and, with ``LIVE_COMMIT``, until **About** names that commit. Then it opens the public pages, the pages of the first public repository of **Explore** with a chart and its badge, robots.txt, and checks that a missing page is the 404 page of the site and that the pages of signed in people ask to sign in. It only reads. The CI runs it after each deploy with the commit it pushed (``scripts/check_live.py``).
 - ``make check-site-links`` starts the site on a new database in ``.cache/site`` with ``admin@example.com`` and the demo project, and lets `LinkChecker <https://linkchecker.github.io/linkchecker/>`_ follow every link, signed in. ``tests/linkchecker/linkcheckerrc`` leaves out the links that only sort, share or sign out.
 - ``make check-graphql`` downloads the schema GitHub publishes and validates every query with ``gql``. A new query goes into ``community_insights/github/catalog.py``, so that it is checked, too.
 - ``tests/pages/test_crawl.py`` visits every page with the test data and checks every link, image and script, without a server.

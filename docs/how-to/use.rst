@@ -29,7 +29,9 @@ The drop-down at the top of every page of a project, and the menu of its card on
 
 - **Overview**: how many pull requests and issues are open, merged and closed, how many people contributed, by class of people, and the five most active people who are not bots. It loads fast: the response times have their own page.
 - **Response times**: how long pull requests and issues waited for their first response.
-- **Trends**: whether more or fewer issues and pull requests are opened and closed, with the contributions and the new contributors, next to the time before.
+- **Trends**: whether more or fewer issues and pull requests are opened and closed, with the contributions and the new contributors, next to the time before, and whether the contributions really grow.
+- **Countries**: a map of the world with the countries of the contributors.
+- **Languages**: which languages the contributors likely speak, from their countries.
 - **Contributors**: everybody who contributed, chosen and sorted with a query.
 - **Pull requests and issues**: all of them, with their state in the colours of GitHub (green open, red closed, purple merged) and their first response; *waiting* marks the open ones that no collaborator or higher has answered yet, and a merge counts as a response (see :doc:`../explanation/responses`). Kind, state and whether somebody responded are multiple choices: all are chosen at first, so choose for example *closed* and *merged* together.
 - **Replies**: who replied to the feedback on their pull requests.
@@ -75,11 +77,22 @@ Read the trends
 The page **Trends** shows issues on the left and pull requests on the right, on a phone one below the other:
 
 #. Choose **Last 7 days**, **Last 30 days** or **Last 90 days** at the top, or **From** and **To** for other dates.
-#. Each card shows a number of the time range and how it changed from the time just before: *opened*, *closed* (for pull requests with how many were merged), *contributions* with how many people made them, and *new contributors*.
-#. The charts show the same per day, week or month; point at a bar to see its number.
-#. Below them, the new contributors are listed; a name opens the page of the person.
+#. Each card shows a number of the time range and how it changed from the time just before: *opened*, *closed* (for pull requests *merged* and *closed without merging*), *contributions* with how many people made them, and *new contributors*.
+#. The charts show the same per day, calendar week, month or year; point at a bar to see its number. **Bars of the charts** chooses the length of the bars; **automatic** chooses it by the time range.
+#. **Statistical trend** says how much the contributions and the contributors grow or shrink per day, week or month, how exact that is, and whether it is statistically significant.
+#. Below, the new contributors are listed by their handle; a name opens the page of the person.
 
-:doc:`../explanation/trends` explains what is counted.
+:doc:`../explanation/trends` explains what is counted and how the trend is computed.
+
+See where the contributors are from
+===================================
+
+#. Open **Countries** in the drop-down of the pages of a project. The top says how many contributors of the time range have a location with a known country, such as *12/20 contributors mapped*.
+#. Point at a country on the map to see how many contributors are from it. Scroll or pinch to zoom, and drag to move the map; small countries have a dot.
+#. Click a country, or its name in the list, to see its contributors, their locations, their first and last contribution, and its official languages below the map. The address ends with ``#country=`` and the code of the country, so it can be shared.
+#. Open **Languages** for an estimate of the languages, ranked by the contributors, with the countries each comes from.
+
+:doc:`../explanation/countries` explains how locations become countries and languages.
 
 Who replies to feedback
 =======================
