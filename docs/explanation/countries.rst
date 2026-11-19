@@ -16,7 +16,7 @@ From a location to a country and a place
 
 The site first looks the location up offline, in the place names of `GeoNames <https://www.geonames.org/>`_ (through the Python package ``geonamescache``):
 
-#. The location is split at commas, semicolons, slashes, brackets, `` - `` and `` and ``.
+#. The location is split at commas, semicolons, slashes, vertical bars, brackets, a dash between spaces, and the word *and*.
 #. The parts are read from the last to the first, as people write *City, Country*. The first part that is a country decides the country: its name in English, a common other name (*USA*, *UK*, *Deutschland*, *Holland*), or its two-letter code (*DE*). A two-letter code after a city is a state of the United States if there is one (*Portland, OR*). A state of the United States is the United States.
 #. A part that names a region with languages of its own, such as *Wales* or *Catalunya*, gives the region and its country (see :ref:`regions`).
 #. A part that is a city, of at least 15 000 people, gives the place: the biggest city of that name in the country found, or the biggest of that name anywhere if no country is named. *Paris* is in France, *Paris, Texas* in the United States. A city in another country than the one named is left out: *Lyon, Germany* is Germany without a place.
@@ -59,23 +59,45 @@ Regions with languages of their own
 
 CLDR knows which languages are official in a part of a country only (``official_regional``), not in which part. For the regions that people write often, the site has its own table (``community_insights/locations/regions.py``), after the articles of Wikipedia on these regions and their languages:
 
-=========================  ===================  ==================
-region                     names it knows       languages
-=========================  ===================  ==================
-Wales (GB)                 Wales, Cymru         English, Welsh
-Scotland (GB)              Scotland, Alba       English, Gaelic
-Northern Ireland (GB)      Northern Ireland     English, Irish
-Catalonia (ES)             Catalonia, Catalunya Spanish, Catalan
-Basque Country (ES)        Basque Country,      Spanish, Basque
-                           Euskadi
-Galicia (ES)               Galicia              Spanish, Galician
-Valencian Community (ES)   Comunitat Valenciana Spanish, Catalan
-Balearic Islands (ES)      Illes Balears        Spanish, Catalan
-Quebec (CA)                Quebec               French
-Friesland (NL)             Friesland, Fryslân   Dutch, Frisian
-South Tyrol (IT)           South Tyrol,         Italian, German
-                           Südtirol
-=========================  ===================  ==================
+.. list-table::
+   :header-rows: 1
+
+   * - region
+     - names it knows
+     - languages
+   * - Wales (GB)
+     - Wales, Cymru
+     - English, Welsh
+   * - Scotland (GB)
+     - Scotland, Alba
+     - English, Gaelic
+   * - Northern Ireland (GB)
+     - Northern Ireland
+     - English, Irish
+   * - Catalonia (ES)
+     - Catalonia, Catalunya
+     - Spanish, Catalan
+   * - Basque Country (ES)
+     - Basque Country, Euskadi
+     - Spanish, Basque
+   * - Galicia (ES)
+     - Galicia
+     - Spanish, Galician
+   * - Valencian Community (ES)
+     - Comunitat Valenciana
+     - Spanish, Catalan
+   * - Balearic Islands (ES)
+     - Illes Balears
+     - Spanish, Catalan
+   * - Quebec (CA)
+     - Quebec
+     - French
+   * - Friesland (NL)
+     - Friesland, Fryslân
+     - Dutch, Frisian
+   * - South Tyrol (IT)
+     - South Tyrol, Südtirol
+     - Italian, German
 
 A city in one of these regions counts for it too: *Cardiff* is in Wales.
 
