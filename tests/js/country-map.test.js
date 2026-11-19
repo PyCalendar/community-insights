@@ -52,12 +52,13 @@ test("tipOf uses the tip of the list or says nobody is from there", () => {
 function page(hash) {
   const svg = fs.readFileSync(path.join(__dirname, "../../static/maps/world.svg"), "utf8");
   const dom = new JSDOM(`<!doctype html><body>
-    <div data-world-map data-src="/world.svg" data-places='[[522,66,"Berlin, Germany: 2 contributors"]]'
+    <div data-world-map data-src="/world.svg" data-places='[[522,66,"DE",2,"Berlin: 2 contributors"],[200,90,"US",1,"Portland: 1 contributor"]]'
       data-names='{"FR":"France","DE":"Germany","VA":"Vatican City"}' data-nobody="No contributors from {country}">
-      <button data-zoom="in"></button><button data-zoom="reset"></button><div data-map-tip hidden></div></div>
+      <button data-zoom="in"></button><button data-zoom="reset"></button></div>
+    <div data-map-info data-help="Point at a country"><div data-info-country>Point at a country</div><div data-info-place></div></div>
     <ol data-country-list>
-      <li data-country="DE" data-heat="5" data-tip="2 contributors from Germany"></li>
-      <li data-country="VA" data-heat="1" data-tip="1 contributor from Vatican City"></li>
+      <li data-country="DE" data-color="#b5f0b5" data-tip="2 contributors from Germany"></li>
+      <li data-country="VA" data-color="#0e6b0e" data-tip="1 contributor from Vatican City"></li>
     </ol>
     <p data-choose-country hidden>Choose</p>
     <section data-country-detail="DE"></section><section data-country-detail="VA"></section>
@@ -74,15 +75,19 @@ async function loaded(win) {
   return win.document.querySelector("svg");
 }
 
-test("the map colours the countries of the list and leaves the others gray", async () => {
+test("the map colours the countries of the list and leaves the others black", async () => {
   const win = page();
   const svg = await loaded(win);
   const doc = win.document;
-  assert.ok(doc.querySelector('path[data-country="DE"]').classList.contains("heat-5"));
-  assert.equal(doc.querySelector('path[data-country="FR"]').getAttribute("class"), null);
+  assert.equal(doc.querySelector('path[data-country="DE"]').style.fill, "#b5f0b5");
+  assert.equal(doc.querySelector('path[data-country="FR"]').style.fill, "", "black from the SVG");
   assert.equal(svg.getAttribute("role"), "img");
-  assert.equal(doc.querySelectorAll("circle.place").length, 1, "the dot of Berlin");
-  assert.ok(doc.querySelector("circle.small-country.heat-1"), "the Vatican gets a dot to be seen");
+  assert.equal(doc.querySelectorAll("circle.place").length, 2, "the circles of Berlin and Portland");
+  const radii = [...doc.querySelectorAll("circle.place")].map((c) => Number(c.getAttribute("r")));
+  assert.ok(Math.abs(radii[0] / radii[1] - Math.SQRT2) < 1e-9, "the area grows with the people");
+  const dot = doc.querySelector("circle.small-country");
+  assert.ok(dot, "the Vatican gets a dot to be seen");
+  assert.equal(dot.style.fill, "#0e6b0e");
   assert.equal(doc.querySelector("[data-choose-country]").hidden, false, "no country chosen yet");
   assert.ok([...doc.querySelectorAll("[data-country-detail]")].every((s) => s.hidden));
 });
@@ -105,13 +110,18 @@ test("a click on a country opens its address; the tool tip names it", async () =
   const doc = win.document;
   const germany = doc.querySelector('path[data-country="DE"]');
   const at = { clientX: 524, clientY: 63, pointerId: 1, bubbles: true };
+  const info = () => [doc.querySelector("[data-info-country]").textContent, doc.querySelector("[data-info-place]").textContent];
+  assert.deepEqual(info(), ["Point at a country", ""], "how to use the map");
   germany.dispatchEvent(new win.MouseEvent("pointermove", at));
-  assert.equal(doc.querySelector("[data-map-tip]").textContent, "2 contributors from Germany");
-  assert.equal(doc.querySelector("[data-map-tip]").hidden, false);
+  assert.deepEqual(info(), ["2 contributors from Germany", ""], "a country: only its text");
+  assert.ok(germany.classList.contains("hover"));
   germany.dispatchEvent(new win.MouseEvent("pointerdown", at));
   germany.dispatchEvent(new win.MouseEvent("pointerup", at));
   assert.equal(win.location.hash, "#country=DE");
-  assert.ok(svg);
+  win.dispatchEvent(new win.HashChangeEvent("hashchange"));
+  svg.dispatchEvent(new win.MouseEvent("pointerleave"));
+  assert.deepEqual(info(), ["2 contributors from Germany", ""], "the country chosen stays in the box");
+  assert.equal(germany.classList.contains("hover"), false);
 });
 
 test("the small Vatican is chosen near its centre, on top of Italy", async () => {
@@ -149,4 +159,35 @@ test("dragging moves the map instead of choosing a country", async () => {
   germany.dispatchEvent(new win.MouseEvent("pointerup", { clientX: 450, clientY: 200, pointerId: 1, bubbles: true }));
   assert.notEqual(svg.getAttribute("viewBox"), before);
   assert.equal(win.location.hash, "", "no country chosen by a drag");
+});
+
+test("pointing at a city shows it below its country; the circle is highlighted", async () => {
+  const win = page();
+  await loaded(win);
+  const doc = win.document;
+  const berlin = doc.querySelector('circle[data-place="0"]');
+  berlin.dispatchEvent(new win.MouseEvent("pointermove", { clientX: 522, clientY: 66, pointerId: 1, bubbles: true }));
+  assert.equal(doc.querySelector("[data-info-country]").textContent, "2 contributors from Germany");
+  assert.equal(doc.querySelector("[data-info-place]").textContent, "Berlin: 2 contributors");
+  assert.ok(berlin.classList.contains("hover"));
+  assert.ok(doc.querySelector('path[data-country="DE"]').classList.contains("hover"));
+  berlin.dispatchEvent(new win.MouseEvent("pointerdown", { clientX: 522, clientY: 66, pointerId: 1, bubbles: true }));
+  berlin.dispatchEvent(new win.MouseEvent("pointerup", { clientX: 522, clientY: 66, pointerId: 1, bubbles: true }));
+  assert.equal(win.location.hash, "#country=DE", "a click on a city chooses its country");
+});
+
+test("cityRadius: the area grows linearly with the contributors", () => {
+  assert.equal(map.cityRadius(1), 3);
+  assert.equal(map.cityRadius(4), 6);
+  assert.equal(map.cityRadius(0), 3, "never smaller than one");
+});
+
+test("a click chooses the country pressed, also when the release is on the whole map", async () => {
+  const win = page();
+  const svg = await loaded(win);
+  const germany = win.document.querySelector('path[data-country="DE"]');
+  const at = { clientX: 524, clientY: 63, pointerId: 1, bubbles: true };
+  germany.dispatchEvent(new win.MouseEvent("pointerdown", at));
+  svg.dispatchEvent(new win.MouseEvent("pointerup", at)); // captured: the target is the map
+  assert.equal(win.location.hash, "#country=DE");
 });

@@ -205,7 +205,8 @@ def svg(found: dict[str, dict]) -> str:
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '
         f'{WIDTH:g} {project(0, SOUTH)[1]:g}" class="world-map" data-map="">',
         f"<!-- Natural Earth {NATURAL_EARTH}, public domain; made by scripts/world_map.py -->",
-        '<g data-countries="">',
+        '<g data-countries="" fill="#000" stroke="#fff" stroke-width="1" '
+        'stroke-linejoin="round" vector-effect="non-scaling-stroke">',
     ]
     lines += [
         f'<path data-country="{code}" data-x="{c["x"]:g}" data-y="{c["y"]:g}" '

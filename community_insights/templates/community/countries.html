@@ -14,23 +14,24 @@
     <button type="button" class="btn btn-outline-secondary" data-zoom="out" aria-label="{% translate "Zoom out" %}" title="{% translate "Zoom out" %}">−</button>
     <button type="button" class="btn btn-outline-secondary" data-zoom="reset" aria-label="{% translate "Show the whole world" %}" title="{% translate "Show the whole world" %}">⟲</button>
   </div>
-  <div class="world-map-tip" data-map-tip hidden></div>
   <noscript><img src="{% static 'maps/world.svg' %}" alt="{% translate "Map of the world" %}" class="w-100"></noscript>
 </div>
-<p class="small text-muted heat-legend">
-  <span class="swatch heat-0"></span> {% translate "nobody" %}
-  <span class="swatch heat-1 ms-2"></span> {% translate "few" %}
-  <span class="swatch heat-3"></span>
-  <span class="swatch heat-5"></span> {% translate "most contributors" %}
-  {% if found.places %}<span class="swatch ms-2 place-swatch"></span> {% translate "a city or place of contributors" %}{% endif %}
-  · {% translate "Scroll or pinch to zoom, drag to move, click a country for its contributors." %}
+{% translate "Point at a country or a city for its contributors, click for details. Scroll or pinch to zoom, drag to move." as help %}
+<div class="world-map-info mb-2" data-map-info data-help="{{ help }}" aria-live="polite">
+  <div data-info-country>{{ help }}</div>
+  <div class="small" data-info-place></div>
+</div>
+<p class="small text-muted heat-legend" data-legend>
+  <span class="swatch legend-nobody"></span> {% translate "nobody" %}
+  <span class="legend-scale ms-2" aria-hidden="true"></span> {% blocktranslate count most=most %}from 1 to {{ most }} contributor{% plural %}from 1 to {{ most }} contributors{% endblocktranslate %}
+  {% if found.places %}<span class="swatch ms-2 place-swatch"></span> {% translate "a city of contributors: the bigger, the more" %}{% endif %}
 </p>
 
 <div class="row g-4">
   <div class="col-12 col-lg-4">
     <h2 class="h5">{% translate "Countries" %}</h2>
     {% if rows %}<ol class="small" data-country-list>
-      {% for row in rows %}<li data-country="{{ row.stats.code }}" data-count="{{ row.stats.count }}" data-heat="{{ row.heat }}" data-tip="{{ row.tip }}"><a href="#country={{ row.stats.code }}">{{ row.name }}</a> <span class="text-muted">{{ row.stats.count }}</span></li>{% endfor %}
+      {% for row in rows %}<li data-country="{{ row.stats.code }}" data-count="{{ row.stats.count }}" data-color="{{ row.color }}" data-tip="{{ row.tip }}"><a href="#country={{ row.stats.code }}">{{ row.name }}</a> <span class="text-muted">{{ row.stats.count }}</span></li>{% endfor %}
     </ol>{% else %}<p class="small text-muted">{% translate "No contributor of this time has a location with a known country." %}</p>{% endif %}
     {% if found.unknown %}<h3 class="h6">{% translate "Locations without a known country" %}</h3>
     <ul class="small list-unstyled" data-unknown>{% for login, location in found.unknown %}<li><a href="{% url 'person' scope.text login %}{{ scope.query }}">{{ login }}</a> <span class="text-muted">{{ location }}</span></li>{% endfor %}</ul>{% endif %}

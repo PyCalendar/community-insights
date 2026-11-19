@@ -16,7 +16,7 @@ The details of the errors, the names of the variables of queries, the charts and
 Change or add a text
 ====================
 
-1. Install `GNU gettext <https://www.gnu.org/software/gettext/>`_, for example ``sudo apt install gettext``.
+1. Install `GNU gettext <https://www.gnu.org/software/gettext/>`_, for example ``sudo apt install gettext``. Without it, ``make messages`` runs in Docker: a container of ``python:3.13-slim`` installs gettext and the dependencies. Its virtual environment and the cache of uv are kept in ``.cache/`` of the project, so the next run is fast and the disk of Docker stays small.
 2. Mark the new text in the template, the Python code or the JavaScript as above.
 3. Update the catalogs and compile them:
 

@@ -134,16 +134,35 @@ lint: .venv  ## Check the code style
 MANAGE ?= uv run python manage.py
 LANGUAGES ?= de es
 MESSAGES_IGNORE = -i '.venv/*' -i 'docs/*' -i 'tests/*' -i 'features/*' \
-	-i 'staticfiles/*' -i 'node_modules/*' -i 'static/vendor/*'
+	-i 'staticfiles/*' -i 'node_modules/*' -i 'static/vendor/*' -i '.cache/*' -i 'scripts/*' \
+	-i 'old/*' -i 'build/*' -i 'dist/*'
 
 .PHONY: messages
-messages:  ## Update the translations in locale/ and compile them; needs GNU gettext
+messages:  ## Update the translations in locale/ and compile them: with GNU gettext, else in Docker
+	@if command -v xgettext >/dev/null; then \
+		$(MAKE) --no-print-directory messages-here; \
+	else \
+		echo "GNU gettext is not installed: the translations are made in Docker (python:3.13-slim)"; \
+		docker run --rm -v "$(CURDIR):/src" -w /src \
+			-e UV_PROJECT_ENVIRONMENT=/src/.cache/messages-venv -e UV_CACHE_DIR=/src/.cache/uv \
+			-e SECRET_KEY=messages -e DATA_DIR=/tmp/data -e PRODUCTION=false \
+			python:3.13-slim sh -c '\
+			apt-get update -qq && apt-get install -y -qq --no-install-recommends gettext make >/dev/null \
+			&& pip install -q --root-user-action=ignore uv && uv sync -q --locked --no-dev \
+			&& make --no-print-directory messages-here MANAGE="uv run --no-sync python manage.py"; \
+			status=$$?; chown -R $(shell id -u):$(shell id -g) locale .cache; exit $$status'; \
+	fi
+
+# the virtual environment and the cache of uv of the container are in .cache/ (on the disk of
+# the project, reused), not in the container, whose disk is that of Docker
+.PHONY: messages-here
+messages-here:
 	@for language in $(LANGUAGES); do \
 		$(MANAGE) makemessages -l $$language $(MESSAGES_IGNORE) --no-location && \
 		$(MANAGE) makemessages -d djangojs -l $$language $(MESSAGES_IGNORE) --no-location \
 			|| exit 1; \
 	done
-	@$(MANAGE) compilemessages -i '.venv' -i 'node_modules'
+	@$(MANAGE) compilemessages -i '.venv' -i 'node_modules' -i '.cache'
 
 .PHONY: test-translations
 test-translations: messages  ## Update the translations and check that all texts are translated

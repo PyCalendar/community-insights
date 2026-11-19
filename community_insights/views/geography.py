@@ -10,31 +10,37 @@ from .. import stats
 from ..locations.names import country_name, language_name, locale
 from .scope import scope_of, scope_view, stats_page
 
-LEVELS = 5  # the shades of the heat map, from few to most contributors
+NOBODY = "#000000"  # a country without contributors
+FEWEST = (0x0E, 0x6B, 0x0E)  # one contributor: dark green
+MOST = (0xB5, 0xF0, 0xB5)  # the most contributors: light green
 
 
-def heat(count: int, most: int) -> int:
-    """The shade of a country on the map: 0 for none, 1 for few to ``LEVELS`` for the most.
+def color(count: int, most: int) -> str:
+    """The colour of a country on the map: black for none, dark to light green for few to most.
 
-    The shades follow the logarithm, so one country with many contributors does not leave
-    all others in the lightest shade.
+    The green follows the logarithm of the count, so one country with many contributors does
+    not leave all others nearly as dark as one contributor.
 
     Args:
         count: The contributors from the country.
         most: The contributors from the country with the most.
 
     Returns:
-        The shade.
+        The colour as ``#rrggbb``.
 
     Examples:
-        >>> heat(0, 10), heat(1, 10), heat(3, 10), heat(10, 10), heat(1, 1)
-        (0, 1, 2, 5, 5)
+        >>> color(0, 10), color(1, 10), color(10, 10), color(1, 1)
+        ('#000000', '#0e6b0e', '#b5f0b5', '#0e6b0e')
+        >>> color(3, 9)  # halfway on the logarithmic scale
+        '#62ae62'
     """
     if count <= 0:
-        return 0
-    if most <= 1:
-        return LEVELS
-    return 1 + min(LEVELS - 1, math.floor((LEVELS - 1) * math.log(count) / math.log(most)))
+        return NOBODY
+    share = math.log(count) / math.log(most) if most > 1 else 0.0
+    share = min(1.0, max(0.0, share))
+    return "#" + "".join(
+        f"{round(low + (high - low) * share):02x}" for low, high in zip(FEWEST, MOST, strict=True)
+    )
 
 
 def tip(count: int, name: str) -> str:
@@ -99,21 +105,24 @@ def countries(request, scope):
             {
                 "stats": country,
                 "name": name,
-                "heat": heat(country.count, most),
+                "color": color(country.count, most),
                 "tip": tip(country.count, name),
                 "languages": [language_name(code) for code in country.languages],
             }
         )
+    # each city: x, y, the code of its country, its contributors and its text
     places = [
         [
             x,
             y,
+            code,
+            count,
             ngettext(
                 "%(place)s: %(count)s contributor",
                 "%(place)s: %(count)s contributors",
                 count,
             )
-            % {"place": f"{city}, {country_name(code)}", "count": count},
+            % {"place": city, "count": count},
         ]
         for x, y, city, code, count in found.places
     ]
@@ -129,6 +138,8 @@ def countries(request, scope):
             "names_json": json.dumps(map_names(), ensure_ascii=False, sort_keys=True),
             # the tip of a country without contributors; the script puts in the name
             "nobody": _("No contributors from %(country)s") % {"country": "{country}"},
+            "most": most,
+            "scale": {"nobody": NOBODY, "fewest": color(1, most), "most": color(most, most)},
         },
     )
 

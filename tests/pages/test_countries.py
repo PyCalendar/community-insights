@@ -8,7 +8,7 @@ import pytest
 
 from community_insights import stats
 from community_insights.models import Event, Item, Location, Person, Project, Repository
-from community_insights.views.geography import heat
+from community_insights.views.geography import color
 from tests.data import T0
 
 pytestmark = pytest.mark.django_db
@@ -59,7 +59,7 @@ def test_the_list_colours_and_tips_of_the_countries(pk, signed_in):
     """Each country with its count, its shade and its tool tip, linked to #country=."""
     text = page(signed_in, pk)
     for code, name in (("DE", "Germany"), ("GB", "United Kingdom"), ("AT", "Austria")):
-        assert f'data-country="{code}" data-count="1" data-heat="5"' in text
+        assert f'data-country="{code}" data-count="1" data-color="#0e6b0e"' in text
         assert f'data-tip="1 contributor from {name}"' in text
         assert f'href="#country={code}"' in text
 
@@ -71,16 +71,19 @@ def test_the_map_and_its_data(pk, signed_in):
     places = json.loads(
         re.search(r"data-places=\"([^\"]*)\"", text).group(1).replace("&quot;", '"')
     )
-    assert sorted(p[2] for p in places) == [
-        "Berlin, Germany: 1 contributor",
-        "Cardiff, United Kingdom: 1 contributor",
-        "Vienna, Austria: 1 contributor",
+    assert sorted(p[2:] for p in places) == [
+        ["AT", 1, "Vienna: 1 contributor"],
+        ["DE", 1, "Berlin: 1 contributor"],
+        ["GB", 1, "Cardiff: 1 contributor"],
     ]
     assert all(0 <= p[0] <= 1000 and 0 <= p[1] <= 500 for p in places)
     names = json.loads(re.search(r"data-names=\"([^\"]*)\"", text).group(1).replace("&quot;", '"'))
     assert names["FR"] == "France", "the gray countries are named in their tool tips"
     assert 'data-nobody="No contributors from {country}"' in text
     assert "js/country-map.js" in text
+    box = re.search(r"<div[^>]*data-map-info.*?</div>\s*</div>", text, re.S).group(0)
+    assert "Point at a country or a city" in box, "how to use the map, until something is chosen"
+    assert "data-info-place" in box
 
 
 def test_the_details_of_a_country(pk, signed_in):
@@ -119,7 +122,7 @@ def test_the_place_kept_in_the_database_is_used(pk, signed_in):
     )
     text = page(signed_in, pk)
     assert 'data-mapped="4/4"' in text and 'data-country="FR"' in text
-    assert "Marseille, France" in text
+    assert "Marseille: 1 contributor" in text
 
 
 def test_the_page_in_german(pk, signed_in):
@@ -162,11 +165,27 @@ def test_the_pages_are_in_the_menu(pk, signed_in):
 
 @pytest.mark.parametrize(
     ("count", "most", "shade"),
-    [(0, 0, 0), (1, 1, 5), (1, 100, 1), (10, 100, 3), (99, 100, 4), (100, 100, 5)],
+    [
+        (0, 0, "#000000"),
+        (0, 50, "#000000"),
+        (1, 1, "#0e6b0e"),
+        (1, 100, "#0e6b0e"),
+        (10, 100, "#62ae62"),
+        (100, 100, "#b5f0b5"),
+        (200, 100, "#b5f0b5"),
+    ],
 )
-def test_the_shades_of_the_heat_map(count, most, shade):
-    """Logarithmic shades: one big country does not leave the others all light."""
-    assert heat(count, most) == shade
+def test_the_colours_of_the_heat_map(count, most, shade):
+    """Black for nobody, dark green for one, light green for the most, logarithmic between."""
+    assert color(count, most) == shade
+
+
+def test_the_legend_of_the_colours(pk, signed_in):
+    """The legend names black and the range of the greens."""
+    text = page(signed_in, pk)
+    legend = re.search(r"<p[^>]*data-legend>.*?</p>", text, re.S).group(0)
+    assert "legend-nobody" in legend and "legend-scale" in legend
+    assert "from 1 to 1 contributor" in legend
 
 
 def test_country_map_of_several_people_in_one_place(synced):
