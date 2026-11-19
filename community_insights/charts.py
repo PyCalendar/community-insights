@@ -451,3 +451,55 @@ def month_chart(months, theme: str = "light") -> bytes:
     axes.set_ylabel(gettext("activities (number)"))
     style(axes, theme, legend=True)
     return svg(figure)
+
+
+# two series side by side, as the first two kinds of activity
+PAIR_COLORS = {
+    theme: [colors["pull request"], colors["issue"]] for theme, colors in KIND_COLORS.items()
+}
+# the time axis of the charts of the page Trends, by the length of a bar
+BAR_LENGTHS = {
+    "day": gettext_lazy("day"),
+    "week": gettext_lazy("week, from Monday"),
+    "month": gettext_lazy("month"),
+}
+
+
+def pair_chart(
+    title: str, labels: list[str], series: list[tuple[str, list[int]]], size: str, theme: str
+) -> bytes:
+    """Two series of numbers per day, week or month as bars side by side (page Trends).
+
+    Args:
+        title: What the chart shows.
+        labels: The days, weeks or months.
+        series: The name and the numbers of each series, at most two.
+        size: ``day``, ``week`` or ``month``: the title of the time axis.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The SVG; a chart that says so without anything in the time range.
+    """
+    plt = pyplot()
+    if not any(any(values) for _, values in series):
+        return empty(gettext("nothing in this time"), theme)
+    figure, axes = plt.subplots(figsize=(7, 2.8))
+    width = 0.8 / len(series)
+    for index, ((name, values), color) in enumerate(zip(series, PAIR_COLORS[theme], strict=False)):
+        axes.bar(
+            [i + (index - (len(series) - 1) / 2) * width for i in range(len(labels))],
+            values,
+            width=width,
+            color=color,
+            label=name,
+        )
+    step = max(1, len(labels) // 12)
+    axes.set_xticks(range(0, len(labels), step), labels[::step], rotation=45, ha="right")
+    axes.set_xlabel(str(BAR_LENGTHS.get(size, size)))
+    axes.set_title(title, fontsize=10)
+    with LOCK:  # see heavy.py
+        from matplotlib.ticker import MaxNLocator
+
+    axes.yaxis.set_major_locator(MaxNLocator(integer=True))  # no half contributions
+    style(axes, theme, legend=True)
+    return svg(figure)

@@ -2,12 +2,15 @@
 
 from .activity import activity_of, by_hour_and_weekday, by_month_and_kind, responses_by_month
 from .bot_suggestions import BotSuggestion, bot_suggestions
+from .change import Change
 from .contributor import Contributor
 from .contributor_replies import ContributorReplies
 from .contributors import contributors
 from .counts import counts
 from .fit import FitRow, best_fit, summary
 from .format import format_duration
+from .kind_series import kind_series
+from .kind_trend import KindTrend, kind_trend
 from .models import MODELS, model_percentile, times_of
 from .pull_reply import PullReply
 from .replies import (
@@ -43,6 +46,10 @@ from .survival import quantile, survival
 from .trend import Trend, trend
 
 __all__ = [
+    "Change",
+    "KindTrend",
+    "kind_series",
+    "kind_trend",
     "FIRST",
     "Response",
     "bot_test",

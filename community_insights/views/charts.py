@@ -27,6 +27,10 @@ CHARTS = {
     "hours": _("activities across the day"),
     "heatmap": _("activities across the week and the day"),
     "months": _("contributions per month"),
+    "trend-pr": _("pull requests opened and closed"),
+    "trend-issue": _("issues opened and closed"),
+    "people-pr": _("contributions and new contributors to pull requests"),
+    "people-issue": _("contributions and new contributors to issues"),
 }
 
 
@@ -92,9 +96,48 @@ def draw(request, scope, name, drawing):
             data = (
                 drawing.hour_chart(grid, theme) if name == "hours" else drawing.heatmap(grid, theme)
             )
+    elif name in ("trend-pr", "trend-issue", "people-pr", "people-issue"):
+        data = trend_chart(scope, name, drawing, theme)
     else:
         raise Http404
     return data
+
+
+def trend_chart(scope, name: str, drawing, theme: str):
+    """A chart of the page Trends: opened and closed, or contributions and new contributors.
+
+    Args:
+        scope: The scope, with its time range.
+        name: ``trend-pr``, ``trend-issue``, ``people-pr`` or ``people-issue``.
+        drawing: The module that draws: ``charts`` or ``chart_data``.
+        theme: ``light`` or ``dark``.
+
+    Returns:
+        What the module drew.
+    """
+    part, kind = name.split("-")
+    found = stats.kind_series(
+        scope.repositories,
+        kind,
+        scope.since,
+        scope.until,
+        timezone.now(),
+        timezone.get_current_timezone(),
+    )
+    if part == "trend":
+        title = gettext("Pull requests") if kind == Item.PR else gettext("Issues")
+        series = [(gettext("opened"), found["opened"]), (gettext("closed"), found["closed"])]
+    else:
+        title = (
+            gettext("Contributions to pull requests")
+            if kind == Item.PR
+            else gettext("Contributions to issues")
+        )
+        series = [
+            (gettext("contributions"), found["contributions"]),
+            (gettext("new contributors"), found["newcomers"]),
+        ]
+    return drawing.pair_chart(title, found["labels"], series, found["size"], theme)
 
 
 @scope_view

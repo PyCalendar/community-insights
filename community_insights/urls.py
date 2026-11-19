@@ -46,6 +46,8 @@ urlpatterns = [
         name="health",
     ),
     # browsers ask for /favicon.ico on their own; the icon of pycal.org is a PNG
+    # nginx serves it in the container; this is for the development server
+    path("robots.txt", pages.robots, name="robots"),
     path("favicon.ico", RedirectView.as_view(url=static("img/favicon.png"), permanent=True)),
     path("", pages.home, name="home"),
     path("about/", pages.about, name="about"),
@@ -63,6 +65,7 @@ urlpatterns = [
     path("projects/<int:pk>/rename/", dashboard.project_rename, name="project_rename"),
     path("s/<str:scope>/", statistics.overview, name="overview"),
     path("s/<str:scope>/response-times/", statistics.response_times, name="response_times"),
+    path("s/<str:scope>/trends/", statistics.trends, name="trends"),
     path("s/<str:scope>/badges/", statistics.badges, name="badges"),
     path("s/<str:scope>/fetch/", fetch.fetch, name="fetch"),
     path("s/<str:scope>/progress.json", fetch.progress, name="progress"),

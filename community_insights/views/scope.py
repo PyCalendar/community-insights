@@ -369,6 +369,31 @@ EXPORT_TABLES = [
 ]
 
 
+# the quick choices of the time range: the last days
+LAST_DAYS = (7, 30, 90)
+
+
+def presets(path: str, scope: Scope, keep: list[tuple[str, str]]) -> list[tuple[int, str, bool]]:
+    """The quick choices of the time range of a page: the last 7, 30 and 90 days.
+
+    Args:
+        path: The address of the page, without parameters.
+        scope: The scope shown.
+        keep: The other parameters of the page, which stay.
+
+    Returns:
+        For each choice: the days, the address, and whether the page shows it now.
+    """
+    return [
+        (
+            days,
+            f"{path}?{urlencode([('last', days), *keep, *scope.carried.items()])}",
+            scope.range == {"last": str(days)},
+        )
+        for days in LAST_DAYS
+    ]
+
+
 def stats_page(request, scope: Scope, template: str, context: dict):
     """A page that shows statistics and its data.
 
@@ -384,6 +409,12 @@ def stats_page(request, scope: Scope, template: str, context: dict):
     Returns:
         The page.
     """
+    # the date form keeps the other parameters of the page
+    keep = [
+        (name, value)
+        for name, value in context.get("parameters", {}).items()
+        if value and name not in ("since", "until", "last")
+    ]
     return render(
         request,
         template,
@@ -393,12 +424,8 @@ def stats_page(request, scope: Scope, template: str, context: dict):
             "data": pipeline.completeness(scope.repositories),
             "toggles": scope_toggles(request, scope),
             "export_tables": EXPORT_TABLES,
-            # the date form keeps the other parameters of the page
-            "keep_parameters": [
-                (name, value)
-                for name, value in context.get("parameters", {}).items()
-                if value and name not in ("since", "until", "last")
-            ],
+            "keep_parameters": keep,
+            "presets": presets(request.path, scope, keep),
             "choices": source_choices(request.user),
             "page_name": request.resolver_match.url_name,
             "in_scope": {p.pk for p in scope.projects},

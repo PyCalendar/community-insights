@@ -1,0 +1,6 @@
+{% load i18n %}{# A number of the time range ("change", stats.Change) with its label, and how it changed from the time before. "part" is shown before the label, such as merged/closed. #}
+<div class="stat rounded p-3 h-100" data-change="{{ name }}">
+  <div class="number">{{ change.now }}</div>
+  <small class="text-muted">{% if part %}{{ part }} {% endif %}{{ label }}</small>
+  {% if change.before is not None %}<div class="small" data-before="{{ change.before }}">{% if change.percent is not None %}<strong>{% if change.difference > 0 %}+{% endif %}{{ change.percent|floatformat:0 }} %</strong>{% elif change.difference %}<strong>+{{ change.difference }}</strong>{% else %}<strong>±0</strong>{% endif %} <span class="text-muted">{% blocktranslate with before=change.before %}before: {{ before }}{% endblocktranslate %}</span></div>{% endif %}
+</div>

@@ -13,6 +13,8 @@ URLs
      - overview: the numbers of pull requests, issues and contributors
    * - ``/s/<scope>/response-times/``
      - the response times: charts, tables of the statistics, and trends
+   * - ``/s/<scope>/trends/``
+     - issues and pull requests opened and closed, contributions and new contributors, next to the time before, see :doc:`../explanation/trends`
    * - ``/s/<scope>/badges/``
      - the builder of the badge of the response time, and where the badges of replies are
    * - ``/s/<scope>/contributors/``
@@ -59,5 +61,14 @@ URLs
      - the health of the database and the cache, for the health check of the container; ``Accept: application/json`` answers JSON
    * - ``/favicon.ico``
      - leads to the icon of the site
+   * - ``/robots.txt``
+     - the rules for crawlers, see :ref:`crawlers`
 
 The ``<scope>`` is a project number, several joined by ``-`` (``1-3``) or ``all``: these need a sign in. Or public repositories for everybody: ``owner~name``, several joined by ``+``, or ``owner`` for all known public repositories of an owner. ``/explore/`` lists the public repositories; ``/badge/s/<scope>.svg`` is the badge of a public scope. Times are shown in the time zone of the browser, which sends it in the cookie ``tz``. Every statistics page takes the time range ``since``, ``until`` or ``last``, and ``classes``: the ids of the classes of people to use, see :ref:`shared-statistics`.
+
+.. _crawlers:
+
+Crawlers
+========
+
+The pages for people are computed from the database on each request, and each statistic links to hundreds of people: a crawler that follows every link asks for thousands of slow pages. ``/robots.txt`` (the file ``static/robots.txt``) allows the start page, ``/explore/``, ``/about/`` and the badges, and disallows the statistics under ``/s/``, the accounts, the dashboard, the admin and the forms. In the container, nginx serves it from the static files, so crawlers get it at once, also when the site is busy. Crawlers that ignore ``robots.txt`` are not stopped by it.

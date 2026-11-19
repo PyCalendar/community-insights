@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 
@@ -55,4 +56,19 @@ def license_text(request, name):
     text = licenses.license_text(name)
     if text is None:
         raise Http404(name)
+    return HttpResponse(text, content_type="text/plain; charset=utf-8")
+
+
+def robots(request):
+    """The rules for crawlers, ``static/robots.txt``: the pages for people are not crawled.
+
+    In the container, nginx serves the file itself, so crawlers do not wait for the site.
+
+    Args:
+        request: The request.
+
+    Returns:
+        The text of the rules.
+    """
+    text = (settings.BASE_DIR / "static" / "robots.txt").read_text(encoding="utf-8")
     return HttpResponse(text, content_type="text/plain; charset=utf-8")

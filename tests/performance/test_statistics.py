@@ -21,6 +21,8 @@ LIMIT = {  # seconds
     "overview page": 6,
     "contributors page": 6,
     "items page": 6,
+    "trends page": 6,
+    "trends chart": 4,
     "chart": 4,
     "export responses": 5,
 }
@@ -47,11 +49,13 @@ def test_statistics_of_5000_items(large, user, signed_in, timer):  # noqa: F811
     with timer("contributors"):
         people = stats.contributors(repositories, classifier)
     with timer("query"):
-        query.run(people, timezone.now(), where="prs_merged > 1", group="class")
+        query.run(people, timezone.now(), where="prs_merged > 1", group="user_class")
     for name, url in [
         ("overview page", f"/s/{large.pk}/"),
         ("contributors page", f"/s/{large.pk}/contributors/"),
         ("items page", f"/s/{large.pk}/items/"),
+        ("trends page", f"/s/{large.pk}/trends/?last=90"),
+        ("trends chart", f"/s/{large.pk}/chart/people-pr.svg"),
         ("chart", f"/s/{large.pk}/chart/responses-pr.svg"),
     ]:
         with timer(name):

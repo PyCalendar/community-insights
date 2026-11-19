@@ -1,0 +1,15 @@
+# Contributor Community Insights: the pages for people are computed on each
+# request from the database, and each statistic links to hundreds of people.
+# Crawlers may read the start page, Explore, About and the badges.
+User-agent: *
+Disallow: /s/
+Disallow: /accounts/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /documents/
+Disallow: /messages/
+Disallow: /projects/
+Disallow: /explore/submit/
+Disallow: /i18n/
+Disallow: /jsi18n/
+Disallow: /tz_detect/

@@ -1,0 +1,33 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Trends of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="trends" %}
+
+<p class="small text-muted" data-compared>{% if before %}{% blocktranslate with since=before.0|date:"Y-m-d" until=before.1|date:"Y-m-d" %}Each number is compared with the time of the same length just before: {{ since }} to {{ until }}.{% endblocktranslate %}{% else %}{% translate "Choose a time range, such as the last 30 days, to compare it with the time just before." %}{% endif %}
+<a href="{{ links.documentation }}explanation/trends.html" target="_blank" rel="noopener">{% translate "How the trends are counted" %}</a></p>
+
+<div class="row g-4 chart">
+  {% for side in sides %}{% with trend=side.trend %}
+  <section class="col-12 col-lg-6" data-kind="{{ trend.kind }}" aria-labelledby="trends-{{ trend.kind }}">
+    <h2 class="h5" id="trends-{{ trend.kind }}">{% if trend.kind == "pr" %}{% translate "Pull requests" %}{% else %}{% translate "Issues" %}{% endif %}</h2>
+    <div class="row g-2 mb-3">
+      <div class="col-6">{% translate "opened" as label %}{% include "community/_change.html" with change=trend.opened label=label name="opened" part="" %}</div>
+      <div class="col-6">{% translate "closed" as label %}{% if trend.merged %}{% blocktranslate with merged=trend.merged.now closed=trend.closed.now asvar part %}{{ merged }}/{{ closed }} merged,{% endblocktranslate %}{% else %}{% firstof "" as part %}{% endif %}{% include "community/_change.html" with change=trend.closed label=label name="closed" part=part %}</div>
+      <div class="col-6">{% blocktranslate count people=trend.contributors.now asvar label %}contributions by {{ people }} person{% plural %}contributions by {{ people }} people{% endblocktranslate %}{% include "community/_change.html" with change=trend.contributions label=label name="contributions" part="" %}</div>
+      <div class="col-6">{% translate "new contributors" as label %}{% include "community/_change.html" with change=trend.newcomers label=label name="newcomers" part="" %}</div>
+    </div>
+    <h3 class="h6">{% translate "Opened and closed" %}</h3>
+    {% url 'chart' scope.text 'trend-'|add:trend.kind as base %}{% translate "Opened and closed per day, week or month" as alt %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
+    <h3 class="h6 mt-3">{% translate "Contributions and new contributors" %}</h3>
+    {% url 'chart' scope.text 'people-'|add:trend.kind as base %}{% translate "Contributions and new contributors per day, week or month" as alt %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
+    <h3 class="h6 mt-3">{% translate "New contributors" %}</h3>
+    {% if side.newcomers %}<ul class="list-inline small mb-0" data-newcomers="{{ trend.kind }}">
+      {% for login in side.newcomers %}<li class="list-inline-item"><a href="{% url 'person' scope.text login %}{{ scope.query }}">{{ login }}</a></li>{% endfor %}
+      {% if side.more %}<li class="list-inline-item text-muted">{% blocktranslate count more=side.more %}and {{ more }} more{% plural %}and {{ more }} more{% endblocktranslate %}</li>{% endif %}
+    </ul>{% else %}<p class="small text-muted">{% translate "Nobody contributed for the first time in this time." %}</p>{% endif %}
+  </section>
+  {% endwith %}{% endfor %}
+</div>
+{% include "community/_chart_scripts.html" %}
+{% endblock %}

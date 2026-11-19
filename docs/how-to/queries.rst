@@ -34,4 +34,4 @@ Sort, group, columns, chart
 Time range
 ==========
 
-Every statistics page has **From** and **To**: pull requests and issues created, and activity, in that time. **Or the last days** sets a time range that moves with the days, such as ``30`` for the last 30 days with today. The time range is a part of the query: the links, charts and downloads keep it, the examples set their own, and a saved query keeps it.
+Every statistics page has **From** and **To**: pull requests and issues created, and activity, in that time. **Or the last days** sets a time range that moves with the days, such as ``30`` for the last 30 days with today; **Last 7 days**, **Last 30 days** and **Last 90 days** choose it at once. The time range is a part of the query: the links, charts and downloads keep it, the examples set their own, and a saved query keeps it.

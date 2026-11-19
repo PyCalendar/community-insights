@@ -1,4 +1,5 @@
 from collections import Counter
+from datetime import timedelta
 from urllib.parse import quote, urlencode
 
 from django.http import Http404
@@ -11,10 +12,13 @@ from ..models import (
     Item,
     Person,
 )
+from ..stats.periods import previous
 from .scope import scope_of, scope_view, stats_page
 
 # the fits of the table of response times, in the order of the choice
 FITS = ["measured", "normal", "exponential", "Kaplan-Meier"]
+# the new contributors of each side of the page Trends shown by name; the others are counted
+NEWCOMERS_SHOWN = 30
 
 
 def fit_table(title: str, kind: str, found, names: list[str]) -> tuple:
@@ -112,6 +116,51 @@ def response_times(request, scope):
                 fit_table(_("Issues"), "issue", found[Item.ISSUE], names),
             ],
             "fits": FITS,
+        },
+    )
+
+
+@scope_view
+def trends(request, scope):
+    """How issues and pull requests changed: in the time range, next to the time before it.
+
+    Issues on one side, pull requests on the other: opened, closed, contributions and new
+    contributors, with charts per day, week or month.
+
+    Args:
+        request: The request.
+        scope: The text of the scope.
+
+    Returns:
+        The page.
+    """
+    scope = scope_of(request, scope)
+    now = timezone.now()
+    sides = []
+    for kind in (Item.ISSUE, Item.PR):
+        found = stats.kind_trend(scope.repositories, kind, scope.since, scope.until, now)
+        sides.append(
+            {
+                "trend": found,
+                "newcomers": found.newcomer_logins[:NEWCOMERS_SHOWN],
+                "more": max(0, len(found.newcomer_logins) - NEWCOMERS_SHOWN),
+            }
+        )
+    before = previous(scope.since, scope.until, now)
+    return stats_page(
+        request,
+        scope,
+        "community/trends.html",
+        {
+            "scope": scope,
+            "sides": sides,
+            # the days of the time before, the last one included, in the time zone shown
+            "before": [
+                timezone.localdate(before[0]),
+                timezone.localdate(before[1] - timedelta(microseconds=1)),
+            ]
+            if before
+            else None,
         },
     )
 

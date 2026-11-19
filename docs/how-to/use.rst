@@ -29,6 +29,7 @@ The drop-down at the top of every page of a project, and the menu of its card on
 
 - **Overview**: how many pull requests and issues are open, merged and closed, how many people contributed, by class of people, and the five most active people who are not bots. It loads fast: the response times have their own page.
 - **Response times**: how long pull requests and issues waited for their first response.
+- **Trends**: whether more or fewer issues and pull requests are opened and closed, with the contributions and the new contributors, next to the time before.
 - **Contributors**: everybody who contributed, chosen and sorted with a query.
 - **Pull requests and issues**: all of them, with their state in the colours of GitHub (green open, red closed, purple merged) and their first response; *waiting* marks the open ones that no collaborator or higher has answered yet, and a merge counts as a response (see :doc:`../explanation/responses`). Kind, state and whether somebody responded are multiple choices: all are chosen at first, so choose for example *closed* and *merged* together.
 - **Replies**: who replied to the feedback on their pull requests.
@@ -67,6 +68,18 @@ The page **Response times** shows, for pull requests and for issues:
 - the trend: whether the first responses get faster or slower per month.
 
 :doc:`../explanation/response-times` explains how to read each of them.
+
+Read the trends
+===============
+
+The page **Trends** shows issues on the left and pull requests on the right, on a phone one below the other:
+
+#. Choose **Last 7 days**, **Last 30 days** or **Last 90 days** at the top, or **From** and **To** for other dates.
+#. Each card shows a number of the time range and how it changed from the time just before: *opened*, *closed* (for pull requests with how many were merged), *contributions* with how many people made them, and *new contributors*.
+#. The charts show the same per day, week or month; point at a bar to see its number.
+#. Below them, the new contributors are listed; a name opens the page of the person.
+
+:doc:`../explanation/trends` explains what is counted.
 
 Who replies to feedback
 =======================

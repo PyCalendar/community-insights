@@ -203,7 +203,7 @@ docker-build-all: version  ## Build the container for amd64 and arm64, like the 
 	docker buildx build --platform linux/amd64,linux/arm64 -t community-insights .
 
 .PHONY: docker-test
-docker-test: docker-build  ## Run the container with ALLOWED_HOSTS and check that Docker sees it healthy
+docker-test: docker-build  ## Run the container with ALLOWED_HOSTS: Docker sees it healthy, nginx serves robots.txt
 	@docker rm -f community-insights-test >/dev/null 2>&1 || true
 	@docker run -d --name community-insights-test -p 5099:5000 -e PRODUCTION=false \
 		-e ALLOWED_HOSTS=community.example.org \
@@ -211,7 +211,9 @@ docker-test: docker-build  ## Run the container with ALLOWED_HOSTS and check tha
 	@# the HEALTHCHECK of the image, as Docker and Sencho see it, with the hosts of a real site
 	@for i in $$(seq 90); do [ "$$(docker inspect -f '{{.State.Health.Status}}' community-insights-test)" = healthy ] && echo healthy && break; sleep 1; done; \
 	healthy=$$([ "$$(docker inspect -f '{{.State.Health.Status}}' community-insights-test)" = healthy ] \
-		&& curl -sf -H "Host: community.example.org" http://localhost:5099/health/ >/dev/null && echo yes); \
+		&& curl -sf -H "Host: community.example.org" http://localhost:5099/health/ >/dev/null \
+		&& curl -sfi http://localhost:5099/robots.txt | grep -qi "^Cache-Control: max-age=86400" \
+		&& curl -sf http://localhost:5099/robots.txt | grep -q "^Disallow: /s/" && echo yes); \
 	[ "$$healthy" = yes ] || { docker logs community-insights-test; \
 		docker inspect -f '{{json .State.Health.Log}}' community-insights-test; }; \
 	docker rm -f community-insights-test >/dev/null; [ "$$healthy" = yes ]

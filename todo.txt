@@ -131,6 +131,12 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Response time per contributor over time (person page: median per month)
 - [x] Filter the views by date range (from / to, kept in links, charts and downloads)
 - [x] Show the pull requests and issues as a list with filters (kind, state, responded, author, sort; pages of 50)
+- [x] Page Trends (`/s/<scope>/trends/`, in the menu after Response times): issues on one side, pull requests on the other; opened, closed (merged as part/total), contributions (openings, comments, reviews by people, not bots, with how many people) and new contributors (first contribution to that kind in the site's data), each next to the time of the same length just before; charts per day (up to 31 days), week (up to half a year) or month, as SVG and Chart.js; the new contributors listed with links (`stats/kind_trend.py`, `stats/kind_series.py`, `stats/periods.py`, `stats/change.py`)
+- [x] Time range of the page Trends: From/To dates, and quick choices Last 7, 30 and 90 days on every statistics page (`views/scope.py` `presets`)
+- [x] Tests (`tests/statistics/test_trends.py`, `tests/pages/test_trends.py`), German and Spanish texts, docs (`explanation/trends.rst`, how-to use, URLs, pages), news fragment
+- [ ] `make messages` could not run: GNU gettext is not installed on this machine and installing it was refused; the new texts were added to `locale/` with polib (same entries, appended); run `make messages` once gettext is there to sort and wrap them
+- [x] The person checks the page Trends live (asked): served by make run; then commit and deploy (asked by the person)
+- [x] The performance test grouped by `class`, renamed to `user_class`: fixed; the page Trends takes 0.3 s with 5000 items
 
 ## Badges
 - [x] SVG badge for the response time of issues or pull requests, percentile configurable (50, 95, ...)
@@ -172,6 +178,9 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [ ] `make docker-test` and `make docker-scan` locally: installing Docker on this machine was refused by the permission check; they run in the CI
 - [x] Release after the menu and the page Users (asked by the person): all tests locally (except Docker); CI on main: the phone browser test raced after the sign out (fixed in b1aa68b), then all green except the link check of the docs, which passed locally and in the run before (a flaky external link); changelog by towncrier, version 0.2.0 (new features), tag v0.2.0
 - [x] The status badge of the example at insight.pycal.org (https://kuma.hosted.quelltext.eu/api/badge/49/status) in the README and the start page of the docs, linked to the status page https://kuma.hosted.quelltext.eu/status/pycal; commit and deploy (asked by the person); the link check of the docs ignores insight.pycal.org, which failed the CI while the site was down (its badge shows that)
+- [x] The example site goes up and down, likely crawlers (the person's guess): each statistic links to hundreds of people (the contributors of collective/icalendar: 735 person pages), each computed on request. A robots.txt excludes the pages for people (/s/, accounts, dashboard, admin, forms) and allows the start page, Explore, About and the badges; nginx serves it from the static files without gunicorn; tested with urllib.robotparser
+- [ ] Confirm with the access log of nginx on the server (`docker logs`, the user agents) that crawlers made the load: not possible from here
+- [ ] Decide: faster pages for crawlers that ignore robots.txt: a cache of the public statistics pages until the next fetch, and/or a limit of requests per address in nginx (needs the real address of the visitor behind the proxy of the server)
 
 ## Code structure
 - [x] One Python package, not two: the app `community` is merged into `community_insights` (project and app in one); the app label stays `community`, so the tables, the migrations and the admin addresses of existing databases keep working
@@ -248,6 +257,9 @@ Project constraints:
 For every part, a library that could replace or simplify what is written by hand.
 Mark the ones to use; nothing below is used yet unless it says so.
 
+### Crawlers
+- [ ] django.contrib.sitemaps for a sitemap in robots.txt: not used, the Site has the domain example.com, so its addresses would be wrong, and the few pages to index are linked from the start page
+
 ### Menu and users
 - [x] Bootstrap's dropdown (already used) for the account menu; the Django admin (already used) could manage users, but the page Users shows the GitHub handle and makes administrators in one click
 
@@ -262,6 +274,8 @@ Mark the ones to use; nothing below is used yet unless it says so.
 - [x] Implemented: `pandas`: CSV and the new Parquet export (with `pyarrow`, the facts of the export in its metadata), the groups by month, weekday and hour of `stats/activity.py`
 - [x] Implemented: `lifelines`: Kaplan-Meier of the overview and the badges, and a survival curve with its confidence band per class on the overview (`survival-pr`, `survival-issue`)
 - [x] Implemented: `statsmodels`: the trend of the first responses per month on the overview (OLS of the logarithm, p-value and confidence interval)
+- [ ] Django's `TruncDay`/`TruncWeek`/`TruncMonth` (with `tzinfo`) could count the bars of the charts of Trends in the database; not used: the new contributors need the first contribution of each person first, so the bars are counted in Python for all series alike (fast enough: 0.3 s for 5000 items)
+- [ ] pandas `resample` (already installed) for the bars of Trends: not used, a few lines of Python with `datetime` suffice and keep the Monday weeks and local days explicit
 
 ### GitHub data
 - [x] Rejected: `githubkit`: typed GitHub REST and GraphQL client with rate limit handling and retries - replaces `community_insights/github.py`

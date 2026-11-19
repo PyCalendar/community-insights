@@ -8,5 +8,6 @@ Explanation
    design
    responses
    response-times
+   trends
    queries
    pipeline

@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 PROJECT_PAGES = [
     ("overview", _("Overview")),
     ("response_times", _("Response times")),
+    ("trends", _("Trends")),
     ("contributors", _("Contributors")),
     ("items", _("Pull requests and issues")),
     ("replies", _("Replies")),

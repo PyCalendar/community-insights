@@ -3043,3 +3043,106 @@ msgstr ""
 #, python-format
 #~ msgid "Sign out %(name)s"
 #~ msgstr "%(name)s abmelden"
+
+#, python-format
+msgid "Trends of %(title)s"
+msgstr "Trends von %(title)s"
+
+#, python-format
+msgid "Each number is compared with the time of the same length just before: %(since)s to %(until)s."
+msgstr "Jede Zahl wird mit der gleich langen Zeit direkt davor verglichen: %(since)s bis %(until)s."
+
+msgid "Choose a time range, such as the last 30 days, to compare it with the time just before."
+msgstr "Wähle einen Zeitraum, etwa die letzten 30 Tage, um ihn mit der Zeit direkt davor zu vergleichen."
+
+msgid "How the trends are counted"
+msgstr "Wie die Trends gezählt werden"
+
+msgid "opened"
+msgstr "geöffnet"
+
+#, python-format
+msgid "%(merged)s/%(closed)s merged,"
+msgstr "%(merged)s/%(closed)s gemergt,"
+
+#, python-format
+msgid "contributions by %(people)s person"
+msgid_plural "contributions by %(people)s people"
+msgstr[0] "Beiträge von %(people)s Person"
+msgstr[1] "Beiträge von %(people)s Personen"
+
+msgid "new contributors"
+msgstr "neue Beitragende"
+
+msgid "Opened and closed"
+msgstr "Geöffnet und geschlossen"
+
+msgid "Opened and closed per day, week or month"
+msgstr "Geöffnet und geschlossen pro Tag, Woche oder Monat"
+
+msgid "Contributions and new contributors"
+msgstr "Beiträge und neue Beitragende"
+
+msgid "Contributions and new contributors per day, week or month"
+msgstr "Beiträge und neue Beitragende pro Tag, Woche oder Monat"
+
+msgid "New contributors"
+msgstr "Neue Beitragende"
+
+#, python-format
+msgid "and %(more)s more"
+msgid_plural "and %(more)s more"
+msgstr[0] "und %(more)s weitere"
+msgstr[1] "und %(more)s weitere"
+
+msgid "Nobody contributed for the first time in this time."
+msgstr "In dieser Zeit hat niemand zum ersten Mal beigetragen."
+
+#, python-format
+msgid "before: %(before)s"
+msgstr "davor: %(before)s"
+
+msgid "Quick choices of the time range"
+msgstr "Schnellwahl des Zeitraums"
+
+#, python-format
+msgid "Last %(days)s day"
+msgid_plural "Last %(days)s days"
+msgstr[0] "Letzter %(days)s Tag"
+msgstr[1] "Letzte %(days)s Tage"
+
+msgid "pull requests opened and closed"
+msgstr "geöffnete und geschlossene Pull-Requests"
+
+msgid "issues opened and closed"
+msgstr "geöffnete und geschlossene Issues"
+
+msgid "contributions and new contributors to pull requests"
+msgstr "Beiträge und neue Beitragende bei Pull-Requests"
+
+msgid "contributions and new contributors to issues"
+msgstr "Beiträge und neue Beitragende bei Issues"
+
+msgid "Contributions to pull requests"
+msgstr "Beiträge zu Pull-Requests"
+
+msgid "Contributions to issues"
+msgstr "Beiträge zu Issues"
+
+msgid "contributions"
+msgstr "Beiträge"
+
+msgid "Trends"
+msgstr "Trends"
+
+msgid "day"
+msgstr "Tag"
+
+msgid "week, from Monday"
+msgstr "Woche, ab Montag"
+
+msgid "month"
+msgstr "Monat"
+
+msgid "nothing in this time"
+msgstr "nichts in dieser Zeit"

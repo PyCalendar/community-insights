@@ -10,7 +10,19 @@ import statistics
 
 from django.utils.translation import gettext
 
-from .charts import BAR, GAP, HEAT_STOPS, HOURS, INK, KIND_COLORS, KINDS, WEEKDAYS, month_span
+from .charts import (
+    BAR,
+    BAR_LENGTHS,
+    GAP,
+    HEAT_STOPS,
+    HOURS,
+    INK,
+    KIND_COLORS,
+    KINDS,
+    PAIR_COLORS,
+    WEEKDAYS,
+    month_span,
+)
 from .stats import histogram
 
 # the charts of charts.py that Chart.js can draw, by their names in addresses
@@ -22,6 +34,10 @@ INTERACTIVE = (
     "hours",
     "heatmap",
     "months",
+    "trend-pr",
+    "trend-issue",
+    "people-pr",
+    "people-issue",
 )
 
 
@@ -240,4 +256,37 @@ def month_chart(months, theme: str = "light") -> dict:
         theme,
         y=gettext("activities (number)"),
         stacked=True,
+    )
+
+
+def pair_chart(
+    title: str, labels: list[str], series: list[tuple[str, list[int]]], size: str, theme: str
+) -> dict:
+    """Two series of numbers per day, week or month as bars side by side (page Trends).
+
+    Args:
+        title: What the chart shows.
+        labels: The days, weeks or months.
+        series: The name and the numbers of each series, at most two.
+        size: ``day``, ``week`` or ``month``: the title of the time axis.
+        theme: ``light`` or ``dark``: the colours of the page the chart is on.
+
+    Returns:
+        The chart for Chart.js.
+
+    Examples:
+        >>> chart = pair_chart("t", ["2026-11"], [("a", [1]), ("b", [2])], "month", "light")
+        >>> [d["data"] for d in chart["datasets"]], chart["x"]
+        ([[1], [2]], 'month')
+    """
+    return config(
+        "bar",
+        labels,
+        [
+            {"label": name, "data": list(values), "backgroundColor": color}
+            for (name, values), color in zip(series, PAIR_COLORS[theme], strict=False)
+        ],
+        theme,
+        x=str(BAR_LENGTHS.get(size, size)),
+        title=title,
     )
