@@ -57,3 +57,4 @@ Wikidata
 [Uu]nderdispersed
 reweighted
 facto
+Tyrol

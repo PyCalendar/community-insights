@@ -65,38 +65,38 @@ CLDR knows which languages are official in a part of a country only (``official_
    * - region
      - names it knows
      - languages
-   * - Wales (GB)
-     - Wales, Cymru
+   * - Wales, United Kingdom
+     - ``Wales``, ``Cymru``
      - English, Welsh
-   * - Scotland (GB)
-     - Scotland, Alba
+   * - Scotland, United Kingdom
+     - ``Scotland``, ``Alba``
      - English, Gaelic
-   * - Northern Ireland (GB)
-     - Northern Ireland
+   * - Northern Ireland, United Kingdom
+     - ``Northern Ireland``
      - English, Irish
-   * - Catalonia (ES)
-     - Catalonia, Catalunya
+   * - Catalonia, Spain
+     - ``Catalonia``, ``Catalunya``
      - Spanish, Catalan
-   * - Basque Country (ES)
-     - Basque Country, Euskadi
+   * - Basque Country, Spain
+     - ``Basque Country``, ``Euskadi``
      - Spanish, Basque
-   * - Galicia (ES)
-     - Galicia
+   * - Galicia, Spain
+     - ``Galicia``
      - Spanish, Galician
-   * - Valencian Community (ES)
-     - Comunitat Valenciana
+   * - Valencia region, Spain
+     - ``Valencian Community``, ``Comunitat Valenciana``
      - Spanish, Catalan
-   * - Balearic Islands (ES)
-     - Illes Balears
+   * - Balearic Islands, Spain
+     - ``Balearic Islands``, ``Illes Balears``
      - Spanish, Catalan
-   * - Quebec (CA)
-     - Quebec
+   * - Quebec, Canada
+     - ``Quebec``
      - French
-   * - Friesland (NL)
-     - Friesland, Fryslân
+   * - Friesland, Netherlands
+     - ``Friesland``, ``Fryslan``
      - Dutch, Frisian
-   * - South Tyrol (IT)
-     - South Tyrol, Südtirol
+   * - South Tyrol, Italy
+     - ``South Tyrol``, ``Sudtirol``, ``Alto Adige``
      - Italian, German
 
 A city in one of these regions counts for it too: *Cardiff* is in Wales.
