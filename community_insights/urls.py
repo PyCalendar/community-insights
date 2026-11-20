@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.templatetags.static import static
 from django.urls import include, path
+from django.utils.functional import lazy
 from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 from health_check.views import HealthCheckView
@@ -49,7 +50,11 @@ urlpatterns = [
     # browsers ask for /favicon.ico on their own; the icon of pycal.org is a PNG
     # nginx serves it in the container; this is for the development server
     path("robots.txt", pages.robots, name="robots"),
-    path("favicon.ico", RedirectView.as_view(url=static("img/favicon.png"), permanent=True)),
+    # lazy: the name with the hash of its content is known only after collectstatic
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url=lazy(static, str)("img/favicon.png"), permanent=True),
+    ),
     path("", pages.home, name="home"),
     path("about/", pages.about, name="about"),
     path("about/licenses/<str:name>/", pages.license_text, name="license"),

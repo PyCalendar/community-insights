@@ -2,7 +2,7 @@
 Run with Docker
 ==================
 
-The image runs gunicorn, like `Open Web Calendar <https://open-web-calendar.quelltext.eu/>`_, behind nginx, which serves the static files. It listens on port 5000 (``PORT``) and creates or updates the database when it starts.
+The image runs gunicorn, like `Open Web Calendar <https://open-web-calendar.quelltext.eu/>`_, behind nginx, which serves the static files. Their names have a hash of their content, such as ``style.4f3a1c2b9d0e.css``: browsers keep each for a year, and a new version of the site has new names, so nobody sees an old script or stylesheet after an update. It listens on port 5000 (``PORT``) and creates or updates the database when it starts.
 
 Docker Compose
 ==============

@@ -12,7 +12,7 @@ from .scope import scope_of, scope_view, stats_page
 
 NOBODY = "#000000"  # a country without contributors
 FEWEST = (0x0E, 0x6B, 0x0E)  # one contributor: dark green
-MOST = (0xB5, 0xF0, 0xB5)  # the most contributors: light green
+MOST = (0xCC, 0xFF, 0xCC)  # the most contributors: a very light green
 
 
 def color(count: int, most: int) -> str:
@@ -30,9 +30,9 @@ def color(count: int, most: int) -> str:
 
     Examples:
         >>> color(0, 10), color(1, 10), color(10, 10), color(1, 1)
-        ('#000000', '#0e6b0e', '#b5f0b5', '#0e6b0e')
+        ('#000000', '#0e6b0e', '#ccffcc', '#0e6b0e')
         >>> color(3, 9)  # halfway on the logarithmic scale
-        '#62ae62'
+        '#6db56d'
     """
     if count <= 0:
         return NOBODY

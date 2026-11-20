@@ -11,9 +11,12 @@ rm -rf "$SITE"
 mkdir -p "$SITE"
 export DATA_DIR="$SITE" PRODUCTION=false DEBUG=0 FETCH_WORKER=inline ALLOWED_HOSTS=127.0.0.1
 uv run python manage.py migrate -v0
+# the pages name the static files with a hash of their content, as in the image: WhiteNoise
+# serves them from staticfiles/ (CompressedManifestStaticFilesStorage)
+uv run python manage.py collectstatic --noinput -v0
 uv run python manage.py ensure_superuser admin@example.com:admin
 uv run python manage.py demo_data admin@example.com
-uv run python manage.py runserver --noreload --insecure "127.0.0.1:$PORT" > "$SITE/server.log" 2>&1 &
+uv run python manage.py runserver --noreload --nostatic "127.0.0.1:$PORT" > "$SITE/server.log" 2>&1 &
 SERVER=$!
 trap 'kill $SERVER' EXIT
 for _ in $(seq 60); do

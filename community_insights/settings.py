@@ -256,6 +256,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # names with a hash of the content (style.4f3a1c2b9d0e.css): a new version is a new
+        # address, so browsers never keep an old one; nginx lets them keep each for a year
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }

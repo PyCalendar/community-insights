@@ -161,6 +161,10 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] A box centred below the map, always the same size: the country pointed at, with the city below it when a city is pointed at; the country clicked; else how to use the map (asked)
 - [x] The border of the country pointed at is three times as wide (asked)
 - [x] Found while checking: a click on a country chose nothing in real browsers (the captured pointer is released on the whole map); the country is taken when pressed; a browser test points at and clicks the map
+- [x] The map could not be navigated or clicked, and showed no cities or colours, for the person: their browser kept the old script and stylesheet for 7 days (nginx: expires 7d, names without a version). Static files are now named with a hash of their content (CompressedManifestStaticFilesStorage) and kept for a year; names without a hash are asked again each time (no-cache); checked with nginx in a container; tests/quality/test_static_cache.py
+- [x] The white borders of the countries are twice as wide (2 px); 6 px when pointed at, and the country pointed at is drawn on top of its neighbours (asked)
+- [x] The country with the most contributors is very bright (#ccffcc) (asked)
+- [x] Browser tests that make sure the map works as specified (asked): tests/browser/test_map.py: colours, borders, cities and their size, the box below the map (place, size, texts), clicks on countries and cities, small countries, wheel, drag and buttons; in Firefox at 1280x900 and 375x812 and in Chromium. Found: the box was 8 px below the map (a margin)
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges

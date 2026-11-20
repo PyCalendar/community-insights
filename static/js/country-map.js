@@ -193,6 +193,8 @@
         if (hovered !== code) {
           [paths[hovered], marks[hovered]].forEach(function (e) { if (e) e.classList.remove("hover"); });
           [paths[code], marks[code]].forEach(function (e) { if (e) e.classList.add("hover"); });
+          /* on top of its neighbours, so its wide border is not hidden under them */
+          if (paths[code]) paths[code].parentNode.appendChild(paths[code]);
           hovered = code;
         }
         if (hoveredCity !== city) {
@@ -209,6 +211,7 @@
         chosen = code;
         tell(hovered, hoveredCity);
         Object.keys(paths).forEach(function (c) { paths[c].classList.toggle("chosen", c === code); });
+        if (paths[code]) paths[code].parentNode.appendChild(paths[code]);
         var shown = false;
         details.forEach(function (section) {
           var match = section.getAttribute("data-country-detail") === code;

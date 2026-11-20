@@ -57,7 +57,7 @@ function page(hash) {
       <button data-zoom="in"></button><button data-zoom="reset"></button></div>
     <div data-map-info data-help="Point at a country"><div data-info-country>Point at a country</div><div data-info-place></div></div>
     <ol data-country-list>
-      <li data-country="DE" data-color="#b5f0b5" data-tip="2 contributors from Germany"></li>
+      <li data-country="DE" data-color="#ccffcc" data-tip="2 contributors from Germany"></li>
       <li data-country="VA" data-color="#0e6b0e" data-tip="1 contributor from Vatican City"></li>
     </ol>
     <p data-choose-country hidden>Choose</p>
@@ -79,7 +79,7 @@ test("the map colours the countries of the list and leaves the others black", as
   const win = page();
   const svg = await loaded(win);
   const doc = win.document;
-  assert.equal(doc.querySelector('path[data-country="DE"]').style.fill, "#b5f0b5");
+  assert.equal(doc.querySelector('path[data-country="DE"]').style.fill, "#ccffcc");
   assert.equal(doc.querySelector('path[data-country="FR"]').style.fill, "", "black from the SVG");
   assert.equal(svg.getAttribute("role"), "img");
   assert.equal(doc.querySelectorAll("circle.place").length, 2, "the circles of Berlin and Portland");

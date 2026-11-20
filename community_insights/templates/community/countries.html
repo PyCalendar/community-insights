@@ -8,7 +8,7 @@
 <p class="small text-muted">{% blocktranslate count count=found.without_location %}{{ count }} contributor has no location in the profile or was not read yet{% plural %}{{ count }} contributors have no location in their profile or were not read yet{% endblocktranslate %}{% if found.unknown %}; {% blocktranslate count count=found.unknown|length %}the location of {{ count }} contributor names no known country{% plural %}the locations of {{ count }} contributors name no known country{% endblocktranslate %}{% endif %}.
 <a href="{{ links.documentation }}explanation/countries.html" target="_blank" rel="noopener">{% translate "How the countries are found" %}</a></p>
 
-<div class="world-map-box mb-2" data-world-map data-src="{% static 'maps/world.svg' %}" data-places="{{ places_json }}" data-names="{{ names_json }}" data-nobody="{{ nobody }}" data-label="{% translate "Map of the countries of the contributors" %}">
+<div class="world-map-box" data-world-map data-src="{% static 'maps/world.svg' %}" data-places="{{ places_json }}" data-names="{{ names_json }}" data-nobody="{{ nobody }}" data-label="{% translate "Map of the countries of the contributors" %}">
   <div class="world-map-zoom btn-group-vertical btn-group-sm" role="group" aria-label="{% translate "Zoom" %}">
     <button type="button" class="btn btn-outline-secondary" data-zoom="in" aria-label="{% translate "Zoom in" %}" title="{% translate "Zoom in" %}">+</button>
     <button type="button" class="btn btn-outline-secondary" data-zoom="out" aria-label="{% translate "Zoom out" %}" title="{% translate "Zoom out" %}">−</button>

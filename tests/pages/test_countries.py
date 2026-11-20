@@ -170,9 +170,9 @@ def test_the_pages_are_in_the_menu(pk, signed_in):
         (0, 50, "#000000"),
         (1, 1, "#0e6b0e"),
         (1, 100, "#0e6b0e"),
-        (10, 100, "#62ae62"),
-        (100, 100, "#b5f0b5"),
-        (200, 100, "#b5f0b5"),
+        (10, 100, "#6db56d"),
+        (100, 100, "#ccffcc"),
+        (200, 100, "#ccffcc"),
     ],
 )
 def test_the_colours_of_the_heat_map(count, most, shade):
