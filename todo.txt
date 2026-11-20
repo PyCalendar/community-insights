@@ -165,6 +165,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The white borders of the countries are twice as wide (2 px); 6 px when pointed at, and the country pointed at is drawn on top of its neighbours (asked)
 - [x] The country with the most contributors is very bright (#ccffcc) (asked)
 - [x] Browser tests that make sure the map works as specified (asked): tests/browser/test_map.py: colours, borders, cities and their size, the box below the map (place, size, texts), clicks on countries and cities, small countries, wheel, drag and buttons; in Firefox at 1280x900 and 375x812 and in Chromium. Found: the box was 8 px below the map (a margin)
+- [x] The live check failed once on Replies with 502 right after a deploy: the first, uncached statistics took longer than gunicorn waits (2 s afterwards). make check-live tries busy answers (502, 503, 504) again, 3 times, 10 s apart
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges

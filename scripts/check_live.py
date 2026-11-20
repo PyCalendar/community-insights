@@ -49,7 +49,9 @@ SCOPE_PAGES = [
 SCOPE = re.compile(r'href="/s/([^"/?]+)/"')
 # what the pages of the site have, and the error pages of nginx do not
 SITE_PAGE = "data-theme-choice"
-TRIES = 3  # tries of a request that gets no answer, such as a timeout
+TRIES = 3  # tries of a request that gets no answer, such as a timeout, or that of a busy site
+# what nginx answers while gunicorn is busy, such as with the first statistics after a deploy
+BUSY = (502, 503, 504)
 RETRY_PAUSE = 10
 
 
@@ -101,19 +103,25 @@ class LiveCheck:
 
         Returns:
             The answer; one with the status 599 and the reason if there was none after
-            ``TRIES`` tries, such as after timeouts while the site is busy after a restart.
+            ``TRIES`` tries, such as after timeouts while the site is busy after a restart. A
+            busy answer (``BUSY``, such as 502 when the first statistics after a deploy take
+            longer than gunicorn waits) is tried again, too, and returned after the last try.
         """
         address = urljoin(self.url + "/", path.lstrip("/"))
-        reason = ""
+        answer = None
         for attempt in range(TRIES):
             try:
-                return self.client.get(address)
+                answer = self.client.get(address)
+                if answer.status_code not in BUSY:
+                    return answer
+                reason = f"busy: {answer.status_code}"
             except httpx.TransportError as error:
+                answer = None
                 reason = f"{type(error).__name__}: {error}"
-                print(f"retry {path}: {reason}", flush=True)
-                if attempt + 1 < TRIES:
-                    time.sleep(RETRY_PAUSE)
-        return httpx.Response(599, text=reason)
+            print(f"retry {path}: {reason}", flush=True)
+            if attempt + 1 < TRIES:
+                time.sleep(RETRY_PAUSE)
+        return answer if answer is not None else httpx.Response(599, text=reason)
 
     def running(self) -> str:
         """What keeps the check waiting, "" when the site runs the version wanted.

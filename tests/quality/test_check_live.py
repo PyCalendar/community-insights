@@ -125,3 +125,19 @@ def test_a_missing_page_of_nginx_is_not_the_page_of_the_site(world, client):
     live.expect("/s/1/", 302)
     live.expect("/no-such-page/", 404)
     assert live.failures == ["FAIL 404 /s/1/  (expected 302)"]
+
+
+def test_a_busy_page_is_tried_again(world, client):
+    """A 502 of nginx while the first statistics are computed after a deploy, then the page."""
+    answers = {"/s/o~r/replies/": [httpx.Response(502), httpx.Response(504)]}
+    live = check(client, answers)
+    answers["/s/o~r/replies/"].append(httpx.Response(200, text="replies"))
+    live.check_page("/s/o~r/replies/")
+    assert live.checked["/s/o~r/replies/"] == 200 and not live.failures
+
+
+def test_a_page_that_stays_busy_fails(world, client):
+    """Three busy answers: the last one is the failure."""
+    live = check(client, {"/s/o~r/replies/": [httpx.Response(502)]})
+    live.check_page("/s/o~r/replies/")
+    assert live.failures == ["FAIL 502 /s/o~r/replies/  (expected 200)"]
