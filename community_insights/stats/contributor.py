@@ -12,7 +12,8 @@ class Contributor:
         prs_opened: Pull requests opened.
         prs_merged: Of those, merged.
         prs_closed: Of those, closed without merging.
-        prs_open: Of those, still open.
+        prs_open: Of those, still open; open drafts only if they count (``drafts=1``).
+        prs_draft: Of those, open drafts, whether they count as open or not.
         issues_opened: Issues opened.
         issues_closed: Of those, closed.
         issues_open: Of those, still open.
@@ -40,6 +41,7 @@ class Contributor:
     prs_merged: int = 0
     prs_closed: int = 0
     prs_open: int = 0
+    prs_draft: int = 0
     issues_opened: int = 0
     issues_closed: int = 0
     issues_open: int = 0

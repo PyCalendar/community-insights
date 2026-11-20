@@ -13,6 +13,7 @@ PROJECT_PAGES = [
     ("languages", _("Languages")),
     ("items", _("Pull requests and issues")),
     ("replies", _("Replies")),
+    ("reviews", _("Reviews")),
     ("badges", _("Badges")),
     ("compare", _("Compare repositories")),
 ]

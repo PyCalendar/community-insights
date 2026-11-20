@@ -76,6 +76,7 @@ def save_item(
             and is_bot(author["login"], author.get("__typename")),
             "state": data["state"].lower() if data["state"] == "OPEN" else "closed",
             "merged": bool(data.get("merged")),
+            "draft": bool(data.get("isDraft")),
             "created_at": parse_datetime(data["createdAt"]),
             "updated_at": parse_datetime(data["updatedAt"]),
             "closed_at": parse_datetime(data["closedAt"]) if data.get("closedAt") else None,
@@ -132,7 +133,7 @@ def without_details(repository: Repository) -> list[str]:
 
 @transaction.atomic
 def save_details(repository: Repository, nodes: list[dict | None]) -> int:
-    """The commits and closers of pull requests read again.
+    """The commits, closers, kinds of reviews and draft states of pull requests read again.
 
     Args:
         repository: The repository.
@@ -151,14 +152,20 @@ def save_details(repository: Repository, nodes: list[dict | None]) -> int:
         if item.state == "closed":
             item.closed_by = closer(data)
             item.save(update_fields=["closed_by"])
-        approved = {
-            ((r.get("author") or {}).get("login", ""), parse_datetime(r["submittedAt"]))
+        if item.draft != bool(data.get("isDraft")):
+            item.draft = bool(data.get("isDraft"))
+            item.save(update_fields=["draft"])
+        # the kind of each review: approved, changes_requested, commented or dismissed
+        kinds = {
+            ((r.get("author") or {}).get("login", ""), parse_datetime(r["submittedAt"])): (
+                r.get("state") or "APPROVED"
+            ).lower()
             for r in ((data.get("reviews") or {}).get("nodes") or [])
-            if r.get("submittedAt") and r.get("state", "APPROVED") == "APPROVED"
+            if r.get("submittedAt")
         }
         for event in item.events.filter(kind=Event.REVIEW):
-            state = Event.APPROVED if (event.actor, event.at) in approved else ""
-            if event.state != state and (state or event.state == Event.APPROVED):
+            state = kinds.get((event.actor, event.at), event.state)
+            if event.state != state:
                 event.state = state
                 event.save(update_fields=["state"])
         save_commits_of(item, data)

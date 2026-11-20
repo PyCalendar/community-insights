@@ -10,7 +10,11 @@ from .selection import events_in
 
 
 def contributors(
-    repositories, classifier=None, since: datetime | None = None, until: datetime | None = None
+    repositories,
+    classifier=None,
+    since: datetime | None = None,
+    until: datetime | None = None,
+    drafts: bool = False,
 ) -> list[Contributor]:
     """Everybody who did something in the time range, with what they did.
 
@@ -19,15 +23,17 @@ def contributors(
         classifier: Decides the class of each person; None leaves the class empty.
         since: The start of the time range, None for the beginning.
         until: The end of the time range, excluded; None for now.
+        drafts: Whether open drafts count as open pull requests (``prs_open``); they are
+            counted as ``prs_draft`` either way.
 
     Returns:
         The contributors.
     """
     items = {
-        pk: (kind, author.lower(), created, state, merged)
-        for pk, kind, author, created, state, merged in Item.objects.filter(
+        pk: (kind, author.lower(), created, state, merged, draft)
+        for pk, kind, author, created, state, merged, draft in Item.objects.filter(
             repository__in=repositories
-        ).values_list("id", "kind", "author", "created_at", "state", "merged")
+        ).values_list("id", "kind", "author", "created_at", "state", "merged", "draft")
     }
     people: dict[str, Contributor] = {}
 
@@ -44,7 +50,7 @@ def contributors(
         if association:
             key = actor.lower()
             associations[key] = more_privileged(associations.get(key, ""), association)
-        kind_of_item, author, created, state, merged = items[pk]
+        kind_of_item, author, created, state, merged, draft = items[pk]
         person = get(actor)
         person.first = min(person.first or at, at)
         person.last = max(person.last or at, at)
@@ -55,7 +61,9 @@ def contributors(
                 person.prs_opened += 1
                 person.prs_merged += merged
                 person.prs_closed += state == "closed" and not merged
-                person.prs_open += state == "open"
+                open_draft = state == "open" and draft
+                person.prs_draft += open_draft
+                person.prs_open += state == "open" and (drafts or not draft)
             else:
                 person.issues_opened += 1
                 person.issues_closed += state == "closed"

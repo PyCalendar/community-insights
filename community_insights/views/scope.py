@@ -103,6 +103,25 @@ def last_days(parameters) -> int | None:
     return int(text)
 
 
+def drafts_of(parameters) -> bool:
+    """Whether open draft pull requests count as open ones: the parameter ``drafts``.
+
+    By default they do not: a draft is not ready for review, and its author is not expected
+    to answer feedback yet.
+
+    Args:
+        parameters: The parameters of the address.
+
+    Returns:
+        True for ``drafts=1`` (also ``on``, ``yes``, ``true``).
+
+    Examples:
+        >>> drafts_of({"drafts": "1"}), drafts_of({"drafts": "on"}), drafts_of({})
+        (True, True, False)
+    """
+    return (parameters.get("drafts") or "").strip().lower() in ("1", "on", "yes", "true")
+
+
 PROJECTS = re.compile(r"^(all|\d+(-\d+)*)$")
 # a public scope: "owner~name" or "owner", several joined with "+"
 PUBLIC_PART = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})(?:~[A-Za-z0-9._-]{1,100})?$")
@@ -136,6 +155,8 @@ class Scope:
         # the classes of a shared address; None for the viewer's own
         named = (given.get("classes") or "").strip()
         self.chosen = classes_by_ids(named) if named else None
+        # open drafts count as open pull requests (``drafts=1``); links carry it
+        self.drafts = drafts_of(given)
         self.text = text
         self.user = user
         self.public = not PROJECTS.match(text)
@@ -174,16 +195,20 @@ class Scope:
 
     @functools.cached_property
     def carried(self) -> dict[str, str]:
-        """The classes that links carry, so that a shared address shows the same numbers.
+        """The classes and the drafts that links carry, so a shared address shows the same.
 
-        Those of the address, or the own ones when they differ from the default ones. Read
-        once per page: a page has hundreds of links.
+        The classes of the address, or the own ones when they differ from the default ones;
+        ``drafts=1`` when open drafts count as open pull requests. Read once per page: a page
+        has hundreds of links.
         """
+        found = {}
         if self.chosen is not None:
-            return {"classes": " ".join(c.ident for c in self.chosen)}
-        if differs_from_default(self.user):
-            return {"classes": " ".join(c.ident for c in class_list(self.user))}
-        return {}
+            found["classes"] = " ".join(c.ident for c in self.chosen)
+        elif differs_from_default(self.user):
+            found["classes"] = " ".join(c.ident for c in class_list(self.user))
+        if self.drafts:
+            found["drafts"] = "1"
+        return found
 
     @property
     def carried_query(self) -> str:
@@ -304,12 +329,14 @@ class Scope:
                 [c.pk for c in self.chosen] if self.chosen is not None else None,
                 self.since,
                 self.until,
+                self.drafts,
             ],
             lambda: stats.contributors(
                 self.repositories,
                 self.classifier() if classified else None,
                 since=self.since,
                 until=self.until,
+                drafts=self.drafts,
             ),
         )
 

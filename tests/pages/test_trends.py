@@ -237,17 +237,19 @@ def busy(pk):
 
 
 def test_a_statistically_significant_growth(busy, signed_in):
-    """The trend says how much, with the error margin, the interval and the p-value."""
+    """First whether it is significant, then how much, the error margin, interval, p-value."""
     page = signed_in.get(f"/s/{busy}/trends/?since=2026-02-02&until=2026-02-08").content.decode()
     issues = side(page, "issue")
     model = re.search(r'<li[^>]*data-count-trend="contributions".*?</li>', issues, re.S).group(0)
     assert 'data-significant="yes"' in model
-    assert re.search(r"Contributions <strong>grow by \d+ %</strong>\s+per day", model)
-    assert "with an error margin of ±" in model and "95 % confidence interval is +" in model
-    assert "<strong>Statistically significant</strong> (p = 0.0" in model
+    verdict = re.search(r"<span data-verdict>(.*?)</span>", model, re.S).group(1)
+    assert re.search(r"Contributions: a significant increase of \d+ % per day\.", verdict)
+    assert model.index("data-verdict") < model.index("Error margin"), "the verdict comes first"
+    assert re.search(r"Error margin ±\d+ percentage points: with 95 % confidence", model)
+    assert re.search(r"between \+\d+ % and \+\d+ % per day \(p = 0\.0\d+;", model)
     assert "The fitted line goes from" in model
     people = re.search(r'<li[^>]*data-count-trend="contributors".*?</li>', issues, re.S).group(0)
-    assert "Contributors <strong>grow by" in people
+    assert "Contributors: a significant increase of" in people
 
 
 def test_a_trend_that_is_not_significant(pk, signed_in):
@@ -265,8 +267,8 @@ def test_a_trend_that_is_not_significant(pk, signed_in):
             )
     page = signed_in.get(f"/s/{pk}/trends/?since=2026-02-02&until=2026-02-08").content.decode()
     issues = side(page, "issue")
-    assert "<strong>Not statistically significant</strong>" in issues
-    assert "the change may be chance" in issues
+    assert "<strong>Contributions: no significant trend.</strong>" in issues
+    assert re.search(r"The change of [+-]?\d+ % per day may be chance\.", issues)
 
 
 @pytest.mark.parametrize(

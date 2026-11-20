@@ -30,6 +30,7 @@ The drop-down at the top of every page of a project, and the menu of its card on
 - **Overview**: how many pull requests and issues are open, merged and closed, how many people contributed, by class of people, and the five most active people who are not bots. It loads fast: the response times have their own page.
 - **Response times**: how long pull requests and issues waited for their first response.
 - **Trends**: whether more or fewer issues and pull requests are opened and closed, with the contributions and the new contributors, next to the time before, and whether the contributions really grow.
+- **Reviews**: how many reviews the pull requests got, by collaborators and by others, of which kind, whether that changes, and how many reviews came before a merge.
 - **Countries**: a map of the world with the countries of the contributors.
 - **Languages**: which languages the contributors likely speak, from their countries.
 - **Contributors**: everybody who contributed, chosen and sorted with a query.

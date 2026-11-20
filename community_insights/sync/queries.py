@@ -53,7 +53,7 @@ def list_query(kind: str) -> str:
         The query.
     """
     extra = (
-        f"merged mergedAt mergedBy {{ login }} {connection('reviews')} {PR_MORE}"
+        f"merged mergedAt mergedBy {{ login }} isDraft {connection('reviews')} {PR_MORE}"
         if kind == Item.PR
         else ""
     )
@@ -107,16 +107,16 @@ def more_query(field: str) -> str:
 
 
 def details_query() -> str:
-    """The last commits, the closer and the approvals of pull requests read before.
+    """The last commits, the closer, the reviews with their kind and whether it is a draft.
 
     Returns:
         The query, with the variable ``ids``: the node ids of the pull requests.
     """
     approvals = (
-        f"reviews(first: {MORE}, states: [APPROVED])"
-        " { nodes { submittedAt author { login } } }"
+        f"reviews(first: {MORE}, states: [APPROVED, CHANGES_REQUESTED, COMMENTED, DISMISSED])"
+        " { nodes { submittedAt state author { login } } }"
     )
     return (
-        "query($ids: [ID!]!) { nodes(ids: $ids) { ... on PullRequest { id "
+        "query($ids: [ID!]!) { nodes(ids: $ids) { ... on PullRequest { id isDraft "
         f"{PR_MORE} {approvals} }} }} }}"
     )

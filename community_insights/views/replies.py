@@ -19,7 +19,15 @@ from ..stats.contributor_replies import GREEN, RED, YELLOW
 from ..tables import ItemTable, PersonItemFilter, items_with_responses
 from ..tokens.use import Use
 from .access import add_grant
-from .scope import PROJECTS, Scope, public_repositories, scope_of, scope_view, stats_page
+from .scope import (
+    PROJECTS,
+    Scope,
+    drafts_of,
+    public_repositories,
+    scope_of,
+    scope_view,
+    stats_page,
+)
 
 # the names of the keys the table can be sorted by, as the titles of its columns
 SORT_NAMES = {
@@ -95,6 +103,27 @@ def badge_path(scope: Scope, login: str, extension: str = "svg") -> str | None:
     return None
 
 
+def with_drafts(path: str | None, drafts: bool) -> str | None:
+    """The address of a badge that counts open drafts if the page does.
+
+    Args:
+        path: The address of the badge; None for none.
+        drafts: Whether open drafts count.
+
+    Returns:
+        The address with ``?drafts=1`` if they count; None without a badge.
+
+    Examples:
+        >>> with_drafts("/badge/x.svg", True), with_drafts("/badge/x.svg", False)
+        ('/badge/x.svg?drafts=1', '/badge/x.svg')
+        >>> with_drafts(None, True) is None
+        True
+    """
+    if path is None or not drafts:
+        return path
+    return f"{path}?drafts=1"
+
+
 def sorting(request, scope: Scope, keys: list[str]) -> list[tuple]:
     """The keys of the order of the table, each with the addresses that move it.
 
@@ -147,7 +176,9 @@ def replies(request, scope):
         reason_url=request.path,
         use=page_use(scope),
     )
-    pulls = stats.pull_replies(scope.repositories, scope.classifier(), scope.since, scope.until)
+    pulls = stats.pull_replies(
+        scope.repositories, scope.classifier(), scope.since, scope.until, drafts=scope.drafts
+    )
     keys = stats.sort_order(
         word for value in request.GET.getlist("order") for word in value.replace(",", " ").split()
     )
@@ -194,10 +225,20 @@ def person_replies(request, scope, login):
         use=page_use(scope),
     )
     pulls = stats.pull_replies(
-        scope.repositories, scope.classifier(), scope.since, scope.until, login=login
+        scope.repositories,
+        scope.classifier(),
+        scope.since,
+        scope.until,
+        login=login,
+        drafts=scope.drafts,
     )
     found = stats.replies(
-        scope.repositories, scope.classifier(), scope.since, scope.until, login=login
+        scope.repositories,
+        scope.classifier(),
+        scope.since,
+        scope.until,
+        login=login,
+        drafts=scope.drafts,
     )
     return stats_page(
         request,
@@ -210,7 +251,7 @@ def person_replies(request, scope, login):
             .first(),
             "person": found[0] if found else None,
             "pulls": sorted(pulls, key=stats.pull_order),
-            "preview": badge_path(scope, login),
+            "preview": with_drafts(badge_path(scope, login), scope.drafts),
             "fetched": fetched,
         },
     )
@@ -233,8 +274,9 @@ def reply_badge_share(request, scope, login):
         scope.shared(reverse("person_replies", args=[scope.text, login]))
     )
     image_format = "png" if request.GET.get("format") == "png" else "svg"
-    path = badge_path(scope, login, image_format)
-    json_path = badge_path(scope, login, "json")
+    # the badge counts open drafts like the page, if it says so
+    path = with_drafts(badge_path(scope, login, image_format), scope.drafts)
+    json_path = with_drafts(badge_path(scope, login, "json"), scope.drafts)
     public = public_badge_scope(scope)
     signed_in = request.user.is_authenticated
     if request.method == "POST" and public and signed_in:
@@ -254,7 +296,7 @@ def reply_badge_share(request, scope, login):
             show_error(request, error)
         return redirect(request.get_full_path())
     use = Use(TokenGrant.BADGES, public or "", login)
-    found = stats.replies(scope.repositories, scope.classifier(), login=login)
+    found = stats.replies(scope.repositories, scope.classifier(), login=login, drafts=scope.drafts)
     return stats_page(
         request,
         scope,
@@ -324,7 +366,14 @@ def person_items(request, scope, login):
 
 
 def reply_badge_of(
-    repositories, user, login: str, reason_url: str, use=None, extension="svg", page=None
+    repositories,
+    user,
+    login: str,
+    reason_url: str,
+    use=None,
+    extension="svg",
+    page=None,
+    drafts: bool = False,
 ) -> HttpResponse:
     """The badge of whether a person answered feedback, after fetching what changed.
 
@@ -336,6 +385,7 @@ def reply_badge_of(
         use: The public use of the badge (``tokens.Use``): the grants of tokens for it read.
         extension: ``svg``, ``png``, or ``json`` for its spec with the row of the table.
         page: The address of the replies of the person, for the JSON; None if not public.
+        drafts: Whether open drafts count (``drafts=1`` in the address of the badge).
 
     Returns:
         The badge: green, yellow or red; grey without feedback.
@@ -348,7 +398,7 @@ def reply_badge_of(
         timeout=settings.AUTO_FETCH_BADGE_TIMEOUT,
         use=use,
     )
-    found = stats.replies(repositories, Classifier(user), login=login)
+    found = stats.replies(repositories, Classifier(user), login=login, drafts=drafts)
     person = found[0] if found else None
     spec = reply_spec(login, person, reply_data(login, person, page))
     return spec.response(extension, BADGE_KEPT)
@@ -401,6 +451,7 @@ def reply_badge(request, token, login, extension="svg"):
         login,
         request.path,
         extension=extension,
+        drafts=drafts_of(request.GET),
     )
 
 
@@ -428,5 +479,9 @@ def public_reply_badge(request, scope, login, extension="svg"):
         request.path,
         use=Use(TokenGrant.BADGES, scope, login),
         extension=extension,
-        page=request.build_absolute_uri(reverse("person_replies", args=[scope, login])),
+        page=request.build_absolute_uri(
+            reverse("person_replies", args=[scope, login])
+            + ("?drafts=1" if drafts_of(request.GET) else "")
+        ),
+        drafts=drafts_of(request.GET),
     )

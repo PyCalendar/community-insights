@@ -43,6 +43,7 @@ SCOPE_PAGES = [
     "languages/",
     "items/",
     "replies/",
+    "reviews/",
     "badges/",
     "chart/trend-pr.svg?last=30",
 ]

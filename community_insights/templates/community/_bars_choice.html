@@ -1,0 +1,9 @@
+{% load i18n %}{# The length of the bars of the charts of a page: ?by=day, week, month or year; "" chooses (bar_choices, by). #}
+<form method="get" class="d-flex align-items-center gap-2 mb-2 small" data-bars>
+  {% for name, value in scope.range.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  {% for name, value in scope.carried.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <label for="bars-by">{% translate "Bars of the charts" %}</label>
+  <select class="form-select form-select-sm w-auto" id="bars-by" name="by" data-submit-on-change>{% for value, title in bar_choices %}<option value="{{ value }}"{% if value == by %} selected{% endif %}>{{ title }}</option>{% endfor %}</select>
+  <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
+  <span class="text-muted">{% translate "Automatic: days, calendar weeks, months or years, the shortest with at most 31 bars." %}</span>
+</form>

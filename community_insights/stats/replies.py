@@ -108,6 +108,7 @@ def pull_replies(
     since: datetime | None = None,
     until: datetime | None = None,
     login: str | None = None,
+    drafts: bool = False,
 ) -> list[PullReply]:
     """The pull requests and whether their authors answered the feedback on them.
 
@@ -122,6 +123,8 @@ def pull_replies(
         since: The start of the time range of the pull requests, None for the beginning.
         until: Its end, excluded; None for now.
         login: Only this author, in any case; None for everybody.
+        drafts: Whether open drafts count; by default they are left out, as their authors
+            are not done yet and need not answer.
 
     Returns:
         The pull requests, also the merged ones, by repository and number.
@@ -129,6 +132,8 @@ def pull_replies(
     is_bot = bot_test(classifier)
     items = items_in(repositories, since, until).filter(kind=Item.PR, author_is_bot=False)
     items = items.exclude(author="")
+    if not drafts:
+        items = items.exclude(state="open", draft=True)
     if login:
         items = items.filter(author__iexact=login)
     rows = list(
@@ -189,6 +194,7 @@ def replies(
     since: datetime | None = None,
     until: datetime | None = None,
     login: str | None = None,
+    drafts: bool = False,
 ) -> list[ContributorReplies]:
     """The authors of pull requests who got feedback, and whether they answered it.
 
@@ -202,12 +208,13 @@ def replies(
         since: The start of the time range of the pull requests, None for the beginning.
         until: Its end, excluded; None for now.
         login: Only this author, in any case; None for everybody.
+        drafts: Whether open drafts count (see ``pull_replies``).
 
     Returns:
         The authors with feedback on a pull request that was not merged, in their order
         (see ``order``).
     """
-    return replies_of(pull_replies(repositories, classifier, since, until, login))
+    return replies_of(pull_replies(repositories, classifier, since, until, login, drafts))
 
 
 def replies_of(pulls: list[PullReply], keys: list[str] | None = None) -> list[ContributorReplies]:

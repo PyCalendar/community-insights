@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 19:33+0000\n"
+"POT-Creation-Date: 2026-11-20 20:38+0000\n"
 "PO-Revision-Date: 2026-10-27 10:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: German\n"
@@ -501,6 +501,9 @@ msgstr "geschlossene Pull Requests, gemergt oder nicht"
 msgid "pull requests still open"
 msgstr "noch offene Pull Requests"
 
+msgid "open pull requests that are drafts"
+msgstr "offene Pull Requests, die Entwürfe sind"
+
 msgid "pull requests of others commented on"
 msgstr "kommentierte Pull Requests anderer"
 
@@ -671,6 +674,19 @@ msgstr "Format des Badges"
 msgid "The badge as JSON"
 msgstr "Das Badge als JSON"
 
+msgid "Bars of the charts"
+msgstr "Balken der Diagramme"
+
+msgid "Show"
+msgstr "Zeigen"
+
+msgid ""
+"Automatic: days, calendar weeks, months or years, the shortest with at most "
+"31 bars."
+msgstr ""
+"Automatisch: Tage, Kalenderwochen, Monate oder Jahre, das Kürzeste mit "
+"höchstens 31 Balken."
+
 #, python-format
 msgid "before: %(before)s"
 msgstr "davor: %(before)s"
@@ -702,11 +718,9 @@ msgstr "Antwortzeiten"
 msgid "Replies"
 msgstr "Antworten"
 
-msgid "Contributions: too little data for a trend."
-msgstr "Beiträge: zu wenige Daten für einen Trend."
-
-msgid "Contributors: too little data for a trend."
-msgstr "Beitragende: zu wenige Daten für einen Trend."
+#, python-format
+msgid "%(what)s: too little data for a trend."
+msgstr "%(what)s: zu wenige Daten für einen Trend."
 
 msgid ""
 "A trend needs at least 4 bars of the chart, with at least 5 in all, in at "
@@ -716,34 +730,30 @@ msgstr ""
 "insgesamt, in mindestens 2 davon."
 
 #, python-format
-msgid "Contributions <strong>grow by %(size)s %%</strong>"
-msgstr "Beiträge <strong>wachsen um %(size)s %%</strong>"
+msgid "%(what)s: a significant increase of %(size)s %% %(per)s."
+msgstr "%(what)s: ein signifikanter Anstieg um %(size)s %% %(per)s."
 
 #, python-format
-msgid "Contributors <strong>grow by %(size)s %%</strong>"
-msgstr "Beitragende <strong>wachsen um %(size)s %%</strong>"
+msgid "%(what)s: a significant decrease of %(size)s %% %(per)s."
+msgstr "%(what)s: ein signifikanter Rückgang um %(size)s %% %(per)s."
 
 #, python-format
-msgid "Contributions <strong>shrink by %(size)s %%</strong>"
-msgstr "Beiträge <strong>schrumpfen um %(size)s %%</strong>"
+msgid "%(what)s: no significant trend."
+msgstr "%(what)s: kein signifikanter Trend."
 
 #, python-format
-msgid "Contributors <strong>shrink by %(size)s %%</strong>"
-msgstr "Beitragende <strong>schrumpfen um %(size)s %%</strong>"
-
-msgid "Contributions <strong>do not change</strong>"
-msgstr "Beiträge <strong>ändern sich nicht</strong>"
-
-msgid "Contributors <strong>do not change</strong>"
-msgstr "Beitragende <strong>ändern sich nicht</strong>"
+msgid "The change of %(change)s %% %(per)s may be chance."
+msgstr "Die Änderung von %(change)s %% %(per)s kann Zufall sein."
 
 #, python-format
 msgid ""
-", with an error margin of ±%(margin)s percentage points: the 95 %% "
-"confidence interval is %(low)s %% to %(high)s %%."
+"Error margin ±%(margin)s percentage points: with 95 %% confidence the change"
+" is between %(low)s %% and %(high)s %% %(per)s (p = %(p)s; significant below"
+" 0.05)."
 msgstr ""
-", mit einer Fehlerspanne von ±%(margin)s Prozentpunkten: das "
-"95-%%-Konfidenzintervall reicht von %(low)s %% bis %(high)s %%."
+"Fehlerspanne ±%(margin)s Prozentpunkte: mit 95 %% Konfidenz liegt die "
+"Änderung zwischen %(low)s %% und %(high)s %% %(per)s (p = %(p)s; signifikant"
+" unter 0,05)."
 
 #, python-format
 msgid ""
@@ -751,22 +761,6 @@ msgid ""
 msgstr ""
 "Die angepasste Linie geht von %(first)s bis %(last)s %(per)s über %(bars)s "
 "Balken."
-
-#, python-format
-msgid ""
-"<strong>Statistically significant</strong> (p = %(p)s, below 0.05): a change"
-" this big would be unlikely without a real trend."
-msgstr ""
-"<strong>Statistisch signifikant</strong> (p = %(p)s, unter 0,05): eine so "
-"große Änderung wäre ohne echten Trend unwahrscheinlich."
-
-#, python-format
-msgid ""
-"<strong>Not statistically significant</strong> (p = %(p)s, not below 0.05): "
-"the change may be chance, the data shows no clear trend."
-msgstr ""
-"<strong>Nicht statistisch signifikant</strong> (p = %(p)s, nicht unter "
-"0,05): die Änderung kann Zufall sein, die Daten zeigen keinen klaren Trend."
 
 msgid "Data"
 msgstr "Daten"
@@ -831,6 +825,17 @@ msgstr "Fortschritt der Datei"
 
 msgid "Download"
 msgstr "Herunterladen"
+
+msgid "Count drafts as open pull requests"
+msgstr "Entwürfe als offene Pull Requests zählen"
+
+msgid ""
+"A draft is not ready for review: by default it is left out of the open pull "
+"requests and of the replies, also on the badges."
+msgstr ""
+"Ein Entwurf ist noch nicht bereit für ein Review: Standardmäßig zählt er "
+"nicht zu den offenen Pull Requests und nicht zu den Antworten, auch nicht "
+"bei den Badges."
 
 msgid "Started for:"
 msgstr "Gestartet für:"
@@ -1492,9 +1497,6 @@ msgstr "Nach oben"
 
 msgid "Move down"
 msgstr "Nach unten"
-
-msgid "Show"
-msgstr "Zeigen"
 
 msgid "The class still sorts people, but the statistics do not show it"
 msgstr ""
@@ -2383,6 +2385,12 @@ msgid "pull requests (%(merged)s merged, %(open)s open)"
 msgstr "Pull-Requests (%(merged)s gemergt, %(open)s offen)"
 
 #, python-format
+msgid "and %(drafts)s open draft"
+msgid_plural "and %(drafts)s open drafts"
+msgstr[0] "und %(drafts)s offener Entwurf"
+msgstr[1] "und %(drafts)s offene Entwürfe"
+
+#, python-format
 msgid "issues (%(closed)s closed, %(open)s open)"
 msgstr "Issues (%(closed)s geschlossen, %(open)s offen)"
 
@@ -2879,6 +2887,104 @@ msgstr ""
 msgid "How the trend is computed"
 msgstr "Wie der Trend berechnet wird"
 
+#, python-format
+msgid "Reviews of %(title)s"
+msgstr "Reviews von %(title)s"
+
+msgid ""
+"A <strong>review</strong> is an approval, a request for changes or a comment"
+" given as a review of a pull request, by a person: bots and the author of "
+"the pull request are left out. <strong>Collaborators</strong> are the "
+"owners, members and collaborators of the repository; <strong>others</strong>"
+" are contributors and people without a status, as GitHub names it at the "
+"time of the review."
+msgstr ""
+"Ein <strong>Review</strong> ist eine Zustimmung, eine Bitte um Änderungen "
+"oder ein Kommentar als Review eines Pull Requests, von einer Person: Bots "
+"und die Autor*in des Pull Requests zählen nicht. "
+"<strong>Mitwirkende</strong> sind die Besitzer*innen, Mitglieder und "
+"Collaborators des Repositorys; <strong>andere</strong> sind Beitragende und "
+"Personen ohne Status, wie GitHub ihn zur Zeit des Reviews nennt."
+
+msgid "How the reviews are counted"
+msgstr "Wie die Reviews gezählt werden"
+
+#, python-format
+msgid ""
+"Each number is compared with the time of the same length just before: "
+"%(since)s to %(until)s."
+msgstr ""
+"Jede Zahl wird mit der gleich langen Zeit direkt davor verglichen: %(since)s"
+" bis %(until)s."
+
+msgid ""
+"Choose a time range, such as the last 30 days, to compare it with the time "
+"just before."
+msgstr ""
+"Wähle einen Zeitraum, etwa die letzten 30 Tage, um ihn mit der Zeit direkt "
+"davor zu vergleichen."
+
+#, python-format
+msgid "reviews by %(people)s person"
+msgid_plural "reviews by %(people)s people"
+msgstr[0] "Reviews von %(people)s Person"
+msgstr[1] "Reviews von %(people)s Personen"
+
+msgid "by collaborators"
+msgstr "von Mitwirkenden"
+
+msgid "by others"
+msgstr "von anderen"
+
+msgid "reviews until merged (median)"
+msgstr "Reviews bis zum Merge (Median)"
+
+msgid "Reviews over time"
+msgstr "Reviews über die Zeit"
+
+msgid "Reviews by collaborators and by others per day, week, month or year"
+msgstr ""
+"Reviews von Mitwirkenden und von anderen pro Tag, Woche, Monat oder Jahr"
+
+msgid "Statistical trend"
+msgstr "Statistischer Trend"
+
+msgid "Kinds of review"
+msgstr "Arten von Reviews"
+
+msgid ""
+"Approvals, requests for changes and comments, by collaborators and by others"
+msgstr ""
+"Zustimmungen, Bitten um Änderungen und Kommentare, von Mitwirkenden und von "
+"anderen"
+
+msgid "Reviews until merged"
+msgstr "Reviews bis zum Merge"
+
+#, python-format
+msgid ""
+"%(merged)s pull request was merged in this time. Before the merge it had "
+"%(median)s reviews (median), %(mean)s on average; %(without)s were merged "
+"without a review."
+msgid_plural ""
+"%(merged)s pull requests were merged in this time. Before the merge they had"
+" %(median)s reviews in the middle (median) and %(mean)s on average; "
+"%(without)s were merged without a review."
+msgstr[0] ""
+"%(merged)s Pull Request wurde in dieser Zeit gemergt. Vor dem Merge hatte er"
+" %(median)s Reviews (Median), %(mean)s im Durchschnitt; %(without)s wurden "
+"ohne Review gemergt."
+msgstr[1] ""
+"%(merged)s Pull Requests wurden in dieser Zeit gemergt. Vor dem Merge hatten"
+" sie im Mittel (Median) %(median)s Reviews und im Durchschnitt %(mean)s; "
+"%(without)s wurden ohne Review gemergt."
+
+msgid "No pull request was merged in this time."
+msgstr "In dieser Zeit wurde kein Pull Request gemergt."
+
+msgid "How many merged pull requests had 0, 1, 2 or more reviews"
+msgstr "Wie viele gemergte Pull Requests 0, 1, 2 oder mehr Reviews hatten"
+
 msgid "Share a chart"
 msgstr "Ein Diagramm teilen"
 
@@ -2914,33 +3020,8 @@ msgstr "Zurück zur Seite des Diagramms"
 msgid "Trends of %(title)s"
 msgstr "Trends von %(title)s"
 
-#, python-format
-msgid ""
-"Each number is compared with the time of the same length just before: "
-"%(since)s to %(until)s."
-msgstr ""
-"Jede Zahl wird mit der gleich langen Zeit direkt davor verglichen: %(since)s"
-" bis %(until)s."
-
-msgid ""
-"Choose a time range, such as the last 30 days, to compare it with the time "
-"just before."
-msgstr ""
-"Wähle einen Zeitraum, etwa die letzten 30 Tage, um ihn mit der Zeit direkt "
-"davor zu vergleichen."
-
 msgid "How the trends are counted"
 msgstr "Wie die Trends gezählt werden"
-
-msgid "Bars of the charts"
-msgstr "Balken der Diagramme"
-
-msgid ""
-"Automatic: days, calendar weeks, months or years, the shortest with at most "
-"31 bars."
-msgstr ""
-"Automatisch: Tage, Kalenderwochen, Monate oder Jahre, das Kürzeste mit "
-"höchstens 31 Balken."
 
 msgid ""
 "A <strong>contribution</strong> is opening a pull request or an issue, a "
@@ -2990,9 +3071,6 @@ msgstr "Beiträge und neue Beitragende"
 
 msgid "Contributions and new contributors per day, week or month"
 msgstr "Beiträge und neue Beitragende pro Tag, Woche oder Monat"
-
-msgid "Statistical trend"
-msgstr "Statistischer Trend"
 
 msgid "New contributors"
 msgstr "Neue Beitragende"
@@ -3171,6 +3249,15 @@ msgstr "Beiträge und neue Beitragende bei Pull-Requests"
 msgid "contributions and new contributors to issues"
 msgstr "Beiträge und neue Beitragende bei Issues"
 
+msgid "reviews by collaborators and by others over time"
+msgstr "Reviews von Mitwirkenden und von anderen über die Zeit"
+
+msgid "the kinds of review by collaborators and by others"
+msgstr "die Arten von Reviews von Mitwirkenden und von anderen"
+
+msgid "the reviews of pull requests until they were merged"
+msgstr "die Reviews von Pull Requests bis zu ihrem Merge"
+
 msgid "Contributions to pull requests"
 msgstr "Beiträge zu Pull-Requests"
 
@@ -3179,6 +3266,30 @@ msgstr "Beiträge zu Issues"
 
 msgid "contributions"
 msgstr "Beiträge"
+
+msgid "Reviews"
+msgstr "Reviews"
+
+msgid "kind of review"
+msgstr "Art des Reviews"
+
+msgid "merged pull requests"
+msgstr "gemergte Pull Requests"
+
+msgid "reviews before the merge"
+msgstr "Reviews vor dem Merge"
+
+msgid "approved"
+msgstr "zugestimmt"
+
+msgid "changes requested"
+msgstr "Änderungen erbeten"
+
+msgid "commented"
+msgstr "kommentiert"
+
+msgid "dismissed or unknown"
+msgstr "verworfen oder unbekannt"
 
 #, python-format
 msgid "%(login)s is no GitHub handle."
@@ -3315,6 +3426,12 @@ msgstr "Repositories vergleichen"
 msgid "Replies of %(title)s"
 msgstr "Antworten von %(title)s"
 
+msgid "Reviews by collaborators"
+msgstr "Reviews von Mitwirkenden"
+
+msgid "Reviews by others"
+msgstr "Reviews von anderen"
+
 #, python-format
 msgid "%(text)s is no date like 2026-01-31."
 msgstr "%(text)s ist kein Datum wie 2026-01-31."
@@ -3388,6 +3505,47 @@ msgid ""
 msgstr ""
 "Besucher dürfen das %(times)s-mal pro Stunde. Registriere Dich, um Deine "
 "eigenen Tokens zu nutzen, oder warte auf die nächste Stunde."
+
+#~ msgid "Contributions: too little data for a trend."
+#~ msgstr "Beiträge: zu wenige Daten für einen Trend."
+
+#, python-format
+#~ msgid "Contributions <strong>grow by %(size)s %%</strong>"
+#~ msgstr "Beiträge <strong>wachsen um %(size)s %%</strong>"
+
+#, python-format
+#~ msgid "Contributors <strong>grow by %(size)s %%</strong>"
+#~ msgstr "Beitragende <strong>wachsen um %(size)s %%</strong>"
+
+#, python-format
+#~ msgid "Contributions <strong>shrink by %(size)s %%</strong>"
+#~ msgstr "Beiträge <strong>schrumpfen um %(size)s %%</strong>"
+
+#, python-format
+#~ msgid "Contributors <strong>shrink by %(size)s %%</strong>"
+#~ msgstr "Beitragende <strong>schrumpfen um %(size)s %%</strong>"
+
+#~ msgid "Contributions <strong>do not change</strong>"
+#~ msgstr "Beiträge <strong>ändern sich nicht</strong>"
+
+#~ msgid "Contributors <strong>do not change</strong>"
+#~ msgstr "Beitragende <strong>ändern sich nicht</strong>"
+
+#, python-format
+#~ msgid ""
+#~ "<strong>Statistically significant</strong> (p = %(p)s, below 0.05): a change"
+#~ " this big would be unlikely without a real trend."
+#~ msgstr ""
+#~ "<strong>Statistisch signifikant</strong> (p = %(p)s, unter 0,05): eine so "
+#~ "große Änderung wäre ohne echten Trend unwahrscheinlich."
+
+#, python-format
+#~ msgid ""
+#~ "<strong>Not statistically significant</strong> (p = %(p)s, not below 0.05): "
+#~ "the change may be chance, the data shows no clear trend."
+#~ msgstr ""
+#~ "<strong>Nicht statistisch signifikant</strong> (p = %(p)s, nicht unter "
+#~ "0,05): die Änderung kann Zufall sein, die Daten zeigen keinen klaren Trend."
 
 #~ msgid "a city or place of contributors"
 #~ msgstr "eine Stadt oder ein Ort von Beitragenden"

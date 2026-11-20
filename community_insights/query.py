@@ -121,6 +121,11 @@ VARIABLES: dict[str, tuple[Any, str, Callable]] = {
         lambda c, now: c.prs_merged + c.prs_closed,
     ),
     "prs_open": (gettext_lazy("pull requests still open"), "number", lambda c, now: c.prs_open),
+    "prs_draft": (
+        gettext_lazy("open pull requests that are drafts"),
+        "number",
+        lambda c, now: c.prs_draft,
+    ),
     "prs_commented": (
         gettext_lazy("pull requests of others commented on"),
         "number",
@@ -217,6 +222,7 @@ FRACTIONS = {
     "prs_unmerged": "prs_total",
     "prs_closed": "prs_total",
     "prs_open": "prs_total",
+    "prs_draft": "prs_total",
     "issues_open": "issues_opened",
     "issues_closed": "issues_opened",
 }

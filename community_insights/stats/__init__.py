@@ -45,6 +45,8 @@ from .responses import (
     responses_to,
     waits,
 )
+from .review_numbers import ReviewNumbers, review_numbers
+from .review_series import review_series
 from .selection import events_in, items_in
 from .survival import quantile, survival
 from .trend import Trend, trend
@@ -58,6 +60,9 @@ __all__ = [
     "country_map",
     "LanguageShare",
     "language_shares",
+    "ReviewNumbers",
+    "review_numbers",
+    "review_series",
     "KindTrend",
     "kind_series",
     "kind_trend",

@@ -1,0 +1,10 @@
+{% load i18n community %}{# Whether open drafts count as open pull requests: drafts=1, which links carry (Scope.carried); the other parameters of the page stay. #}
+<form method="get" class="small mb-2" data-drafts>
+  {% parameters_without request "drafts" as others %}{% for name, value in others %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <div class="form-check form-check-inline me-1">
+    <input class="form-check-input" type="checkbox" id="drafts-toggle" name="drafts" value="1"{% if scope.drafts %} checked{% endif %} data-submit-on-change>
+    <label class="form-check-label" for="drafts-toggle">{% translate "Count drafts as open pull requests" %}</label>
+  </div>
+  <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
+  <span class="text-muted">{% translate "A draft is not ready for review: by default it is left out of the open pull requests and of the replies, also on the badges." %}</span>
+</form>

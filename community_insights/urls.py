@@ -26,6 +26,7 @@ from .views import (
     pages,
     profile,
     replies,
+    reviews,
     statistics,
     users,
 )
@@ -72,6 +73,7 @@ urlpatterns = [
     path("s/<str:scope>/", statistics.overview, name="overview"),
     path("s/<str:scope>/response-times/", statistics.response_times, name="response_times"),
     path("s/<str:scope>/trends/", statistics.trends, name="trends"),
+    path("s/<str:scope>/reviews/", reviews.reviews, name="reviews"),
     path("s/<str:scope>/countries/", geography.countries, name="countries"),
     path("s/<str:scope>/languages/", geography.languages, name="languages"),
     path("s/<str:scope>/badges/", statistics.badges, name="badges"),

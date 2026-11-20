@@ -32,6 +32,9 @@ CHARTS = {
     "trend-issue": _("issues opened and closed"),
     "people-pr": _("contributions and new contributors to pull requests"),
     "people-issue": _("contributions and new contributors to issues"),
+    "reviews-time": _("reviews by collaborators and by others over time"),
+    "reviews-kinds": _("the kinds of review by collaborators and by others"),
+    "reviews-merge": _("the reviews of pull requests until they were merged"),
 }
 
 
@@ -99,6 +102,8 @@ def draw(request, scope, name, drawing):
             )
     elif name in ("trend-pr", "trend-issue", "people-pr", "people-issue"):
         data = trend_chart(scope, name, drawing, theme, bars_of(request))
+    elif name in ("reviews-time", "reviews-kinds", "reviews-merge"):
+        data = review_chart(scope, name, drawing, theme, bars_of(request))
     else:
         raise Http404
     return data
@@ -147,6 +152,61 @@ def trend_chart(scope, name: str, drawing, theme: str, by: str = ""):
             (gettext("new contributors"), found["newcomers"]),
         ]
     return drawing.pair_chart(title, found["labels"], series, found["size"], theme)
+
+
+def review_chart(scope, name: str, drawing, theme: str, by: str = ""):
+    """A chart of the page Reviews: over time, by kind, or until merged.
+
+    Args:
+        scope: The scope, with its time range.
+        name: ``reviews-time``, ``reviews-kinds`` or ``reviews-merge``.
+        drawing: The module that draws: ``charts`` or ``chart_data``.
+        theme: ``light`` or ``dark``.
+        by: The length of the bars over time, "" to choose it by the time range.
+
+    Returns:
+        What the module drew.
+    """
+    who = [gettext("by collaborators"), gettext("by others")]
+    if name == "reviews-time":
+        found = stats.review_series(
+            scope.repositories,
+            scope.since,
+            scope.until,
+            timezone.now(),
+            timezone.get_current_timezone(),
+            by,
+        )
+        series = [(who[0], found["collaborators"]), (who[1], found["others"])]
+        return drawing.pair_chart(gettext("Reviews"), found["labels"], series, found["size"], theme)
+    numbers = stats.review_numbers(scope.repositories, scope.since, scope.until, timezone.now())
+    if name == "reviews-kinds":
+        labels = [str(REVIEW_KINDS[kind]) for kind in numbers.kinds]
+        series = [
+            (who[0], [pair[0] for pair in numbers.kinds.values()]),
+            (who[1], [pair[1] for pair in numbers.kinds.values()]),
+        ]
+        return drawing.pair_chart(
+            gettext("Kinds of review"), labels, series, gettext("kind of review"), theme
+        )
+    labels = [str(n) for n in range(len(numbers.histogram) - 1)]
+    labels.append(f"{len(numbers.histogram) - 1}+")
+    return drawing.pair_chart(
+        gettext("Reviews until merged"),
+        labels,
+        [(gettext("merged pull requests"), numbers.histogram)],
+        gettext("reviews before the merge"),
+        theme,
+    )
+
+
+# the names of the kinds of review (stats.review_numbers.KINDS)
+REVIEW_KINDS = {
+    "approved": _("approved"),
+    "changes_requested": _("changes requested"),
+    "commented": _("commented"),
+    "other": _("dismissed or unknown"),
+}
 
 
 @scope_view

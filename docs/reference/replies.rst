@@ -12,6 +12,7 @@ Which pull requests count
 A pull request of the time range (by the day it was opened) counts for the replies of its author when all of these hold:
 
 #. A person opened it: pull requests opened by bots are left out.
+#. It is not an open draft. A draft is not ready for review: its author is still working on it and need not answer yet. See :ref:`drafts`.
 #. It was not merged. A merged pull request needs no answer any more; it only counts in **PRs merged**.
 #. Its author did not close it. A pull request its author closed without merging was given up by the author: there is nothing to answer, so it does not count at all. The page of the person still lists it, marked *closed by the author: not counted*.
 #. It got feedback: a response that needs a reply, a comment or a review that does not approve by somebody else than its author, and not by a bot (see :ref:`feedback`). Bots are the people of the class of bots of your :doc:`classes`, by default the accounts GitHub marks as bots. A pull request without feedback has nothing to answer.
@@ -21,6 +22,20 @@ So the pull requests that count are the open ones and those somebody else closed
 A pull request that counts is **replied to** when, after its first feedback, its author commented, reviewed or pushed a commit to it. A commit of somebody else, such as a maintainer who fixes the pull request, is no reply of the author. Only the last 10 commits of each pull request are read; the time of a commit is the time it was committed, which rewriting the history changes.
 
 Who closed a pull request is read from GitHub. For a pull request read before the closers were read, it is unknown: such a closed pull request counts as closed by somebody else until it is read again.
+
+.. _drafts:
+
+Drafts
+======
+
+On GitHub, a pull request can be marked as a draft: work in progress, not ready for review. By default, open drafts do not count as open pull requests:
+
+- **Replies** and the replies of a person leave them out, so a draft with an unanswered comment does not make the badge yellow or red.
+- The page of a person counts them apart: *pull requests (3 merged, 1 open)*, followed by *and 1 open draft*. The variable ``prs_open`` of queries leaves them out; ``prs_draft`` counts them.
+
+**Count drafts as open pull requests**, a checkbox on **Replies**, on the pages of a person and on the page of a badge, counts them like any other open pull request. The address then has ``drafts=1``, and the links of the page keep it, so the other pages count the same, and the badges count them, too: ``/badge/s/<scope>/replies/<login>.svg?drafts=1``.
+
+A draft that was closed counts as closed, a draft that was merged as merged: only open drafts are left out. Whether a pull request is a draft is read with it from GitHub. Pull requests read before that are read again once.
 
 The table
 =========

@@ -38,6 +38,9 @@ INTERACTIVE = (
     "trend-issue",
     "people-pr",
     "people-issue",
+    "reviews-time",
+    "reviews-kinds",
+    "reviews-merge",
 )
 
 

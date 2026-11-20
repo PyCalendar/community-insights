@@ -175,9 +175,13 @@ def trends(request, scope):
                 "models": [
                     (
                         name,
+                        what,
                         stats.count_trend(series[name], series["exposure"], series["size"]),
                     )
-                    for name in ("contributions", "contributors")
+                    for name, what in (
+                        ("contributions", _("Contributions")),
+                        ("contributors", _("Contributors")),
+                    )
                 ],
             }
         )

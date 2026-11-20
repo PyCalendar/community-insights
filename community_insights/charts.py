@@ -131,6 +131,9 @@ CHART_KINDS = {
     "trend-issue": "pair",
     "people-pr": "pair",
     "people-issue": "pair",
+    "reviews-time": "pair",
+    "reviews-kinds": "pair",
+    "reviews-merge": "pair",
 }
 POINTS = 72  # an inch of matplotlib's SVG, in the units of its width and height
 

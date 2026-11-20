@@ -15,6 +15,8 @@ URLs
      - the response times: charts, tables of the statistics, and trends
    * - ``/s/<scope>/trends/``
      - issues and pull requests opened, closed and merged, contributions and new contributors, next to the time before, with a statistical trend; ``?by=day``, ``week``, ``month`` or ``year`` chooses the bars of the charts, see :doc:`../explanation/trends`
+   * - ``/s/<scope>/reviews/``
+     - the reviews of pull requests by collaborators and by others, their kinds, a statistical trend, and the reviews until merged; ``?by=`` chooses the bars, see :doc:`../explanation/reviews`
    * - ``/s/<scope>/countries/``
      - a map of the world with the countries of the contributors; ``#country=DE`` shows a country below the map, see :doc:`../explanation/countries`
    * - ``/s/<scope>/languages/``

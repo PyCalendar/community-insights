@@ -1,14 +1,12 @@
-{% load i18n community %}{# The statistical trend ("model", stats.CountTrend or None) of the contributions or contributors ("name") of one side of the page Trends; "per" is "per week" and the like. #}
+{% load i18n community %}{# The statistical trend ("model", stats.CountTrend or None) of a count ("what", such as "Contributions"; "name" for the tests), "per" is "per week" and the like. Whether it is significant comes first. #}
 <li class="mb-2" data-count-trend="{{ name }}"{% if model %} data-p-value="{{ model.p_value|floatformat:4 }}" data-significant="{{ model.clear|yesno:'yes,no' }}"{% endif %}>
-  {% if not model %}<span class="text-muted">{% if name == "contributions" %}{% translate "Contributions: too little data for a trend." %}{% else %}{% translate "Contributors: too little data for a trend." %}{% endif %}
+  {% if not model %}<span class="text-muted">{% blocktranslate %}{{ what }}: too little data for a trend.{% endblocktranslate %}
   {% translate "A trend needs at least 4 bars of the chart, with at least 5 in all, in at least 2 of them." %}</span>
   {% else %}
-  {% if model.percent > 0 %}{% if name == "contributions" %}{% blocktranslate with size=model.percent|floatformat:0 %}Contributions <strong>grow by {{ size }} %</strong>{% endblocktranslate %}{% else %}{% blocktranslate with size=model.percent|floatformat:0 %}Contributors <strong>grow by {{ size }} %</strong>{% endblocktranslate %}{% endif %}
-  {% elif model.percent < 0 %}{% if name == "contributions" %}{% blocktranslate with size=model.amount|floatformat:0 %}Contributions <strong>shrink by {{ size }} %</strong>{% endblocktranslate %}{% else %}{% blocktranslate with size=model.amount|floatformat:0 %}Contributors <strong>shrink by {{ size }} %</strong>{% endblocktranslate %}{% endif %}
-  {% else %}{% if name == "contributions" %}{% translate "Contributions <strong>do not change</strong>" %}{% else %}{% translate "Contributors <strong>do not change</strong>" %}{% endif %}{% endif %}
-  {{ per }}{% blocktranslate with margin=model.margin|floatformat:0 low=model.low|signed high=model.high|signed %}, with an error margin of ±{{ margin }} percentage points: the 95 % confidence interval is {{ low }} % to {{ high }} %.{% endblocktranslate %}
+  <span data-verdict>{% if model.clear and model.percent > 0 %}<strong class="text-success">{% blocktranslate with size=model.amount|floatformat:0 %}{{ what }}: a significant increase of {{ size }} % {{ per }}.{% endblocktranslate %}</strong>
+  {% elif model.clear %}<strong class="text-danger">{% blocktranslate with size=model.amount|floatformat:0 %}{{ what }}: a significant decrease of {{ size }} % {{ per }}.{% endblocktranslate %}</strong>
+  {% else %}<strong>{% blocktranslate %}{{ what }}: no significant trend.{% endblocktranslate %}</strong> {% blocktranslate with change=model.percent|signed %}The change of {{ change }} % {{ per }} may be chance.{% endblocktranslate %}{% endif %}</span>
+  {% blocktranslate with margin=model.margin|floatformat:0 low=model.low|signed high=model.high|signed p=model.p_value|floatformat:4 %}Error margin ±{{ margin }} percentage points: with 95 % confidence the change is between {{ low }} % and {{ high }} % {{ per }} (p = {{ p }}; significant below 0.05).{% endblocktranslate %}
   {% blocktranslate with first=model.first|floatformat:1 last=model.last|floatformat:1 bars=model.bars %}The fitted line goes from {{ first }} to {{ last }} {{ per }} over {{ bars }} bars.{% endblocktranslate %}
-  {% if model.clear %}<span class="text-success" data-verdict>{% blocktranslate with p=model.p_value|floatformat:4 %}<strong>Statistically significant</strong> (p = {{ p }}, below 0.05): a change this big would be unlikely without a real trend.{% endblocktranslate %}</span>
-  {% else %}<span class="text-muted" data-verdict>{% blocktranslate with p=model.p_value|floatformat:2 %}<strong>Not statistically significant</strong> (p = {{ p }}, not below 0.05): the change may be chance, the data shows no clear trend.{% endblocktranslate %}</span>{% endif %}
   {% endif %}
 </li>

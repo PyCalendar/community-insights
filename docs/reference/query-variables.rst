@@ -60,6 +60,9 @@ The column headers of the table link here. Each variable is a column, can be com
    * - :ref:`prs_commented <variable-prs_commented>`
      - number
      - Pull requests of others commented on
+   * - :ref:`prs_draft <variable-prs_draft>`
+     - number
+     - Open pull requests that are drafts
    * - :ref:`prs_merged <variable-prs_merged>`
      - number
      - Pull requests merged
@@ -235,6 +238,15 @@ prs_commented
 
 How many pull requests of others the person commented on in the time range; several comments on one count once.
 
+.. _variable-prs_draft:
+
+prs_draft
+---------
+
+*number*: Open pull requests that are drafts.
+
+Of the pull requests the person opened, those that are open and marked as a draft on GitHub, shown as a part of ``prs_total``. They are counted whether drafts count as open or not.
+
 .. _variable-prs_merged:
 
 prs_merged
@@ -251,7 +263,7 @@ prs_open
 
 *number*: Pull requests still open.
 
-Of the pull requests the person opened, those that are still open, shown as a part of ``prs_total``.
+Of the pull requests the person opened, those that are still open, shown as a part of ``prs_total``. Open drafts are not counted, as they are not ready for review; with **Count drafts as open pull requests** (``drafts=1`` in the address) they are. ``prs_draft`` counts them.
 
 .. _variable-prs_reviewed:
 

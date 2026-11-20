@@ -91,7 +91,9 @@ Comparing a time range with the time before says whether two numbers differ, not
 What the page says
 ------------------
 
-For example: *Contributions grow by 12 % per week, with an error margin of ±8 percentage points: the 95 % confidence interval is +4 % to +20 %. The fitted line goes from 21.3 to 41.9 per week over 7 bars. Statistically significant (p = 0.0040, below 0.05): a change this big would be unlikely without a real trend.*
+For example: *Contributions: a significant increase of 12 % per week. Error margin ±8 percentage points: with 95 % confidence the change is between +4 % and +20 % per week (p = 0.0040; significant below 0.05). The fitted line goes from 21.3 to 41.9 per week over 7 bars.*
+
+The verdict comes first: a significant increase, a significant decrease, or no significant trend. Then how much, how exact, and where the line goes.
 
 grow by, shrink by
     How much the count changes from one bar to the next, on average over the time range: 12 % per week means that each week has 1.12 times the contributions of the week before.
@@ -99,8 +101,8 @@ error margin, confidence interval
     How exact the 12 % is. The data cannot tell the true growth exactly; with 95 % confidence it is in the interval, here between 4 % and 20 % per week. The error margin is half the width of the interval. Few bars, few contributions or counts that jump up and down make the interval wide.
 fitted line
     The count that the trend expects for the first and for the last bar. It shows how big the change is over the whole time range: here the contributions about doubled.
-statistically significant, p-value
-    The p-value is the probability of a change this big or bigger if, in truth, the count did not change and only chance made it go up and down. Below 0.05 (5 %), the page calls the trend statistically significant: chance alone would rarely do this. Otherwise it says that the trend is not significant: the change may be chance even when it looks large, and the confidence interval includes 0 %, so the data cannot tell growth from shrinking.
+significant, p-value
+    The p-value is the probability of a change this big or bigger if, in truth, the count did not change and only chance made it go up and down. Below 0.05 (5 %), the page calls the trend significant: chance alone would rarely do this. Otherwise it says *no significant trend*: the change may be chance even when it looks large, and the confidence interval includes 0 %, so the data cannot tell growth from shrinking.
 
 *Too little data for a trend* means fewer than 4 bars, fewer than 5 contributions (or contributors) in all, or all of them in one bar. Choose a longer time range or shorter bars.
 

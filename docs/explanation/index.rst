@@ -9,6 +9,7 @@ Explanation
    responses
    response-times
    trends
+   reviews
    countries
    queries
    pipeline

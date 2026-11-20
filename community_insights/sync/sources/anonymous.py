@@ -158,6 +158,7 @@ class AnonymousSource:
             }
             if pull:
                 item["merged"] = bool(pull.get("merged_at"))
+                item["isDraft"] = bool(issue.get("draft"))
                 item["mergedBy"] = None
                 item["reviews"] = {
                     "nodes": by_pull.get(issue["number"], []),

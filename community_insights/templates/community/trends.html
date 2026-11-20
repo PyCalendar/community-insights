@@ -6,14 +6,7 @@
 
 <p class="small text-muted" data-compared>{% if before %}{% blocktranslate with since=before.0|date:"Y-m-d" until=before.1|date:"Y-m-d" %}Each number is compared with the time of the same length just before: {{ since }} to {{ until }}.{% endblocktranslate %}{% else %}{% translate "Choose a time range, such as the last 30 days, to compare it with the time just before." %}{% endif %}
 <a href="{{ links.documentation }}explanation/trends.html" target="_blank" rel="noopener">{% translate "How the trends are counted" %}</a></p>
-<form method="get" class="d-flex align-items-center gap-2 mb-2 small" data-bars>
-  {% for name, value in scope.range.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
-  {% for name, value in scope.carried.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
-  <label for="bars-by">{% translate "Bars of the charts" %}</label>
-  <select class="form-select form-select-sm w-auto" id="bars-by" name="by" data-submit-on-change>{% for value, title in bar_choices %}<option value="{{ value }}"{% if value == by %} selected{% endif %}>{{ title }}</option>{% endfor %}</select>
-  <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
-  <span class="text-muted">{% translate "Automatic: days, calendar weeks, months or years, the shortest with at most 31 bars." %}</span>
-</form>
+{% include "community/_bars_choice.html" %}
 <p class="small text-muted" data-contributions>{% blocktranslate %}A <strong>contribution</strong> is opening a pull request or an issue, a comment or a review, by a person: bots are left out. Commits, reactions, labels and closing are no contributions. <strong>Contributors</strong> are the people who made contributions; <strong>new contributors</strong> made their first one to pull requests or to issues in the time range, as far as this site has read the repositories.{% endblocktranslate %}
 <a href="{{ links.documentation }}explanation/trends.html#contributions" target="_blank" rel="noopener">{% translate "What counts" %}</a></p>
 
@@ -35,7 +28,7 @@
     {% url 'chart' scope.text 'people-'|add:trend.kind as base %}{% translate "Contributions and new contributors per day, week or month" as alt %}{% with src=base|add:chart_query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
     <h3 class="h6 mt-3">{% translate "Statistical trend" %}</h3>
     <ul class="small list-unstyled" data-models="{{ trend.kind }}">
-      {% for name, model in side.models %}{% include "community/_count_trend.html" with per=side.per %}{% endfor %}
+      {% for name, what, model in side.models %}{% include "community/_count_trend.html" with per=side.per %}{% endfor %}
     </ul>
     <h3 class="h6 mt-3">{% translate "New contributors" %}</h3>
     {% if side.newcomers %}<ul class="list-inline small mb-0" data-newcomers="{{ trend.kind }}">

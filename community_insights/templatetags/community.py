@@ -160,6 +160,22 @@ def share_formats() -> list[tuple[str, str]]:
 
 
 @register.simple_tag
+def parameters_without(request, *names) -> list[tuple[str, str]]:
+    """The parameters of the address of a page but some, for the hidden fields of a form.
+
+    Args:
+        request: The request.
+        *names: The parameters to leave out, such as ``drafts``.
+
+    Returns:
+        Each name and value, in their order.
+    """
+    return [
+        (name, value) for name, value in request.GET.lists() for value in value if name not in names
+    ]
+
+
+@register.simple_tag
 def chart_size(src: str) -> tuple[int, int]:
     """The width and the height of a chart, so the page reserves its space before it loads.
 

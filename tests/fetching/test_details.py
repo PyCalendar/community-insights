@@ -157,3 +157,25 @@ def test_the_estimate_counts_the_details(replied, signed_in, monkeypatch):
     monkeypatch.setattr("community_insights.pipeline.estimate_for", estimate_for)
     page = signed_in.get(f"/s/{replied['project'].pk}/fetch/").content.decode()
     assert '<td class="text-end">1</td>\n  </tr>' in page, "one request for PR 12"
+
+
+def test_the_details_read_the_kind_of_each_review(replied):
+    """Reviews read before their kind was known get it: changes requested, commented."""
+    pr = Item.objects.get(number=12, kind=Item.PR)
+    asked = pr.events.create(actor="maint", kind=Event.REVIEW, at="2026-03-01T11:00:00Z")
+    said = pr.events.create(actor="ann", kind=Event.REVIEW, at="2026-03-01T13:00:00Z")
+    kept = pr.events.create(
+        actor="zoe", kind=Event.REVIEW, at="2026-03-01T14:00:00Z", state="dismissed"
+    )
+    data = old_pull_request()
+    data["reviews"] = {
+        "nodes": [
+            node("maint", "2026-03-01T11:00:00Z", key="submittedAt", state="CHANGES_REQUESTED"),
+            node("ann", "2026-03-01T13:00:00Z", key="submittedAt", state="COMMENTED"),
+        ]
+    }
+    async_to_sync(Syncer(FakeClient(prs=[data])).sync_details)(replied["repository"])
+    for event in (asked, said, kept):
+        event.refresh_from_db()
+    assert (asked.state, said.state) == ("changes_requested", "commented")
+    assert kept.state == "dismissed", "a review GitHub did not list keeps its kind"

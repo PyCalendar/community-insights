@@ -1,0 +1,43 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Reviews of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="reviews" %}
+
+<p class="small text-muted" data-reviews-intro>{% blocktranslate %}A <strong>review</strong> is an approval, a request for changes or a comment given as a review of a pull request, by a person: bots and the author of the pull request are left out. <strong>Collaborators</strong> are the owners, members and collaborators of the repository; <strong>others</strong> are contributors and people without a status, as GitHub names it at the time of the review.{% endblocktranslate %}
+<a href="{{ links.documentation }}explanation/reviews.html" target="_blank" rel="noopener">{% translate "How the reviews are counted" %}</a></p>
+<p class="small text-muted" data-compared>{% if before %}{% blocktranslate with since=before.0|date:"Y-m-d" until=before.1|date:"Y-m-d" %}Each number is compared with the time of the same length just before: {{ since }} to {{ until }}.{% endblocktranslate %}{% else %}{% translate "Choose a time range, such as the last 30 days, to compare it with the time just before." %}{% endif %}</p>
+{% include "community/_bars_choice.html" %}
+
+<div class="row g-2 mb-3">
+  <div class="col-6 col-lg-3">{% blocktranslate count people=numbers.reviewers asvar label %}reviews by {{ people }} person{% plural %}reviews by {{ people }} people{% endblocktranslate %}{% include "community/_change.html" with change=numbers.total label=label name="total" part="" %}</div>
+  <div class="col-6 col-lg-3">{% translate "by collaborators" as label %}{% include "community/_change.html" with change=numbers.collaborators label=label name="collaborators" part="" %}</div>
+  <div class="col-6 col-lg-3">{% translate "by others" as label %}{% include "community/_change.html" with change=numbers.others label=label name="others" part="" %}</div>
+  <div class="col-6 col-lg-3"><div class="stat rounded p-3 h-100" data-merged-reviews><div class="number">{% if numbers.median is not None %}{{ numbers.median|floatformat:"-1" }}{% else %}-{% endif %}</div><small class="text-muted">{% translate "reviews until merged (median)" %}</small></div></div>
+</div>
+
+<div class="row g-4 chart">
+  <section class="col-12 col-lg-6" aria-labelledby="reviews-time">
+    <h2 class="h5" id="reviews-time">{% translate "Reviews over time" %}</h2>
+    {% url 'chart' scope.text 'reviews-time' as base %}{% translate "Reviews by collaborators and by others per day, week, month or year" as alt %}{% with src=base|add:chart_query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
+    <h3 class="h6 mt-3">{% translate "Statistical trend" %}</h3>
+    <ul class="small list-unstyled" data-models>
+      {% for name, what, model in models %}{% include "community/_count_trend.html" %}{% endfor %}
+    </ul>
+  </section>
+  <section class="col-12 col-lg-6" aria-labelledby="reviews-kinds">
+    <h2 class="h5" id="reviews-kinds">{% translate "Kinds of review" %}</h2>
+    {% url 'chart' scope.text 'reviews-kinds' as base %}{% translate "Approvals, requests for changes and comments, by collaborators and by others" as alt %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
+    <table class="table table-sm small mt-2" data-kinds>
+      <thead><tr><th scope="col">{% translate "Kind" %}</th><th scope="col" class="text-end">{% translate "by collaborators" %}</th><th scope="col" class="text-end">{% translate "by others" %}</th></tr></thead>
+      <tbody>{% for kind, title in kind_names %}{% with pair=numbers.kinds|get:kind %}<tr data-kind="{{ kind }}"><td>{{ title }}</td><td class="text-end">{{ pair.0 }}</td><td class="text-end">{{ pair.1 }}</td></tr>{% endwith %}{% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="col-12 col-lg-6" aria-labelledby="reviews-merge">
+    <h2 class="h5" id="reviews-merge">{% translate "Reviews until merged" %}</h2>
+    <p class="small" data-until-merged>{% if numbers.merged %}{% blocktranslate count merged=numbers.merged|length with median=numbers.median|floatformat:"-1" mean=numbers.mean|floatformat:1 without=numbers.without %}{{ merged }} pull request was merged in this time. Before the merge it had {{ median }} reviews (median), {{ mean }} on average; {{ without }} were merged without a review.{% plural %}{{ merged }} pull requests were merged in this time. Before the merge they had {{ median }} reviews in the middle (median) and {{ mean }} on average; {{ without }} were merged without a review.{% endblocktranslate %}{% else %}{% translate "No pull request was merged in this time." %}{% endif %}</p>
+    {% url 'chart' scope.text 'reviews-merge' as base %}{% translate "How many merged pull requests had 0, 1, 2 or more reviews" as alt %}{% with src=base|add:scope.query %}{% include "community/_chart.html" with alt=alt %}{% endwith %}
+  </section>
+</div>
+{% include "community/_chart_scripts.html" %}
+{% endblock %}

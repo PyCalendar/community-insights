@@ -1,0 +1,1 @@
+Open draft pull requests no longer count as open pull requests: Replies, the reply badges and the page of a person leave them out by default. The checkbox *Count drafts as open pull requests* (``drafts=1``) counts them; the links of the page keep the choice. The page of a person shows the open drafts apart, and the new query variable ``prs_draft`` counts them.

@@ -15,7 +15,9 @@ class Item(models.Model):
     """A pull request or an issue."""
 
     PR, ISSUE = "pr", "issue"
-    DETAILS = 1  # the version of the details that the page Replies needs
+    # the version of the details that the pages Replies and Reviews need: 2 with whether it
+    # is a draft and the kind of each review
+    DETAILS = 2
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="items")
     kind = models.CharField(max_length=5, choices=[(PR, "pull request"), (ISSUE, "issue")])
     number = models.IntegerField()
@@ -26,13 +28,16 @@ class Item(models.Model):
     author_is_bot = models.BooleanField(default=False)
     state = models.CharField(max_length=10)  # open, closed
     merged = models.BooleanField(default=False)
+    # a pull request marked as a draft on GitHub: not ready for review; open drafts do not
+    # count as open pull requests unless the page says so (``drafts=1``)
+    draft = models.BooleanField(default=False)
     created_at = models.DateTimeField(db_index=True)
     updated_at = models.DateTimeField()
     closed_at = models.DateTimeField(null=True, blank=True)
     merged_by = models.CharField(max_length=100, blank=True)
     closed_by = models.CharField(max_length=100, blank=True)
-    # what of the details was read: 0 nothing, DETAILS the last commits, the closer and the
-    # states of the reviews
+    # what of the details was read: 0 nothing, 1 the last commits, the closer and the
+    # approvals, 2 also whether it is a draft and the kind of each review (DETAILS)
     details = models.PositiveSmallIntegerField(default=0)
 
     if TYPE_CHECKING:  # the reverse relation, for the type checker
