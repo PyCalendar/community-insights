@@ -52,7 +52,7 @@ test("tipOf uses the tip of the list or says nobody is from there", () => {
 function page(hash) {
   const svg = fs.readFileSync(path.join(__dirname, "../../static/maps/world.svg"), "utf8");
   const dom = new JSDOM(`<!doctype html><body>
-    <div data-world-map data-src="/world.svg" data-places='[[522,66,"DE",2,"Berlin: 2 contributors"],[200,90,"US",1,"Portland: 1 contributor"]]'
+    <div data-world-map data-src="/world.svg" data-places='[[522,66,"DE",2,"Berlin: 2 contributors","Berlin"],[200,90,"US",1,"Portland: 1 contributor","Portland"]]'
       data-names='{"FR":"France","DE":"Germany","VA":"Vatican City"}' data-nobody="No contributors from {country}">
       <button data-zoom="in"></button><button data-zoom="reset"></button></div>
     <div data-map-info data-help="Point at a country"><div data-info-country>Point at a country</div><div data-info-place></div></div>
@@ -61,7 +61,7 @@ function page(hash) {
       <li data-country="VA" data-color="#0e6b0e" data-tip="1 contributor from Vatican City"></li>
     </ol>
     <p data-choose-country hidden>Choose</p>
-    <section data-country-detail="DE"></section><section data-country-detail="VA"></section>
+    <section data-country-detail="DE"><table><tbody data-city="Berlin"></tbody><tbody data-city=""></tbody></table></section><section data-country-detail="VA"></section>
   </body>`, { url: "https://example.org/s/o~r/countries/" + (hash || "") });
   const win = dom.window;
   win.fetch = () => Promise.resolve({ text: () => Promise.resolve(svg) });
@@ -173,7 +173,10 @@ test("pointing at a city shows it below its country; the circle is highlighted",
   assert.ok(doc.querySelector('path[data-country="DE"]').classList.contains("hover"));
   berlin.dispatchEvent(new win.MouseEvent("pointerdown", { clientX: 522, clientY: 66, pointerId: 1, bubbles: true }));
   berlin.dispatchEvent(new win.MouseEvent("pointerup", { clientX: 522, clientY: 66, pointerId: 1, bubbles: true }));
-  assert.equal(win.location.hash, "#country=DE", "a click on a city chooses its country");
+  assert.equal(win.location.hash, "#country=DE&city=Berlin", "a click on a city chooses its country and it");
+  win.dispatchEvent(new win.HashChangeEvent("hashchange"));
+  assert.ok(doc.querySelector('tbody[data-city="Berlin"]').classList.contains("chosen-city"));
+  assert.equal(doc.querySelector('tbody[data-city=""]').classList.contains("chosen-city"), false);
 });
 
 test("cityRadius: the area grows linearly with the contributors", () => {
@@ -190,4 +193,14 @@ test("a click chooses the country pressed, also when the release is on the whole
   germany.dispatchEvent(new win.MouseEvent("pointerdown", at));
   svg.dispatchEvent(new win.MouseEvent("pointerup", at)); // captured: the target is the map
   assert.equal(win.location.hash, "#country=DE");
+});
+
+test("the city of the address", () => {
+  assert.equal(map.parseCity("#country=IN&city=Pune"), "Pune");
+  assert.equal(map.parseCity("#country=CH&city=Z%C3%BCrich"), "Zürich");
+  assert.equal(map.parseCity("#country=IN"), null);
+  assert.equal(map.parseCity("#city=%E0%A4"), null, "a broken address is no city");
+  assert.equal(map.parseHash("#country=IN&city=Pune"), "IN");
+  assert.equal(map.hashOf("CH", "Zürich"), "country=CH&city=Z%C3%BCrich");
+  assert.equal(map.hashOf("DE", null), "country=DE");
 });

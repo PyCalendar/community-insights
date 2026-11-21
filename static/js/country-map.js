@@ -6,7 +6,8 @@
    below the map ([data-map-info]), pointing at a city also the text of the city;
    small countries are found within a few pixels of their centre, also when the
    pointer is on a neighbour. A click opens #country=XX, which shows that country
-   below the map and in the box. Without anything pointed at or chosen, the box
+   below the map and in the box; a click on a city adds &city=Name, which marks the
+   group of the city in the table of the country. Without anything pointed at or chosen, the box
    says how to use the map. The map zooms with the wheel, a pinch or the buttons,
    and moves by dragging. Without JavaScript, the list and all countries are shown. */
 (function () {
@@ -23,6 +24,18 @@
   function parseHash(hash) {
     var found = /(?:^#|&)country=([A-Za-z]{2})(?:&|$)/.exec(hash || "");
     return found ? found[1].toUpperCase() : null;
+  }
+
+  /* The city of an address part such as "#country=IN&city=Pune", or null. */
+  function parseCity(hash) {
+    var found = /(?:^#|&)city=([^&]+)/.exec(hash || "");
+    if (!found) return null;
+    try { return decodeURIComponent(found[1]); } catch (error) { return null; }
+  }
+
+  /* The address part of a country, and of a city in it if one was clicked. */
+  function hashOf(code, city) {
+    return "country=" + code + (city ? "&city=" + encodeURIComponent(city) : "");
   }
 
   /* The country to point at: a small country whose centre is within the radius
@@ -207,19 +220,35 @@
         tell(code, city);
       }
 
-      function show(code) {
+      /* The group of a city in the table of the country: marked, and scrolled to. */
+      function showCity(section, city) {
+        doc.querySelectorAll("[data-city].chosen-city").forEach(function (group) {
+          group.classList.remove("chosen-city");
+        });
+        if (!section || !city) return;
+        var group = Array.prototype.find.call(
+          section.querySelectorAll("tbody[data-city]"),
+          function (body) { return body.getAttribute("data-city") === city; }
+        );
+        if (!group) return;
+        group.classList.add("chosen-city");
+        if (group.scrollIntoView) group.scrollIntoView({ block: "nearest" });
+      }
+
+      function show(code, city) {
         chosen = code;
         tell(hovered, hoveredCity);
         Object.keys(paths).forEach(function (c) { paths[c].classList.toggle("chosen", c === code); });
         if (paths[code]) paths[code].parentNode.appendChild(paths[code]);
-        var shown = false;
+        var shown = null;
         details.forEach(function (section) {
           var match = section.getAttribute("data-country-detail") === code;
           section.hidden = !match;
-          shown = shown || match;
+          if (match) shown = section;
         });
+        showCity(shown, city);
         if (choose) {
-          choose.hidden = shown;
+          choose.hidden = Boolean(shown);
           if (!shown && code) choose.textContent = tipOf(code, tips, names, nobody);
         }
       }
@@ -231,6 +260,7 @@
         pointers[event.pointerId] = {
           x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY,
           code: codeAt(event),
+          city: cityAt(event),
         };
         dragged = false;
         if (svg.setPointerCapture) svg.setPointerCapture(event.pointerId);
@@ -267,7 +297,7 @@
         pinch = null;
         svg.classList.remove("dragging");
         if (was && !dragged && event.type === "pointerup" && was.code) {
-          win.location.hash = "country=" + was.code;
+          win.location.hash = hashOf(was.code, was.city !== null ? cities[was.city][5] : null);
         }
       }
       svg.addEventListener("pointerup", release);
@@ -287,15 +317,17 @@
           draw();
         });
       });
-      win.addEventListener("hashchange", function () { show(parseHash(win.location.hash)); });
+      win.addEventListener("hashchange", function () {
+        show(parseHash(win.location.hash), parseCity(win.location.hash));
+      });
       win.addEventListener("resize", draw);
       draw();
-      show(parseHash(win.location.hash));
+      show(parseHash(win.location.hash), parseCity(win.location.hash));
     }
   }
 
   var api = {
-    parseHash: parseHash, pick: pick, zoom: zoom, clamp: clamp, tipOf: tipOf,
+    parseHash: parseHash, parseCity: parseCity, hashOf: hashOf, pick: pick, zoom: zoom, clamp: clamp, tipOf: tipOf,
     cityRadius: cityRadius, setup: setup,
   };
   if (typeof module !== "undefined" && module.exports) {

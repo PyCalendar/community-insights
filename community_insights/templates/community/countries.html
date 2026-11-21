@@ -47,9 +47,12 @@
         <dt class="col-sm-4">{% translate "Last contribution" %}</dt><dd class="col-sm-8" data-last>{{ country.last|date:"Y-m-d" }}</dd>
         <dt class="col-sm-4">{% translate "Official languages" %}</dt><dd class="col-sm-8" data-languages>{{ row.languages|join:", "|default:"-" }}</dd>
       </dl>
-      <table class="table table-sm small">
-        <thead><tr><th scope="col">{% translate "Contributor" %}</th><th scope="col">{% translate "Location" %}</th><th scope="col">{% translate "Place on the map" %}</th></tr></thead>
-        <tbody>{% for login, location, city, region in country.people %}<tr><td><a href="{% url 'person' scope.text login %}{{ scope.query }}">{{ login }}</a></td><td>{{ location }}</td><td>{{ city|default:"-" }}</td></tr>{% endfor %}</tbody>
+      <table class="table table-sm small" data-cities>
+        <thead><tr><th scope="col">{% translate "Contributor" %}</th><th scope="col">{% translate "Location" %}</th></tr></thead>
+        {% for city, people in row.cities %}<tbody data-city="{{ city }}">
+          <tr class="table-light"><th scope="rowgroup" colspan="2">{% if city %}{{ city }}{% else %}{% translate "Without a city or place" %}{% endif %} <span class="text-muted fw-normal">{% blocktranslate count count=people|length %}{{ count }} contributor{% plural %}{{ count }} contributors{% endblocktranslate %}</span></th></tr>
+          {% for login, location in people %}<tr><td><a href="{% url 'person' scope.text login %}{{ scope.query }}">{{ login }}</a></td><td>{{ location }}</td></tr>{% endfor %}
+        </tbody>{% endfor %}
       </table>
     </section>
     {% endwith %}{% endfor %}

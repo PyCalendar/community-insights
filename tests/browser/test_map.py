@@ -202,11 +202,27 @@ def test_a_click_shows_the_country(world):
 
 
 def test_a_click_on_a_city_shows_its_country(world):
-    """Berlin is in Germany."""
+    """Berlin is in Germany: the table of Germany opens at the people of Berlin."""
     page = world.page
     page.mouse.click(*center_of(city_in(page, "DE")))
-    expect(page).to_have_url(re.compile(r"#country=DE$"))
+    expect(page).to_have_url(re.compile(r"#country=DE&city=Berlin$"))
     expect(page.locator('[data-country-detail="DE"]')).to_be_visible()
+    group = page.locator('[data-country-detail="DE"] tbody[data-city="Berlin"]')
+    expect(group).to_have_class(re.compile("chosen-city"))
+    expect(group).to_contain_text("bob")
+
+
+def test_the_people_of_a_country_by_city(world):
+    """Chicago with its three people; who has no city is last."""
+    page = world.page
+    point = screen_point(page, "US")
+    page.mouse.click(point["x"], point["y"])
+    groups = page.locator('[data-country-detail="US"] tbody[data-city]')
+    expect(groups).to_have_count(1)
+    expect(groups.first).to_contain_text("Chicago 3 contributors")
+    point = screen_point(page, "GB")
+    page.mouse.click(point["x"], point["y"])
+    expect(page.locator('[data-country-detail="GB"]')).to_contain_text("Without a city or place")
 
 
 def test_small_countries_are_found_near_their_centre(world):

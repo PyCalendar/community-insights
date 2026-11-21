@@ -200,3 +200,5 @@ code.snippet { word-break: break-all; }
 .heat-legend .legend-nobody { background: #000; }
 .heat-legend .legend-scale { display: inline-block; width: 5rem; height: .8rem; border-radius: .15rem; vertical-align: -.05rem; background: linear-gradient(to right, #0e6b0e, #ccffcc); }
 .heat-legend .place-swatch { background: var(--map-city); border: 1px solid #fff; outline: 1px solid var(--border); border-radius: 50%; }
+.chosen-city th, .chosen-city td { background: var(--surface-tint) !important; }
+.chosen-city th { border-left: .25rem solid var(--accent); }

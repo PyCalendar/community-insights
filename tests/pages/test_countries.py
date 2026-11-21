@@ -72,9 +72,9 @@ def test_the_map_and_its_data(pk, signed_in):
         re.search(r"data-places=\"([^\"]*)\"", text).group(1).replace("&quot;", '"')
     )
     assert sorted(p[2:] for p in places) == [
-        ["AT", 1, "Vienna: 1 contributor"],
-        ["DE", 1, "Berlin: 1 contributor"],
-        ["GB", 1, "Cardiff: 1 contributor"],
+        ["AT", 1, "Vienna: 1 contributor", "Vienna"],
+        ["DE", 1, "Berlin: 1 contributor", "Berlin"],
+        ["GB", 1, "Cardiff: 1 contributor", "Cardiff"],
     ]
     assert all(0 <= p[0] <= 1000 and 0 <= p[1] <= 500 for p in places)
     names = json.loads(re.search(r"data-names=\"([^\"]*)\"", text).group(1).replace("&quot;", '"'))
@@ -91,7 +91,9 @@ def test_the_details_of_a_country(pk, signed_in):
     text = page(signed_in, pk)
     wales = re.search(r'<section[^>]*data-country-detail="GB".*?</section>', text, re.S).group(0)
     assert 'id="country-GB"' in wales
-    assert "carol</a></td><td>Cardiff, Wales</td><td>Cardiff</td>" in wales
+    assert re.search(
+        r'<tbody data-city="Cardiff">.*carol</a></td><td>Cardiff, Wales</td>', wales, re.S
+    )
     assert "data-languages>English, Welsh<" in wales, "Wales is English and Welsh"
     assert "data-first>2026-01-06<" in wales and "data-last>2026-01-06<" in wales
 
@@ -207,3 +209,22 @@ def test_a_person_with_two_spellings_is_one_contributor(synced):
     Event.objects.create(item=issue, actor="Bob", kind=Event.COMMENT, at="2026-01-08T00:00:00Z")
     found = stats.country_map(Repository.objects.all(), None, None)
     assert found.contributors == 4
+
+
+def test_the_people_of_a_country_are_grouped_by_city(pk, signed_in):
+    """The biggest city first, those without a city last, each with its number."""
+    for login, location in (("eve", "Munich"), ("fay", "Munich, Germany"), ("gus", "Germany")):
+        Person.objects.update_or_create(login=login, defaults={"location": location})
+        issue = Item.objects.filter(kind=Item.ISSUE).first()
+        Event.objects.create(item=issue, actor=login, kind=Event.COMMENT, at=issue.created_at)
+    text = page(signed_in, pk)
+    germany = re.search(r'<section[^>]*data-country-detail="DE".*?</section>', text, re.S).group(0)
+    cities = re.findall(r'<tbody data-city="([^"]*)">', germany)
+    assert cities == ["Munich", "Berlin", ""], "the most first, without a city last"
+    munich = re.search(r'<tbody data-city="Munich">.*?</tbody>', germany, re.S).group(0)
+    assert "2 contributors" in munich and "eve</a>" in munich and "fay</a>" in munich
+    assert "Without a city or place" in germany
+    places = json.loads(
+        re.search(r"data-places=\"([^\"]*)\"", text).group(1).replace("&quot;", '"')
+    )
+    assert ["DE", 2, "Munich: 2 contributors", "Munich"] in [p[2:] for p in places]

@@ -43,6 +43,28 @@ def color(count: int, most: int) -> str:
     )
 
 
+def by_city(people: list[tuple[str, str, str, str]]) -> list[tuple[str, list[tuple[str, str]]]]:
+    """The contributors of a country grouped by their city, the biggest group first.
+
+    Args:
+        people: Each contributor: handle, location, city ("" for none) and region.
+
+    Returns:
+        Each city with its contributors (handle and location), by the number of contributors
+        and then by name; those without a city last, under "".
+
+    Examples:
+        >>> groups = by_city([("ann", "Pune", "Pune", ""), ("bo", "India", "", ""),
+        ...                   ("cy", "Delhi", "Delhi", ""), ("dee", "Pune, IN", "Pune", "")])
+        >>> [(city, [login for login, _ in people]) for city, people in groups]
+        [('Pune', ['ann', 'dee']), ('Delhi', ['cy']), ('', ['bo'])]
+    """
+    groups: dict[str, list[tuple[str, str]]] = {}
+    for login, location, city, _region in people:
+        groups.setdefault(city, []).append((login, location))
+    return sorted(groups.items(), key=lambda group: (not group[0], -len(group[1]), group[0]))
+
+
 def tip(count: int, name: str) -> str:
     """The tool tip of a country on the map.
 
@@ -108,9 +130,10 @@ def countries(request, scope):
                 "color": color(country.count, most),
                 "tip": tip(country.count, name),
                 "languages": [language_name(code) for code in country.languages],
+                "cities": by_city(country.people),
             }
         )
-    # each city: x, y, the code of its country, its contributors and its text
+    # each city: x, y, the code of its country, its contributors, its text and its name
     places = [
         [
             x,
@@ -123,6 +146,7 @@ def countries(request, scope):
                 count,
             )
             % {"place": city, "count": count},
+            city,
         ]
         for x, y, city, code, count in found.places
     ]
