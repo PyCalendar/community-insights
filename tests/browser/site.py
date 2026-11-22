@@ -149,8 +149,11 @@ class Site:
         self.page.fill("[name=email]", email)
         self.page.fill("[name=password1]", PASSWORD)
         self.page.fill("[name=password2]", PASSWORD)
-        self.page.locator("[name=password2]").press("Enter")
-        self.page.wait_for_url(re.compile("/dashboard/"))
+        # the button of the form, not Enter, which a page still loading can miss; then only
+        # the address: the dashboard may load its images for a while on a slow runner
+        self.page.locator("form:has([name=password2]) [type=submit]").click()
+        self.page.wait_for_url(re.compile("/dashboard/"), wait_until="commit")
+        expect(self.page.locator("body")).to_be_visible()
 
     def add_token(self) -> None:
         """Add a GitHub token on the page GitHub access."""

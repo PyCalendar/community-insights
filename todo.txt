@@ -171,6 +171,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Every statistical trend says first whether it is significant, then how much and how exact (asked)
 - [x] The country chosen on the map shows its contributors grouped by city, at the bottom, so you know who is in your city (asked): the biggest city first, those without a city last; a click on a city marks its group (#country=IN&city=Pune)
 - [x] The badge of replies says "1/1 PRs answered", not "0/1 PRs unanswered" (asked); the examples of the docs made again
+- [x] The browser tests timed out twice on the CI while signing up (waiting for the dashboard to load): the sign-up presses the button of the form and waits for the address only
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges
