@@ -66,23 +66,23 @@ These are all the badges a person can have, here for the handle ``kim``:
      - Colour
      - When
    * - .. image:: badges/replies-green.svg
-          :alt: green badge, 0/3 PRs unanswered
+          :alt: green badge, 3/3 PRs answered
      - .. _reply-badge-green:
 
        green
-     - Every pull request that counts was replied to: *0/3 PRs unanswered*.
+     - Every pull request that counts was replied to: *3/3 PRs answered*.
    * - .. image:: badges/replies-yellow.svg
-          :alt: yellow badge, 1/1 PRs unanswered
+          :alt: yellow badge, 0/1 PRs answered
      - .. _reply-badge-yellow:
 
        yellow
-     - The person has only one pull request, it counts, and it was not replied to: *1/1 PRs unanswered*. Somebody new who may not know yet how a review works.
+     - The person has only one pull request, it counts, and it was not replied to: *0/1 PRs answered*. Somebody new who may not know yet how a review works.
    * - .. image:: badges/replies-red.svg
-          :alt: red badge, 2/3 PRs unanswered
+          :alt: red badge, 1/3 PRs answered
      - .. _reply-badge-red:
 
        red
-     - Some of their pull requests that count were not replied to, here 2 of 3.
+     - Some of their pull requests that count were not replied to: here only 1 of 3 was answered, *1/3 PRs answered*.
    * - .. image:: badges/replies-grey.svg
           :alt: grey badge, no feedback yet
      - .. _reply-badge-grey:

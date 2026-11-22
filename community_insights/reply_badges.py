@@ -23,11 +23,15 @@ def reply_spec(login: str, person: ContributorReplies | None, data=None) -> Badg
         >>> reply_spec("kim", None).message
         'no feedback yet'
         >>> reply_spec("kim", ContributorReplies("kim", prs=2, with_feedback=2)).message
-        '0/2 PRs unanswered'
+        '2/2 PRs answered'
+        >>> reply_spec("kim", ContributorReplies("kim", prs=1, with_feedback=1,
+        ...                                       unanswered={"o/r": [7]})).message
+        '0/1 PRs answered'
     """
     if person is None:
         return BadgeSpec(login, "no feedback yet", NO_FEEDBACK, data or {})
-    message = f"{person.unanswered_count}/{person.with_feedback} PRs unanswered"
+    # answered of those that count, as on the page: "1/1 PRs answered" is all of them
+    message = f"{person.answered}/{person.with_feedback} PRs answered"
     return BadgeSpec(login, message, COLORS[person.status], data or {})
 
 

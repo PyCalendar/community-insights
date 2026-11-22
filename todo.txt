@@ -170,6 +170,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] A new page Reviews (changed from the page Pull requests and issues, asked): how many reviews are given, with trends; a bar chart of the three kinds of review (approved, changes requested, commented); how many reviews a pull request has until it is merged; reviews by collaborators apart from those by people from outside; a trend with its confidence (asked): /s/<scope>/reviews/ (stats/review_numbers.py, review_series.py), charts reviews-time, reviews-kinds, reviews-merge; the details read the kind of every review; docs explanation/reviews.rst
 - [x] Every statistical trend says first whether it is significant, then how much and how exact (asked)
 - [x] The country chosen on the map shows its contributors grouped by city, at the bottom, so you know who is in your city (asked): the biggest city first, those without a city last; a click on a city marks its group (#country=IN&city=Pune)
+- [x] The badge of replies says "1/1 PRs answered", not "0/1 PRs unanswered" (asked); the examples of the docs made again
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges

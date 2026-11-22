@@ -155,9 +155,9 @@ def test_the_badge_page_of_public_repositories(replied, client):
 @pytest.mark.parametrize(
     ("login", "color", "text"),
     [
-        ("ann", "#2da44e", "0/2 PRs unanswered"),
-        ("ben", "#bf8700", "1/1 PRs unanswered"),
-        ("cid", "#cf222e", "1/2 PRs unanswered"),
+        ("ann", "#2da44e", "2/2 PRs answered"),
+        ("ben", "#bf8700", "0/1 PRs answered"),
+        ("cid", "#cf222e", "1/2 PRs answered"),
         ("dot", "#9f9f9f", "no feedback yet"),
         ("nobody", "#9f9f9f", "no feedback yet"),
     ],
@@ -369,7 +369,7 @@ def test_the_json_of_a_reply_badge_has_the_row_of_the_table(replied, client):
     assert response.json() == {
         "schemaVersion": 1,
         "label": "cid",
-        "message": "1/2 PRs unanswered",
+        "message": "1/2 PRs answered",
         "color": "#cf222e",
         "login": "cid",
         "page": "http://testserver/s/o~r/replies/cid/",
