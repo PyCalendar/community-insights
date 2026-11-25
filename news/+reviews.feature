@@ -1,1 +1,0 @@
-New page Reviews: the reviews of pull requests by collaborators and by others, compared with the time before; their kinds (approved, changes requested, commented) as a chart and a table; reviews over time with a statistical trend; and how many reviews pull requests had until they were merged. The fetch now reads the kind of every review, also of pull requests read before.

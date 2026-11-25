@@ -1,1 +1,0 @@
-The contributors of a country below the map are grouped by city, the city with the most first, so you see who lives in your city. A click on a city of the map marks its group (``#country=IN&city=Pune``).

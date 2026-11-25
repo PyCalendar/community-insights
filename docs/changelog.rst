@@ -8,6 +8,43 @@ Changes are collected as small files in `news/ <https://github.com/PyCalendar/co
 
 .. towncrier release notes start
 
+0.4.0 (2026-11-25)
+------------------
+
+New features
+~~~~~~~~~~~~
+
+- A commit is no reply to feedback any more: only text of the author is, a comment or a review comment. The checkbox *Commits count as a reply* (``commits=1``) on Replies, the pages of a person and the badges counts commits again; the links of the page keep the choice.
+- A statistical trend says first whether it is significant, then how much the count changes, with its error margin and confidence interval.
+- After each deploy, the CI checks the live site as a visitor: it waits until the site runs the commit pushed, then opens the public pages and the pages of one public repository (`make check-live`).
+- Every chart keeps its space while it loads and shows a loading animation, so the text of the page does not move when the chart appears.
+- New page Countries: a map of the world shows where the contributors of a project are from, with *X/Y contributors mapped*, a tool tip per country, dots for clear cities, zoom, and the contributors, their time and the official languages of a country below the map (``#country=DE``). The places of the locations are found once with GeoNames and, for the rest, OpenStreetMap Nominatim, and kept in the database (``NOMINATIM_URL``, ``NOMINATIM_PER_FETCH``).
+- New page Languages: an estimate of the languages of the contributors from the official languages of their countries and regions (CLDR), ranked by the contributors, with the countries each comes from.
+- New page Reviews: the reviews of pull requests by collaborators and by others, compared with the time before; their kinds (approved, changes requested, commented) as a chart and a table; reviews over time with a statistical trend; and how many reviews pull requests had until they were merged. The fetch now reads the kind of every review, also of pull requests read before.
+- Open draft pull requests no longer count as open pull requests: Replies, the reply badges and the page of a person leave them out by default. The checkbox *Count drafts as open pull requests* (``drafts=1``) counts them; the links of the page keep the choice. The page of a person shows the open drafts apart, and the new query variable ``prs_draft`` counts them.
+- The badge of replies says how many pull requests were answered, such as *1/1 PRs answered*, instead of how many were not, such as *0/1 PRs unanswered*.
+- The charts of the page Trends can show days, calendar weeks, months or years; automatically the shortest with at most 31 bars. Weeks are named by their calendar week (CW, KW in German).
+- The contributors of a country below the map are grouped by city, the city with the most first, so you see who lives in your city. A click on a city of the map marks its group (``#country=IN&city=Pune``).
+- The map of the page Countries draws white lines of 2 pixels between the countries, black for countries without contributors, and dark to light green from one contributor to the most. Cities of contributors are green circles whose area grows with their contributors. A box below the map names the country and the city pointed at, the country chosen, or how to use the map; clicking a country works again in browsers that capture the pointer.
+- The new page Trends of a project shows issues on one side and pull requests on the other: how many were opened and closed, the contributions and the new contributors, each next to the time just before, with charts per day, week or month. Every statistics page can choose the last 7, 30 or 90 days with one click.
+- The page Trends shows a statistical trend of the contributions and of the contributors: how much they grow or shrink per day, week or month, the error margin with the 95 % confidence interval, and whether the trend is statistically significant. The page also says what a contribution is: commits do not count.
+- The page Trends shows the pull requests merged apart from those closed without merging, also in its chart, and sorts the new contributors by their handle.
+- The site has a robots.txt: crawlers read the start page, Explore, About and the badges, but not the statistics, which are computed on each request and link to hundreds of people. nginx serves it, so crawlers get it also when the site is busy.
+- ``make messages`` runs in Docker when GNU gettext is not installed.
+
+
+Bug fixes
+~~~~~~~~~
+
+- Browsers no longer keep old scripts and styles for a week after an update: the static files have a hash of their content in their names and are kept for a year, and files without a hash are asked for again each time.
+
+
+Documentation
+~~~~~~~~~~~~~
+
+- The README and the start page of the documentation link the example at https://insight.pycal.org, with a badge of its status that links to the status page.
+
+
 0.3.1 (2026-11-08)
 ------------------
 

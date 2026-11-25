@@ -1,1 +1,0 @@
-Browsers no longer keep old scripts and styles for a week after an update: the static files have a hash of their content in their names and are kept for a year, and files without a hash are asked for again each time.

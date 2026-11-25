@@ -1,1 +1,0 @@
-A commit is no reply to feedback any more: only text of the author is, a comment or a review comment. The checkbox *Commits count as a reply* (``commits=1``) on Replies, the pages of a person and the badges counts commits again; the links of the page keep the choice.

@@ -1,1 +1,0 @@
-The new page Trends of a project shows issues on one side and pull requests on the other: how many were opened and closed, the contributions and the new contributors, each next to the time just before, with charts per day, week or month. Every statistics page can choose the last 7, 30 or 90 days with one click.

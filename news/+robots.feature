@@ -1,1 +1,0 @@
-The site has a robots.txt: crawlers read the start page, Explore, About and the badges, but not the statistics, which are computed on each request and link to hundreds of people. nginx serves it, so crawlers get it also when the site is busy.

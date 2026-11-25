@@ -173,6 +173,8 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The badge of replies says "1/1 PRs answered", not "0/1 PRs unanswered" (asked); the examples of the docs made again
 - [x] The browser tests timed out twice on the CI while signing up (waiting for the dashboard to load): the sign-up presses the button of the form and waits for the address only
 - [x] A commit is no reply, only a text comment (comment or review comment) is; the option "Commits count as a reply" (commits=1) on the page Replies, the pages of a person and the badges counts commits again (asked)
+- [x] Whenever a feature is finished, create a release (asked, remembered): release 0.4.0 with Trends, Countries, Languages, Reviews, drafts and commits options
+- [ ] Suggestions (asked): see the section below
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges
