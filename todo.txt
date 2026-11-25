@@ -179,6 +179,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Badges of suggestions for each person and each pull request: "PR #12 | 3/5 suggestions applied"; green all applied, red one open, yellow otherwise; on /s/<scope>/badges/<login>/ next to the badge of replies (the old address redirects); the column "Suggestions addressed" of Pull requests and issues
 - [x] The drop-downs of the project and of a person have Suggestions
 - [x] Every link to GitHub has the mark of GitHub in front of it (CSS, Octicons mark-github, MIT)
+- [x] Release 0.5.0 with the suggestions
 - [ ] The estimate of a fetch does not count the requests of the review threads yet
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 

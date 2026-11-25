@@ -8,6 +8,16 @@ Changes are collected as small files in `news/ <https://github.com/PyCalendar/co
 
 .. towncrier release notes start
 
+0.5.0 (2026-11-25)
+------------------
+
+New features
+~~~~~~~~~~~~
+
+- Links to GitHub have the mark of GitHub in front of them.
+- New pages Suggestions, for a project, a person and a pull request: the code suggestions of reviews grouped by pull request, applied, open or unknown, with filters and who wrote last in the thread. New badges of suggestions for each person and each pull request, such as *PR #12 | 3/5 suggestions applied*, also in the new column *Suggestions addressed* of the pull requests and issues. The badges of a person are at ``/s/<scope>/badges/<login>/``.
+
+
 0.4.0 (2026-11-25)
 ------------------
 
