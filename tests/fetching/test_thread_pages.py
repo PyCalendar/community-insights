@@ -1,5 +1,6 @@
 """All review threads, comments and commits are read, also beyond the first page."""
 
+import pytest
 from asgiref.sync import async_to_sync
 
 from community_insights.sync.queries import (
@@ -145,3 +146,21 @@ def test_many_commits_that_applied_suggestions():
     client = PagedThreadsClient([data], {f"c{n}": ["bob"] for n in range(150)}, size=100)
     read(client)
     assert client.queries.count(commit_authors_query()) == 2
+
+
+@pytest.mark.django_db
+def test_pull_requests_read_with_the_first_pages_only_are_read_again(user):
+    """Read before all pages were read (version 0): the next fetch reads them again."""
+    from community_insights.models import Item
+    from community_insights.sync import store
+    from tests.pages.test_suggestions import suggestion_client
+
+    from ..data import read_repository
+    from ..fakes import repo
+
+    repository = store.store_repository(repo("o/r", 5))
+    read_repository(suggestion_client(), repository)
+    assert store.without_threads(repository) == []
+    assert set(Item.objects.filter(number=1).values_list("threads_version", flat=True)) == {1}
+    Item.objects.update(threads_version=0)
+    assert len(store.without_threads(repository)) == 5, "the reviewed pull requests"

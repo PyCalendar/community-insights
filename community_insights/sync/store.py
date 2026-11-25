@@ -135,7 +135,8 @@ def without_details(repository: Repository) -> list[str]:
 def without_threads(repository: Repository) -> list[str]:
     """The pull requests whose review threads were not read since they changed, by node ids.
 
-    Only those with a review by somebody: a suggestion is a review comment.
+    Only those with a review by somebody: a suggestion is a review comment. Also those read
+    with an older version of reading (``Item.THREADS``), which missed later pages.
 
     Args:
         repository: The repository.
@@ -146,7 +147,11 @@ def without_threads(repository: Repository) -> list[str]:
     reviewed = Event.objects.filter(item__repository=repository, kind=Event.REVIEW).values("item")
     return list(
         Item.objects.filter(repository=repository, kind=Item.PR, pk__in=reviewed)
-        .filter(Q(threads_updated_at__isnull=True) | ~Q(threads_updated_at=F("updated_at")))
+        .filter(
+            Q(threads_updated_at__isnull=True)
+            | ~Q(threads_updated_at=F("updated_at"))
+            | Q(threads_version__lt=Item.THREADS)
+        )
         .exclude(node_id="")
         .order_by("-updated_at")
         .values_list("node_id", flat=True)
@@ -178,7 +183,8 @@ def save_threads(repository: Repository, nodes: list[dict | None]) -> int:
         Suggestion.objects.bulk_create([Suggestion(item=item, **row) for row in found])
         stored += len(found)
         item.threads_updated_at = item.updated_at
-        item.save(update_fields=["threads_updated_at"])
+        item.threads_version = Item.THREADS
+        item.save(update_fields=["threads_updated_at", "threads_version"])
     return stored
 
 

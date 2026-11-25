@@ -19,6 +19,9 @@ class Item(models.Model):
     # the version of the details that the pages Replies and Reviews need: 2 with whether it
     # is a draft and the kind of each review
     DETAILS = 2
+    # the version of reading the review threads: 1 reads all threads, comments and commits,
+    # 0 read only the first ones; pull requests read with an older version are read again
+    THREADS = 1
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="items")
     kind = models.CharField(max_length=5, choices=[(PR, "pull request"), (ISSUE, "issue")])
     number = models.IntegerField()
@@ -43,6 +46,8 @@ class Item(models.Model):
     # the time of the last change of the pull request when its review threads were read;
     # they are read again when it changed since (not by the clock of this site)
     threads_updated_at = models.DateTimeField(null=True, blank=True)
+    # how the review threads were read (THREADS)
+    threads_version = models.PositiveSmallIntegerField(default=0)
 
     if TYPE_CHECKING:  # the reverse relation, for the type checker
         events: RelatedManager[Event]
