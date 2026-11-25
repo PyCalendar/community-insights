@@ -29,9 +29,11 @@ def by_login(found) -> dict:
 
 
 def test_who_answered_and_who_did_not(replied):
-    """ann answered, ben and fay left their only one, cid one of three."""
+    """With commits counting: ann answered, ben and fay left their only one, cid one of three."""
     found = by_login(
-        stats.replies(replied["project"].repositories.all(), Classifier(replied["user"]))
+        stats.replies(
+            replied["project"].repositories.all(), Classifier(replied["user"]), commits=True
+        )
     )
     assert found["ann"].status == "green"
     assert (found["ann"].with_feedback, found["ann"].unanswered) == (2, {})
@@ -85,9 +87,11 @@ def test_the_total_counts_every_pull_request(replied):
 
 
 def test_the_order_puts_open_pull_requests_without_reply_first(replied):
-    """An open one without reply first (bob's #12, cid's #4); then 0/1 before 1/2 before 2/2;
-    with the same share, more feedback first: 2/2 before 1/1."""
-    found = stats.replies(replied["project"].repositories.all(), Classifier(replied["user"]))
+    """With commits counting: an open one without reply first (bob's #12, cid's #4); then
+    0/1 before 1/2 before 2/2; with the same share, more feedback first: 2/2 before 1/1."""
+    found = stats.replies(
+        replied["project"].repositories.all(), Classifier(replied["user"]), commits=True
+    )
     assert [(p.login, p.answered, p.with_feedback) for p in found] == [
         ("bob", 0, 1),
         ("cid", 1, 2),
@@ -115,7 +119,7 @@ def test_the_time_range_of_the_pull_requests(replied):
 
 
 def test_the_last_commits_are_stored_and_replaced(replied):
-    """The commits of a pull request are read again with each change."""
+    """With commits counting: The commits of a pull request are read again with each change."""
     pr = Item.objects.get(number=4, kind=Item.PR)
     assert sorted(pr.commits.values_list("actor", flat=True)) == ["cid", "maint"]
     client = replies_client()
@@ -130,7 +134,9 @@ def test_the_last_commits_are_stored_and_replaced(replied):
     )
     read_repository(client, replied["repository"])
     assert list(pr.commits.values_list("actor", flat=True)) == ["cid"]
-    found = by_login(stats.replies(replied["project"].repositories.all(), Classifier(None)))
+    found = by_login(
+        stats.replies(replied["project"].repositories.all(), Classifier(None), commits=True)
+    )
     assert found["cid"].status == "green", "the new commit answers the comment"
 
 
@@ -147,8 +153,11 @@ def test_a_merged_pull_request_needs_no_answer(world):
 
 
 def test_merged_pull_requests_are_left_out(replied):
-    """ann did not answer the comment on PR 13, but it was merged: she stays green."""
-    ann = by_login(stats.replies(replied["project"].repositories.all(), Classifier(None)))["ann"]
+    """With commits counting: ann did not answer the comment on PR 13, but it was merged:
+    she stays green."""
+    ann = by_login(
+        stats.replies(replied["project"].repositories.all(), Classifier(None), commits=True)
+    )["ann"]
     assert (ann.prs, ann.with_feedback, ann.status, ann.merged) == (2, 2, "green", 1)
 
 
@@ -186,3 +195,15 @@ def test_a_comment_after_an_approval_needs_a_reply(replied):
     read_repository(client, replied["repository"])
     gil = stats.pull_replies(replied["project"].repositories.all(), login="gil")[0]
     assert gil.first_feedback.hour == 14 and gil.answered is False, "the commit came before"
+
+
+def test_by_default_only_comments_are_replies(replied):
+    """ann answered #1 only by a commit, cid #6 only by a commit: by default, no answers."""
+    repositories = replied["project"].repositories.all()
+    found = by_login(stats.replies(repositories, Classifier(replied["user"])))
+    assert (found["ann"].answered, found["ann"].with_feedback, found["ann"].status) == (1, 2, "red")
+    assert found["ann"].unanswered == {"o/r": [1]}, "#2 was answered by a comment"
+    assert (found["cid"].answered, found["cid"].unanswered) == (0, {"o/r": [4, 6]})
+    assert found["rae"].answered == 1, "a review comment of the author is text: a reply"
+    counted = by_login(stats.replies(repositories, Classifier(replied["user"]), commits=True))
+    assert counted["ann"].status == "green" and counted["cid"].answered == 1

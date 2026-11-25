@@ -42,7 +42,7 @@ def text(client, path: str) -> str:
 def test_the_checkbox_on_replies(draft, client):
     """Off by default; on with drafts=1; the other parameters of the page stay."""
     page = text(client, "/s/o~r/replies/?last=30&order=person")
-    box = re.search(r"<form[^>]*data-drafts>.*?</form>", page, re.S).group(0)
+    box = re.search(r"<form[^>]*data-reply-options>.*?</form>", page, re.S).group(0)
     assert 'name="drafts" value="1" data-submit-on-change' in box, "not checked"
     assert '<input type="hidden" name="last" value="30">' in box
     assert '<input type="hidden" name="order" value="person">' in box
@@ -54,8 +54,8 @@ def test_the_checkbox_on_replies(draft, client):
 def test_the_draft_is_left_out_of_the_replies(draft, client):
     """The pull request of the draft is in the table only with drafts=1."""
     person = f"/s/o~r/replies/{draft.author}/"
-    assert f"pull/{draft.number}" not in text(client, person)
-    assert f"pull/{draft.number}" in text(client, person + "?drafts=1")
+    assert f'pull/{draft.number}"' not in text(client, person)
+    assert f'pull/{draft.number}"' in text(client, person + "?drafts=1")
 
 
 def test_links_carry_the_choice(draft, client):

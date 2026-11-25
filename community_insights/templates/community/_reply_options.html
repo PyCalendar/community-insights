@@ -1,0 +1,14 @@
+{% load i18n community %}{# What counts on the replies of pull requests: drafts=1 and commits=1, which links carry (Scope.carried); the other parameters of the page stay. #}
+<form method="get" class="small mb-2" data-reply-options>
+  {% parameters_without request "drafts" "commits" as others %}{% for name, value in others %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <div class="form-check form-check-inline me-1" data-drafts>
+    <input class="form-check-input" type="checkbox" id="drafts-toggle" name="drafts" value="1"{% if scope.drafts %} checked{% endif %} data-submit-on-change>
+    <label class="form-check-label" for="drafts-toggle">{% translate "Count drafts as open pull requests" %}</label>
+  </div>
+  <div class="form-check form-check-inline me-1" data-commits>
+    <input class="form-check-input" type="checkbox" id="commits-toggle" name="commits" value="1"{% if scope.commits %} checked{% endif %} data-submit-on-change>
+    <label class="form-check-label" for="commits-toggle">{% translate "Commits count as a reply" %}</label>
+  </div>
+  <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
+  <div class="text-muted">{% translate "By default, a draft is not ready for review and is left out, and only a comment of the author is a reply, not a commit. Both choices also apply to the badges." %}</div>
+</form>

@@ -51,8 +51,8 @@ def test_details_are_read_for_old_pull_requests(replied):
     assert list(pr.commits.values_list("actor", flat=True)) == ["bob"]
     assert event.state == Event.APPROVED, "the approval is marked"
     assert stats.commits_unread(replied["project"].repositories.all()) == 0
-    bob = stats.pull_replies(replied["project"].repositories.all(), login="bob")[0]
-    assert bob.answered, "the commit after the comment replies to it"
+    bob = stats.pull_replies(replied["project"].repositories.all(), login="bob", commits=True)[0]
+    assert bob.answered, "with commits counting, the commit after the comment replies to it"
 
 
 def test_a_pull_request_github_no_longer_has(replied):

@@ -22,6 +22,7 @@ from .access import add_grant
 from .scope import (
     PROJECTS,
     Scope,
+    commits_of,
     drafts_of,
     public_repositories,
     scope_of,
@@ -103,25 +104,27 @@ def badge_path(scope: Scope, login: str, extension: str = "svg") -> str | None:
     return None
 
 
-def with_drafts(path: str | None, drafts: bool) -> str | None:
-    """The address of a badge that counts open drafts if the page does.
+def with_options(path: str | None, drafts: bool, commits: bool) -> str | None:
+    """The address of a badge, or of a page, that counts like the page: drafts and commits.
 
     Args:
-        path: The address of the badge; None for none.
+        path: The address; None for none.
         drafts: Whether open drafts count.
+        commits: Whether commits are replies.
 
     Returns:
-        The address with ``?drafts=1`` if they count; None without a badge.
+        The address with ``?drafts=1`` and ``commits=1`` as they apply; None without one.
 
     Examples:
-        >>> with_drafts("/badge/x.svg", True), with_drafts("/badge/x.svg", False)
-        ('/badge/x.svg?drafts=1', '/badge/x.svg')
-        >>> with_drafts(None, True) is None
+        >>> with_options("/badge/x.svg", True, True), with_options("/badge/x.svg", False, False)
+        ('/badge/x.svg?drafts=1&commits=1', '/badge/x.svg')
+        >>> with_options(None, True, False) is None
         True
     """
-    if path is None or not drafts:
+    options = [name for name, on in (("drafts", drafts), ("commits", commits)) if on]
+    if path is None or not options:
         return path
-    return f"{path}?drafts=1"
+    return path + "?" + "&".join(f"{name}=1" for name in options)
 
 
 def sorting(request, scope: Scope, keys: list[str]) -> list[tuple]:
@@ -177,7 +180,12 @@ def replies(request, scope):
         use=page_use(scope),
     )
     pulls = stats.pull_replies(
-        scope.repositories, scope.classifier(), scope.since, scope.until, drafts=scope.drafts
+        scope.repositories,
+        scope.classifier(),
+        scope.since,
+        scope.until,
+        drafts=scope.drafts,
+        commits=scope.commits,
     )
     keys = stats.sort_order(
         word for value in request.GET.getlist("order") for word in value.replace(",", " ").split()
@@ -192,7 +200,8 @@ def replies(request, scope):
             "authors": len({pull.author.lower() for pull in pulls}),
             "sorting": sorting(request, scope, keys),
             "fetched": fetched,
-            "commits_unread": stats.commits_unread(scope.repositories),
+            # only where commits count: without them a reply by a commit is not seen
+            "commits_unread": stats.commits_unread(scope.repositories) if scope.commits else 0,
             "counts": {
                 status: sum(1 for p in people if p.status == status)
                 for status in (GREEN, YELLOW, RED)
@@ -231,6 +240,7 @@ def person_replies(request, scope, login):
         scope.until,
         login=login,
         drafts=scope.drafts,
+        commits=scope.commits,
     )
     found = stats.replies(
         scope.repositories,
@@ -239,6 +249,7 @@ def person_replies(request, scope, login):
         scope.until,
         login=login,
         drafts=scope.drafts,
+        commits=scope.commits,
     )
     return stats_page(
         request,
@@ -251,7 +262,7 @@ def person_replies(request, scope, login):
             .first(),
             "person": found[0] if found else None,
             "pulls": sorted(pulls, key=stats.pull_order),
-            "preview": with_drafts(badge_path(scope, login), scope.drafts),
+            "preview": with_options(badge_path(scope, login), scope.drafts, scope.commits),
             "fetched": fetched,
         },
     )
@@ -275,8 +286,8 @@ def reply_badge_share(request, scope, login):
     )
     image_format = "png" if request.GET.get("format") == "png" else "svg"
     # the badge counts open drafts like the page, if it says so
-    path = with_drafts(badge_path(scope, login, image_format), scope.drafts)
-    json_path = with_drafts(badge_path(scope, login, "json"), scope.drafts)
+    path = with_options(badge_path(scope, login, image_format), scope.drafts, scope.commits)
+    json_path = with_options(badge_path(scope, login, "json"), scope.drafts, scope.commits)
     public = public_badge_scope(scope)
     signed_in = request.user.is_authenticated
     if request.method == "POST" and public and signed_in:
@@ -296,7 +307,13 @@ def reply_badge_share(request, scope, login):
             show_error(request, error)
         return redirect(request.get_full_path())
     use = Use(TokenGrant.BADGES, public or "", login)
-    found = stats.replies(scope.repositories, scope.classifier(), login=login, drafts=scope.drafts)
+    found = stats.replies(
+        scope.repositories,
+        scope.classifier(),
+        login=login,
+        drafts=scope.drafts,
+        commits=scope.commits,
+    )
     return stats_page(
         request,
         scope,
@@ -374,6 +391,7 @@ def reply_badge_of(
     extension="svg",
     page=None,
     drafts: bool = False,
+    commits: bool = False,
 ) -> HttpResponse:
     """The badge of whether a person answered feedback, after fetching what changed.
 
@@ -386,6 +404,7 @@ def reply_badge_of(
         extension: ``svg``, ``png``, or ``json`` for its spec with the row of the table.
         page: The address of the replies of the person, for the JSON; None if not public.
         drafts: Whether open drafts count (``drafts=1`` in the address of the badge).
+        commits: Whether commits are replies (``commits=1`` in the address of the badge).
 
     Returns:
         The badge: green, yellow or red; grey without feedback.
@@ -398,7 +417,9 @@ def reply_badge_of(
         timeout=settings.AUTO_FETCH_BADGE_TIMEOUT,
         use=use,
     )
-    found = stats.replies(repositories, Classifier(user), login=login, drafts=drafts)
+    found = stats.replies(
+        repositories, Classifier(user), login=login, drafts=drafts, commits=commits
+    )
     person = found[0] if found else None
     spec = reply_spec(login, person, reply_data(login, person, page))
     return spec.response(extension, BADGE_KEPT)
@@ -452,6 +473,7 @@ def reply_badge(request, token, login, extension="svg"):
         request.path,
         extension=extension,
         drafts=drafts_of(request.GET),
+        commits=commits_of(request.GET),
     )
 
 
@@ -480,8 +502,12 @@ def public_reply_badge(request, scope, login, extension="svg"):
         use=Use(TokenGrant.BADGES, scope, login),
         extension=extension,
         page=request.build_absolute_uri(
-            reverse("person_replies", args=[scope, login])
-            + ("?drafts=1" if drafts_of(request.GET) else "")
+            with_options(
+                reverse("person_replies", args=[scope, login]),
+                drafts_of(request.GET),
+                commits_of(request.GET),
+            )
         ),
         drafts=drafts_of(request.GET),
+        commits=commits_of(request.GET),
     )

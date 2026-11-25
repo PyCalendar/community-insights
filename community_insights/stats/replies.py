@@ -77,12 +77,13 @@ def order(person: ContributorReplies, keys: list[str] | None = None) -> tuple:
 
 
 def answered(author: str, feedback: list[datetime], own: list[datetime]) -> bool | None:
-    """Whether the author answered: did something after the first feedback.
+    """Whether the author answered: wrote something after the first feedback.
 
     Args:
         author: The login of the author.
         feedback: When others commented or reviewed.
-        own: When the author commented, reviewed or committed.
+        own: When the author commented or wrote a review comment, and committed if commits
+            count.
 
     Returns:
         None without feedback; otherwise whether something of the author came after the first.
@@ -109,13 +110,14 @@ def pull_replies(
     until: datetime | None = None,
     login: str | None = None,
     drafts: bool = False,
+    commits: bool = False,
 ) -> list[PullReply]:
     """The pull requests and whether their authors answered the feedback on them.
 
     Feedback is a response (see ``responses.responses_to``) that needs a reply, and not of a
     bot (see ``responses.bot_test``): a comment or a review that does not approve. The author
-    answers with a comment, a review or a commit after the first feedback. Pull requests
-    opened by bots are left out.
+    answers with a comment or a review comment after the first feedback, and with a commit
+    if commits count. Pull requests opened by bots are left out.
 
     Args:
         repositories: The repositories.
@@ -125,6 +127,8 @@ def pull_replies(
         login: Only this author, in any case; None for everybody.
         drafts: Whether open drafts count; by default they are left out, as their authors
             are not done yet and need not answer.
+        commits: Whether a commit of the author after the feedback is a reply; by default
+            only text is: a comment or a review comment.
 
     Returns:
         The pull requests, also the merged ones, by repository and number.
@@ -151,18 +155,18 @@ def pull_replies(
     )
     ids = [row[0] for row in rows]
     responses = responses_to(items)
+    # a reply is text: a comment, or a review comment (an answer on a line of code, which
+    # GitHub keeps as a review of the author); a commit only if the page says so
     events: dict[int, list] = defaultdict(list)
-    for item, actor, at in (
-        Event.objects.filter(item__in=ids)
-        .exclude(kind=Event.OPENED)
-        .values_list("item", "actor", "at")
-    ):
+    for item, actor, at in Event.objects.filter(
+        item__in=ids, kind__in=[Event.COMMENT, Event.REVIEW]
+    ).values_list("item", "actor", "at"):
         events[item].append((actor.lower(), at))
-    commits: dict[int, list] = defaultdict(list)
-    for item, actor, at in ItemCommit.objects.filter(item__in=ids).values_list(
-        "item", "actor", "at"
-    ):
-        commits[item].append((actor.lower(), at))
+    if commits:
+        for item, actor, at in ItemCommit.objects.filter(item__in=ids).values_list(
+            "item", "actor", "at"
+        ):
+            events[item].append((actor.lower(), at))
     found = []
     for pk, author, repository, number, title, state, merged, closed_by, created in rows:
         key = author.lower()
@@ -170,7 +174,6 @@ def pull_replies(
             r.at for r in responses[pk] if r.needs_reply and not is_bot(r)
         ]
         own = [at for actor, at in events[pk] if actor == key]
-        own += [at for actor, at in commits[pk] if actor == key]
         found.append(
             PullReply(
                 author=author,
@@ -195,6 +198,7 @@ def replies(
     until: datetime | None = None,
     login: str | None = None,
     drafts: bool = False,
+    commits: bool = False,
 ) -> list[ContributorReplies]:
     """The authors of pull requests who got feedback, and whether they answered it.
 
@@ -209,12 +213,13 @@ def replies(
         until: Its end, excluded; None for now.
         login: Only this author, in any case; None for everybody.
         drafts: Whether open drafts count (see ``pull_replies``).
+        commits: Whether commits of the author are replies (see ``pull_replies``).
 
     Returns:
         The authors with feedback on a pull request that was not merged, in their order
         (see ``order``).
     """
-    return replies_of(pull_replies(repositories, classifier, since, until, login, drafts))
+    return replies_of(pull_replies(repositories, classifier, since, until, login, drafts, commits))
 
 
 def replies_of(pulls: list[PullReply], keys: list[str] | None = None) -> list[ContributorReplies]:

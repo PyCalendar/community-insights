@@ -8,7 +8,7 @@
   {% if preview %}<a href="{% url 'reply_badge_share' scope.text login %}{{ scope.query }}" title="{% translate "The badge to copy" %}"><img src="{{ preview }}" alt="{% translate "The badge to copy" %}"></a>{% endif %}
   <a class="ms-auto" href="{% url 'person' scope.text login %}{{ scope.query }}">{% translate "Contributions" %}</a>
 </div>
-{% include "community/_drafts_toggle.html" %}
+{% include "community/_reply_options.html" %}
 {% include "community/_data.html" %}
 {% if fetched %}<p class="small text-success">{% translate "What changed on GitHub was read just now." %}</p>{% endif %}
 <p class="small text-muted">{% translate "Merged pull requests and those the author closed need no reply and do not count." %} <a href="{{ links.documentation }}reference/replies.html#which-pull-requests-count">{% translate "Which pull requests count" %}</a></p>

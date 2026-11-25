@@ -19,7 +19,11 @@ A pull request of the time range (by the day it was opened) counts for the repli
 
 So the pull requests that count are the open ones and those somebody else closed without merging them, each with feedback.
 
-A pull request that counts is **replied to** when, after its first feedback, its author commented, reviewed or pushed a commit to it. A commit of somebody else, such as a maintainer who fixes the pull request, is no reply of the author. Only the last 10 commits of each pull request are read; the time of a commit is the time it was committed, which rewriting the history changes.
+A pull request that counts is **replied to** when, after its first feedback, its author wrote text on it: a comment, or a review comment, such as an answer on a line of code (GitHub keeps it as a review of the author). A commit is no reply by default: it may change the code without answering the question.
+
+.. _commits-as-replies:
+
+**Commits count as a reply**, a checkbox on **Replies**, on the pages of a person and on the page of a badge, makes a commit of the author after the feedback a reply, too (``commits=1`` in the address). The links of the page keep it, and the badges count the same: ``/badge/s/<scope>/replies/<login>.svg?commits=1``. A commit of somebody else, such as a maintainer who fixes the pull request, is never a reply of the author. Only the last 10 commits of each pull request are read; the time of a commit is the time it was committed, which rewriting the history changes.
 
 Who closed a pull request is read from GitHub. For a pull request read before the closers were read, it is unknown: such a closed pull request counts as closed by somebody else until it is read again.
 
@@ -62,7 +66,7 @@ The badge of each person is **green** if every pull request that counts was repl
 
 The label of a row opens the replies of the person (``/s/<scope>/replies/<login>/``): all their pull requests of the time range with their titles, those without a reply first, and why the others need no reply. Every row also links to the page of the person and to their pull requests (``/s/<scope>/people/<login>/items/?kind=pr``); that page also shows their issues (``kind=issue``) or both (no ``kind``).
 
-Pull requests read before commits and closers were read have neither: a reply by a commit is not seen there, and the page says how many there are. **Update** reads them, with what changed: it always reads all the pages need.
+Pull requests read before commits and closers were read have neither: with commits counting, a reply by a commit is not seen there, and the page says how many there are. **Update** reads them, with what changed: it always reads all the pages need.
 
 Badges
 ======

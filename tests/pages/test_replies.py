@@ -32,7 +32,9 @@ def row(page: str, login: str) -> str:
     Returns:
         The HTML of the row.
     """
-    start = page.index(f'/people/{login}/"')
+    found = re.search(rf'/people/{re.escape(login)}/(\?[^"]*)?"', page)
+    assert found, login
+    start = found.start()
     return page[page.rindex("<tr", 0, start) : page.index("</tr>", start)]
 
 
@@ -55,7 +57,7 @@ def test_the_columns_of_the_page(replied, signed_in):
 
 def test_the_page_lists_open_pull_requests_without_reply_first(replied, signed_in):
     """bob and cid have an open one without reply; then the smallest share of answers."""
-    page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/"))
+    page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/?commits=1"))
     assert re.findall(r'data-status="(\w+)"', page) == [
         "yellow",
         "red",
@@ -69,7 +71,7 @@ def test_the_page_lists_open_pull_requests_without_reply_first(replied, signed_i
 
 def test_who_did_not_answer_has_the_details(replied, signed_in):
     """cid: one of two without reply, linked on GitHub, grouped by the repository."""
-    page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/"))
+    page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/?commits=1"))
     cid = row(page, "cid")
     assert 'href="https://github.com/o/r/pull/4">#4</a>' in cid
     assert "o/r" in cid and "1/2" in cid
@@ -83,7 +85,7 @@ def test_who_did_not_answer_has_the_details(replied, signed_in):
 
 def test_who_answered_has_no_details(replied, signed_in):
     """ann answered everything: no list, no closed ones; the links stay."""
-    ann = row(page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/")), "ann")
+    ann = row(page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/?commits=1")), "ann")
     assert "pull/" not in ann
     assert ann.count(">-</td>") == 3
     assert "/people/ann/items/?kind=pr" in ann and "answered" in ann
@@ -110,7 +112,7 @@ def test_projects_need_a_sign_in(replied, client):
 
 def test_commits_not_read_are_named(replied, signed_in):
     """A pull request read before commits were read is counted on the page."""
-    page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/"))
+    page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/?commits=1"))
     assert "1 pull request was read before commits were read" in page
 
 
@@ -164,7 +166,7 @@ def test_the_badge_page_of_public_repositories(replied, client):
 )
 def test_the_colours_of_the_badges(replied, client, login, color, text):
     """Green, yellow, red, or grey without feedback; for everybody."""
-    response = client.get(f"/badge/s/o~r/replies/{login}.svg")
+    response = client.get(f"/badge/s/o~r/replies/{login}.svg?commits=1")
     assert response["Content-Type"] == "image/svg+xml"
     svg = response.content.decode()
     assert color in svg and f"<title>{login}: {text}</title>" in svg
@@ -214,14 +216,14 @@ def test_the_badge_page_names_the_person(replied, client):
 
 def test_the_replies_of_one_person(replied, client):
     """cid's pull requests: the open one without reply first, with their titles."""
-    page = page_of(client.get("/s/o~r/replies/cid/"))
+    page = page_of(client.get("/s/o~r/replies/cid/?commits=1"))
     table = page[page.index('id="pulls-table"') :]
     assert re.findall(r'data-replied="(\w+)"', table) == ["no", "yes", "none"]
     assert table.index("o/r#4") < table.index("o/r#6") < table.index("o/r#5")
     assert "Item 4" in table, "the title"
     assert "1 of 2 pull requests with feedback were replied to; 0 merged." in page
-    assert 'href="/s/o~r/replies/cid/badge/"' in page, "the badge leads to its code"
-    assert '<img src="/badge/s/o~r/replies/cid.svg"' in page
+    assert 'href="/s/o~r/replies/cid/badge/?commits=1"' in page, "the badge leads to its code"
+    assert '<img src="/badge/s/o~r/replies/cid.svg?commits=1"' in page
     assert ">Update</button>" in page
 
 
@@ -282,18 +284,18 @@ def logins(page: str) -> list[str]:
         Their handles.
     """
     table = page[page.index('id="replies-table"') :]
-    return re.findall(r'/people/([^/]+)/"', table)
+    return re.findall(r'/people/([^/]+)/(?:\?[^"]*)?"', table)
 
 
 def test_the_order_of_the_table_can_be_chosen(replied, client):
     """order names the keys, the first counts most; the arrows move a key."""
-    by_default = logins(page_of(client.get("/s/o~r/replies/")))
+    by_default = logins(page_of(client.get("/s/o~r/replies/?commits=1")))
     assert by_default[:2] == ["bob", "cid"], "an open pull request without reply first"
-    by_person = logins(page_of(client.get("/s/o~r/replies/?order=person")))
+    by_person = logins(page_of(client.get("/s/o~r/replies/?commits=1&order=person")))
     assert by_person == sorted(by_default, key=str.lower)
-    dragged = logins(page_of(client.get("/s/o~r/replies/?order=badge&order=person")))
+    dragged = logins(page_of(client.get("/s/o~r/replies/?commits=1&order=badge&order=person")))
     assert dragged[0] == "cid", "red first, as Sortable.js sends one field per key"
-    assert logins(page_of(client.get("/s/o~r/replies/?order=nonsense"))) == by_default
+    assert logins(page_of(client.get("/s/o~r/replies/?commits=1&order=nonsense"))) == by_default
 
 
 def test_the_order_field_moves_keys_with_arrows(replied, client):
@@ -364,7 +366,7 @@ def test_a_reply_badge_in_each_format(replied, client, extension, content_type, 
 
 def test_the_json_of_a_reply_badge_has_the_row_of_the_table(replied, client):
     """The spec of the badge for shields.io and the numbers of the table."""
-    response = client.get("/badge/s/o~r/replies/cid.json")
+    response = client.get("/badge/s/o~r/replies/cid.json?commits=1")
     assert response["Access-Control-Allow-Origin"] == "*"
     assert response.json() == {
         "schemaVersion": 1,
@@ -372,7 +374,7 @@ def test_the_json_of_a_reply_badge_has_the_row_of_the_table(replied, client):
         "message": "1/2 PRs answered",
         "color": "#cf222e",
         "login": "cid",
-        "page": "http://testserver/s/o~r/replies/cid/",
+        "page": "http://testserver/s/o~r/replies/cid/?commits=1",
         "status": "red",
         "pull_requests": 3,
         "merged": 0,
@@ -384,7 +386,7 @@ def test_the_json_of_a_reply_badge_has_the_row_of_the_table(replied, client):
         "not_replied_closed": {},
         "closed_by_others": 0,
     }
-    nobody = client.get("/badge/s/o~r/replies/nobody.json").json()
+    nobody = client.get("/badge/s/o~r/replies/nobody.json?commits=1").json()
     assert (nobody["message"], nobody["status"]) == ("no feedback yet", None)
 
 
@@ -416,7 +418,7 @@ def test_the_badge_page_switches_formats_and_links_the_json(replied, client):
 )
 def test_the_badge_page_links_the_description_of_its_colour(replied, client, login, status):
     """The documentation explains each colour, also grey for somebody not on the page."""
-    page = page_of(client.get(f"/s/o~r/replies/{login}/badge/"))
+    page = page_of(client.get(f"/s/o~r/replies/{login}/badge/?commits=1"))
     assert f"reference/badges.html#reply-badge-{status}" in page
     assert "reference/badges.html#reply-badges" in page
 

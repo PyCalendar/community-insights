@@ -119,7 +119,38 @@ def drafts_of(parameters) -> bool:
         >>> drafts_of({"drafts": "1"}), drafts_of({"drafts": "on"}), drafts_of({})
         (True, True, False)
     """
-    return (parameters.get("drafts") or "").strip().lower() in ("1", "on", "yes", "true")
+    return flag_of(parameters, "drafts")
+
+
+def commits_of(parameters) -> bool:
+    """Whether a commit of the author is a reply to feedback: the parameter ``commits``.
+
+    By default only text is a reply: a comment or a review comment.
+
+    Args:
+        parameters: The parameters of the address.
+
+    Returns:
+        True for ``commits=1`` (also ``on``, ``yes``, ``true``).
+
+    Examples:
+        >>> commits_of({"commits": "1"}), commits_of({})
+        (True, False)
+    """
+    return flag_of(parameters, "commits")
+
+
+def flag_of(parameters, name: str) -> bool:
+    """Whether a checkbox of the address is on.
+
+    Args:
+        parameters: The parameters of the address.
+        name: The parameter, such as ``drafts``.
+
+    Returns:
+        True for ``1``, ``on``, ``yes`` or ``true``.
+    """
+    return (parameters.get(name) or "").strip().lower() in ("1", "on", "yes", "true")
 
 
 PROJECTS = re.compile(r"^(all|\d+(-\d+)*)$")
@@ -157,6 +188,8 @@ class Scope:
         self.chosen = classes_by_ids(named) if named else None
         # open drafts count as open pull requests (``drafts=1``); links carry it
         self.drafts = drafts_of(given)
+        # commits of the author are replies to feedback (``commits=1``); links carry it
+        self.commits = commits_of(given)
         self.text = text
         self.user = user
         self.public = not PROJECTS.match(text)
@@ -195,11 +228,11 @@ class Scope:
 
     @functools.cached_property
     def carried(self) -> dict[str, str]:
-        """The classes and the drafts that links carry, so a shared address shows the same.
+        """The classes and the options that links carry, so a shared address shows the same.
 
         The classes of the address, or the own ones when they differ from the default ones;
-        ``drafts=1`` when open drafts count as open pull requests. Read once per page: a page
-        has hundreds of links.
+        ``drafts=1`` when open drafts count as open pull requests, ``commits=1`` when commits
+        are replies. Read once per page: a page has hundreds of links.
         """
         found = {}
         if self.chosen is not None:
@@ -208,6 +241,8 @@ class Scope:
             found["classes"] = " ".join(c.ident for c in class_list(self.user))
         if self.drafts:
             found["drafts"] = "1"
+        if self.commits:
+            found["commits"] = "1"
         return found
 
     @property
