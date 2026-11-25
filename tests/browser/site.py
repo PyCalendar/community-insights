@@ -4,6 +4,7 @@ import re
 from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
 from tests.fakes import item, node, repo
 
@@ -100,8 +101,16 @@ class Site:
         Args:
             title: The title of the page, such as ``Contributors``.
         """
-        self.page.get_by_role("button", name="Pages of the project").click()
-        self.page.locator(".dropdown-menu.show").get_by_role("link", name=title, exact=True).click()
+        self.page.wait_for_load_state("load")
+        link = self.page.locator(".dropdown-menu.show").get_by_role("link", name=title, exact=True)
+        for _ in range(3):  # a menu opened while the page changed closes with it
+            self.page.get_by_role("button", name="Pages of the project").click()
+            try:
+                link.wait_for(timeout=5000)
+                break
+            except PlaywrightTimeout:
+                continue
+        link.click()
         self.page.wait_for_load_state("load")
 
     def click_in_menu(self, text: str) -> None:

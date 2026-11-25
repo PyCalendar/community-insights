@@ -81,6 +81,7 @@ def test_dark_and_light_pages_with_charts_in_the_same_colours(read):
     read.charts_are("dark")
     read.open("/dashboard/")
     read.page.get_by_role("link", name="o/r", exact=True).first.click()
+    read.page.wait_for_url(re.compile(r"/s/\d+/"))  # the project, not the menu of its card
     read.open_page("Response times")
     read.page_is("dark")
     read.charts_are("dark")
