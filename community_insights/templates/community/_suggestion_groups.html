@@ -1,9 +1,9 @@
-{% load i18n community %}{# The suggestions of a page ("page" of stats.PullSuggestions), grouped by pull request: a summary that opens to the list. "open_all" opens every group. #}
+{% load i18n community %}{# The suggestions of a page ("page" of stats.PullSuggestions), grouped by pull request: a summary that opens to the list. "open_all" opens every group. The columns: pull request, when, author, suggester, status (with why, unless the thread was resolved), who resolved the thread, and who of author and suggester wrote last, by their handles. #}
 {% if page.object_list %}
 {% for group in page %}{% with item=group.item %}
 <details class="suggestion-group mb-2" data-pr="{{ item.repository.full_name }}#{{ item.number }}"{% if open_all %} open{% endif %}>
   <summary class="d-flex flex-wrap align-items-center gap-2">
-    <a href="{% url 'pull_suggestions' scope.text item.repository.full_name|tilde item.number %}{{ scope.query }}" class="text-decoration-none" data-pr-badge>{% include "community/_mini_badge.html" with summary=group.summary label=item.number|pr_label %}</a>
+    <a href="{% url 'pull_suggestions' scope.text item.repository.full_name|tilde item.number %}{{ scope.query }}" class="text-decoration-none" data-pr-badge>{% include "community/_mini_badge.html" with summary=group.summary label=item.number|pr_label short=True %}</a>
     <a href="https://github.com/{{ item.repository.full_name }}/pull/{{ item.number }}">{{ item.repository.full_name }}#{{ item.number }}</a>
     <span>{{ item.title }}</span>
     <span class="text-muted small">{% translate "by" %} <a href="{% url 'person_suggestions' scope.text item.author %}{{ scope.query }}">{{ item.author }}</a></span>
@@ -16,6 +16,7 @@
       <th scope="col">{% translate "Author of the pull request" %}</th>
       <th scope="col">{% translate "Suggested by" %}</th>
       <th scope="col">{% translate "Status" %}</th>
+      <th scope="col">{% translate "Resolved by" %}</th>
       <th scope="col">{% translate "Last in the thread" %}</th>
     </tr></thead>
     <tbody>{% for s in group.suggestions %}<tr data-status="{{ s.status }}">
@@ -23,17 +24,13 @@
       <td class="text-nowrap"><a href="{{ s.url }}"><time datetime="{{ s.created_at|date:'c' }}">{{ s.created_at|date:"Y-m-d H:i" }}</time></a> <span class="text-muted">{% blocktranslate with ago=s.created_at|timesince %}{{ ago }} ago{% endblocktranslate %}</span></td>
       <td><a href="{% url 'person_suggestions' scope.text item.author %}{{ scope.query }}">{{ item.author }}</a></td>
       <td><a href="{{ s.url }}">{{ s.author }}</a></td>
-      <td>{% with status=s.status %}{% include "community/_suggestion_status.html" %}{% endwith %} <span class="text-muted">{% include "community/_suggestion_reason.html" with reason=s.reason %}</span></td>
-      <td>{% if s.last_url %}<a href="{{ s.last_url }}">{% if s.last_role == "author" %}{% translate "author" %}{% else %}{% translate "suggester" %}{% endif %}: {{ s.last_by }}</a>{% else %}-{% endif %}</td>
+      <td>{% with status=s.status %}{% include "community/_suggestion_status.html" %}{% endwith %}{% if s.reason != "resolved-by-suggester" and s.reason != "resolved-by-other" %} <span class="text-muted">{% include "community/_suggestion_reason.html" with reason=s.reason %}</span>{% endif %}</td>
+      <td data-resolved-by>{% if s.resolved %}<a href="{{ s.url }}">{{ s.resolved_by|default:"-" }}</a>{% else %}-{% endif %}</td>
+      <td data-last>{% if s.last_url %}<a href="{{ s.last_url }}">{{ s.last_by }}</a>{% else %}-{% endif %}</td>
     </tr>{% endfor %}</tbody>
   </table>
   </div>
 </details>
 {% endwith %}{% endfor %}
-{% if page.has_other_pages %}<nav aria-label="{% translate "Pages of pull requests" %}" class="small" data-pages>
-  {% parameters_without request "page" as others %}
-  {% if page.has_previous %}<a href="?{% for name, value in others %}{{ name|urlencode }}={{ value|urlencode }}&amp;{% endfor %}page={{ page.previous_page_number }}">{% translate "previous" %}</a>{% endif %}
-  {% blocktranslate with number=page.number count=page.paginator.num_pages %}page {{ number }} of {{ count }}{% endblocktranslate %}
-  {% if page.has_next %}<a href="?{% for name, value in others %}{{ name|urlencode }}={{ value|urlencode }}&amp;{% endfor %}page={{ page.next_page_number }}">{% translate "next" %}</a>{% endif %}
-</nav>{% endif %}
+{% include "community/_pager.html" %}
 {% else %}<p class="text-muted" data-no-suggestions>{% translate "No suggestions to show in this time." %}</p>{% endif %}

@@ -117,7 +117,7 @@ Each person and each pull request has a badge of the code suggestions on it: see
    * - suggestions of a pull request, a project
      - ``/badge/<token>/pull/<owner>~<name>/<number>/suggestions.svg``
 
-Each is also ``.png`` and ``.json``; the JSON has ``applied``, ``open``, ``unknown``, ``total`` and ``status``. The page of the badges of a person (``/s/<scope>/badges/<login>/``) shows the badge of replies and the badge of suggestions with their code; its old address ``/s/<scope>/replies/<login>/badge/`` leads there.
+Every badge has the same card on its page: SVG or PNG, the JSON, and the code to copy for Markdown, reStructuredText, HTML and the plain address. The badge of a pull request is on its page of suggestions, under *The badge of this pull request*, and reads *suggestions | 3/5*; ``?number=1`` makes it *PR #12 suggestions | 3/5*. Each is also ``.png`` and ``.json``; the JSON has ``applied``, ``open``, ``unknown``, ``total`` and ``status``. The page of the badges of a person (``/s/<scope>/badges/<login>/``) shows the badge of replies and the badge of suggestions with their code; its old address ``/s/<scope>/replies/<login>/badge/`` leads there.
 
 The examples above are made by the site itself: ``uv run python manage.py reply_badge_examples`` writes them again after a change of the badges; a test checks that they are up to date.
 

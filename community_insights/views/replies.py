@@ -19,6 +19,7 @@ from ..stats.contributor_replies import GREEN, RED, YELLOW
 from ..tables import ItemTable, PersonItemFilter, items_with_responses
 from ..tokens.use import Use
 from .access import add_grant
+from .badge_share import badge_share
 from .scope import (
     PROJECTS,
     Scope,
@@ -284,10 +285,13 @@ def reply_badge_share(request, scope, login):
     page = request.build_absolute_uri(
         scope.shared(reverse("person_replies", args=[scope.text, login]))
     )
-    image_format = "png" if request.GET.get("format") == "png" else "svg"
     # the badge counts open drafts like the page, if it says so
-    path = with_options(badge_path(scope, login, image_format), scope.drafts, scope.commits)
-    json_path = with_options(badge_path(scope, login, "json"), scope.drafts, scope.commits)
+    reply = badge_share(
+        request,
+        lambda ext: with_options(badge_path(scope, login, ext), scope.drafts, scope.commits),
+        page,
+        _("Replies of %(login)s") % {"login": login},
+    )
     public = public_badge_scope(scope)
     signed_in = request.user.is_authenticated
     if request.method == "POST" and public and signed_in:
@@ -337,45 +341,36 @@ def reply_badge_share(request, scope, login):
             "name": Person.objects.filter(login__iexact=login)
             .values_list("name", flat=True)
             .first(),
-            "preview": path,  # this site loads its images by their path
-            "image_format": image_format,
-            "json_url": request.build_absolute_uri(json_path) if json_path else None,
-            "image": request.build_absolute_uri(path) if path else None,
             "page": page,
-            "alt": _("Replies of %(login)s") % {"login": login},
+            "reply": reply,
             # the second badge of the page: the suggestions on the pull requests of the person
-            "suggestions": suggestion_badge_context(request, scope, login, image_format),
+            "suggestions": suggestion_badge_context(request, scope, login),
         },
     )
 
 
-def suggestion_badge_context(request, scope: Scope, login: str, image_format: str) -> dict:
-    """The badge of suggestions of a person for the page of the badges: its addresses.
+def suggestion_badge_context(request, scope: Scope, login: str) -> dict | None:
+    """The badge of suggestions of a person for the page of the badges (``badge_share``).
 
     Args:
-        request: The request.
+        request: The request; ``format=png`` chooses PNG.
         scope: The scope of the page.
         login: The author of the pull requests.
-        image_format: ``svg`` or ``png``.
 
     Returns:
-        ``preview`` (its path), ``image``, ``json_url``, ``page`` (the suggestions of the
-        person), ``alt`` and ``summary``; without a badge address only the summary.
+        The card of the badge, linked to the suggestions of the person; None without a
+        badge address.
     """
     from .suggestions import suggestion_badge_path
 
-    path = suggestion_badge_path(scope, login=login, extension=image_format)
-    json_path = suggestion_badge_path(scope, login=login, extension="json")
-    return {
-        "preview": path,
-        "image": request.build_absolute_uri(path) if path else None,
-        "json_url": request.build_absolute_uri(json_path) if json_path else None,
-        "page": request.build_absolute_uri(
+    return badge_share(
+        request,
+        lambda ext: suggestion_badge_path(scope, login=login, extension=ext),
+        request.build_absolute_uri(
             scope.shared(reverse("person_suggestions", args=[scope.text, login]))
         ),
-        "alt": _("Suggestions to %(login)s") % {"login": login},
-        "summary": stats.summarize_suggestions(scope.repositories, author=login),
-    }
+        _("Suggestions to %(login)s") % {"login": login},
+    )
 
 
 @scope_view

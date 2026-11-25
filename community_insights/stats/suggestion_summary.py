@@ -3,6 +3,24 @@
 from dataclasses import dataclass
 
 GREEN, YELLOW, RED, GREY = "green", "yellow", "red", "grey"
+PULL_LABEL = "suggestions"  # the left side of the badge of a pull request
+
+
+def pull_label(number: int, with_number: bool = False) -> str:
+    """The left side of the badge of a pull request.
+
+    Args:
+        number: The number of the pull request.
+        with_number: Whether it starts with ``PR #12`` (the parameter ``number=1``).
+
+    Returns:
+        The label.
+
+    Examples:
+        >>> pull_label(12), pull_label(12, with_number=True)
+        ('suggestions', 'PR #12 suggestions')
+    """
+    return f"PR #{number} {PULL_LABEL}" if with_number else PULL_LABEL
 
 
 @dataclass(frozen=True)
@@ -56,6 +74,18 @@ class SuggestionSummary:
         if not self.total:
             return "no suggestions"
         return f"{self.applied}/{self.total} suggestions applied"
+
+    @property
+    def fraction(self) -> str:
+        """The short text of the badge of a pull request: applied of all.
+
+        Examples:
+            >>> SuggestionSummary(3, 1, 1).fraction, SuggestionSummary().fraction
+            ('3/5', 'none')
+        """
+        if not self.total:
+            return "none"
+        return f"{self.applied}/{self.total}"
 
     @classmethod
     def of(cls, statuses) -> "SuggestionSummary":

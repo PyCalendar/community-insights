@@ -8,9 +8,10 @@ MORE = 100  # comments or reviews in a request for the rest
 COMMITS = 10  # the last commits of a pull request: whether its author changed it after feedback
 DETAILS = 50  # pull requests in one request for their commits and closers
 THREADS = 10  # pull requests in one request for their review threads and suggestions
-THREADS_EACH = 50  # review threads of a pull request read
-THREAD_COMMENTS = 20  # comments of a review thread read
-APPLY_COMMITS = 100  # the last commits of a pull request: which applied suggestions
+THREADS_EACH = 50  # review threads of a pull request in the first request; then pages of MORE
+THREAD_COMMENTS = 20  # comments of a review thread in the first request; then pages of MORE
+APPLY_COMMITS = 100  # commits of a pull request in a request: which applied suggestions
+COMMIT_AUTHORS = 100  # authors and co-authors of a commit
 FIELDS = {Item.PR: "pullRequests", Item.ISSUE: "issues"}
 
 
@@ -126,25 +127,119 @@ def details_query() -> str:
     )
 
 
+def thread_comments(first: int, after: bool = False) -> str:
+    """The comments of a review thread: the text, the time, the author and the place.
+
+    Args:
+        first: How many.
+        after: Whether to read after the cursor ``$after``.
+
+    Returns:
+        The part of the query.
+    """
+    args = f"first: {first}" + (", after: $after" if after else "")
+    return (
+        f"comments({args}) {{ pageInfo {{ hasNextPage endCursor }} nodes {{ databaseId body "
+        "url createdAt outdated path author { login } } }"
+    )
+
+
+def review_threads(first: int, after: bool = False) -> str:
+    """The review threads of a pull request: resolved by whom, and their first comments.
+
+    Args:
+        first: How many.
+        after: Whether to read after the cursor ``$after``.
+
+    Returns:
+        The part of the query.
+    """
+    args = f"first: {first}" + (", after: $after" if after else "")
+    return (
+        f"reviewThreads({args}) {{ pageInfo {{ hasNextPage endCursor }} nodes {{ id "
+        f"isResolved resolvedBy {{ login }} {thread_comments(THREAD_COMMENTS)} }} }}"
+    )
+
+
+def pull_commits(after: bool = False) -> str:
+    """The commits of a pull request: when and the first line of the message.
+
+    The authors are read only of the commits that applied suggestions
+    (``commit_authors_query``): asking them of every commit costs many more points.
+
+    Args:
+        after: Whether to read after the cursor ``$after``.
+
+    Returns:
+        The part of the query.
+    """
+    args = f"first: {APPLY_COMMITS}" + (", after: $after" if after else "")
+    return (
+        f"commits({args}) {{ pageInfo {{ hasNextPage endCursor }} nodes {{ commit {{ "
+        "id committedDate messageHeadline } } }"
+    )
+
+
+def commit_authors_query() -> str:
+    """The authors and co-authors of commits.
+
+    Returns:
+        The query, with the variable ``ids``: the node ids of the commits, at most
+        ``APPLY_COMMITS``.
+    """
+    return (
+        "query($ids: [ID!]!) { nodes(ids: $ids) { ... on Commit { id "
+        f"authors(first: {COMMIT_AUTHORS}) {{ nodes {{ user {{ login }} }} }} }} }} }}"
+    )
+
+
 def threads_query() -> str:
-    """The review threads of pull requests with their comments, and the last commits.
+    """The review threads of pull requests with their comments, and their commits.
 
     The comments with a code suggestion and whether the thread was resolved, and the commits
-    that applied suggestions (``sync.suggestions``).
+    that applied suggestions (``sync.suggestions``). What does not fit is read with
+    ``more_threads_query``, ``more_thread_comments_query`` and ``more_pull_commits_query``.
 
     Returns:
         The query, with the variable ``ids``: the node ids of the pull requests.
     """
-    comments = (
-        f"comments(first: {THREAD_COMMENTS}) {{ nodes {{ databaseId body url createdAt "
-        "outdated path author { login } } }"
-    )
-    commits = (
-        f"commits(last: {APPLY_COMMITS}) {{ nodes {{ commit {{ committedDate messageHeadline "
-        "authors(first: 5) { nodes { user { login } } } } } }"
-    )
     return (
         "query($ids: [ID!]!) { nodes(ids: $ids) { ... on PullRequest { id "
-        f"reviewThreads(first: {THREADS_EACH}) {{ nodes {{ isResolved resolvedBy {{ login }} "
-        f"{comments} }} }} {commits} }} }} }}"
+        f"{review_threads(THREADS_EACH)} {pull_commits()} }} }} }}"
+    )
+
+
+def more_threads_query() -> str:
+    """The next review threads of a pull request.
+
+    Returns:
+        The query, with the variables ``id`` and ``after``.
+    """
+    return (
+        "query($id: ID!, $after: String) { node(id: $id) { ... on PullRequest { "
+        f"{review_threads(MORE, True)} }} }} }}"
+    )
+
+
+def more_thread_comments_query() -> str:
+    """The next comments of a review thread.
+
+    Returns:
+        The query, with the variables ``id`` (of the thread) and ``after``.
+    """
+    return (
+        "query($id: ID!, $after: String) { node(id: $id) { ... on PullRequestReviewThread { "
+        f"{thread_comments(MORE, True)} }} }} }}"
+    )
+
+
+def more_pull_commits_query() -> str:
+    """The next commits of a pull request.
+
+    Returns:
+        The query, with the variables ``id`` and ``after``.
+    """
+    return (
+        "query($id: ID!, $after: String) { node(id: $id) { ... on PullRequest { "
+        f"{pull_commits(True)} }} }} }}"
     )

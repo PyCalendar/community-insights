@@ -6,6 +6,18 @@ from django.utils import translation
 from .data import replied, signed_in, synced, user, world  # noqa: F401  (shared fixtures)
 
 
+@pytest.fixture
+def client():
+    """The client of the tests: pages of public projects open at their public address.
+
+    Returns:
+        A ``tests.fakes.scope_client.ScopeClient``.
+    """
+    from .fakes.scope_client import ScopeClient
+
+    return ScopeClient()
+
+
 @pytest.fixture(autouse=True)
 def _settings(settings, tmp_path):
     """The settings of all tests: work in the request, files in a temporary folder."""

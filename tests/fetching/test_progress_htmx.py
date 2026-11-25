@@ -14,7 +14,7 @@ def test_the_page_asks_again_while_fetches_run(world, signed_in):
     """With running fetches, the bar has the attributes of htmx to ask every 4 seconds."""
     pk = world["project"].pk
     page = signed_in.get(f"/s/{pk}/").content.decode()
-    assert f'hx-get="/s/{pk}/progress.json"' in page and 'hx-trigger="every 4s"' in page
+    assert 'hx-get="/s/o~r/progress.json"' in page and 'hx-trigger="every 4s"' in page
     assert "vendor/htmx/htmx.min.js" in page and "js/progress.js" not in page
 
 

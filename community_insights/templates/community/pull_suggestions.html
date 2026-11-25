@@ -1,15 +1,27 @@
 {% extends "community/base.html" %}
-{% load community i18n %}
+{% load community i18n static %}
 {% block title %}{% blocktranslate with name=item.repository.full_name number=item.number %}Suggestions of {{ name }}#{{ number }}{% endblocktranslate %}{% endblock %}
 {% block content %}
 {% include "community/_scope_nav.html" with active="suggestions" %}
 <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
   <h1 class="h4 mb-0"><a href="https://github.com/{{ item.repository.full_name }}/pull/{{ item.number }}">{{ item.repository.full_name }}#{{ item.number }}</a> {{ item.title }}</h1>
-  {% if badge %}<img src="{{ badge }}" alt="{% blocktranslate with number=item.number %}Suggestions of PR #{{ number }}{% endblocktranslate %}" data-pull-badge>{% else %}{% include "community/_mini_badge.html" with summary=pull_summary label=item.number|pr_label %}{% endif %}
+  {% if badge %}<img src="{{ badge.preview }}" alt="{% blocktranslate with number=item.number %}Suggestions of PR #{{ number }}{% endblocktranslate %}" data-pull-badge>{% else %}{% include "community/_mini_badge.html" with summary=pull_summary label=item.number|pr_label:with_number short=True %}{% endif %}
 </div>
 <p class="small">{% translate "Author" %}: <a href="{% url 'person_suggestions' scope.text item.author %}{{ scope.query }}">{{ item.author }}</a> · <a href="{% url 'suggestions' scope.text %}{{ scope.query }}">{% translate "All suggestions" %}</a></p>
-{% if badge %}<p class="small text-muted" data-badge-code>{% translate "The badge of this pull request, for Markdown:" %} <code>[![{{ item.number|pr_label }}]({{ request.scheme }}://{{ request.get_host }}{{ badge }})]({{ request.scheme }}://{{ request.get_host }}{{ request.get_full_path }})</code></p>{% endif %}
+<details class="mb-3" id="pull-badge"{% if request.GET.number or request.GET.format %} open{% endif %}>
+  <summary>{% translate "The badge of this pull request" %}</summary>
+  <form method="get" class="small my-2" data-badge-options>
+    {% parameters_without request "number" as others %}{% for name, value in others %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="number-toggle" name="number" value="1"{% if with_number %} checked{% endif %} data-submit-on-change>
+      <label class="form-check-label" for="number-toggle">{% blocktranslate with number=item.number %}Start the badge with "PR #{{ number }}"{% endblocktranslate %}</label>
+    </div>
+    <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
+  </form>
+  {% if badge %}{% include "community/_badge_share.html" with badge=badge prefix="pull" data="data-badge-code" %}{% else %}<p class="small text-muted">{% translate "Projects together have no badge of a pull request: open one project or its public repositories." %}</p>{% endif %}
+</details>
 {% include "community/_suggestion_intro.html" %}
 {% include "community/_suggestion_filter.html" %}
 {% include "community/_suggestion_groups.html" with open_all=True %}
+{% if badge %}<script src="{% static 'js/share.js' %}" defer></script>{% endif %}
 {% endblock %}

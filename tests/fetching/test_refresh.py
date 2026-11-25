@@ -118,7 +118,7 @@ def test_the_page_of_replies_fetches_first(outdated, signed_in):
     AccessTokenFactory(user=outdated["user"])
     page = signed_in.get(f"/s/{outdated['project'].pk}/replies/").content.decode()
     assert "What changed on GitHub was read just now." in page
-    assert FetchJob.objects.get().reason_url == f"/s/{outdated['project'].pk}/replies/"
+    assert FetchJob.objects.get().reason_url == "/s/o~r/replies/", "the public address"
 
 
 def test_the_badge_of_a_project_fetches_with_the_tokens_of_its_owner(outdated, client):

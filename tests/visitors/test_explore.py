@@ -63,8 +63,12 @@ def test_unknown_public_scopes(world, client, scope):
 
 
 def test_projects_need_a_sign_in(world, client):
-    """Projects need a sign in."""
-    response = client.get(f"/s/{world['project'].pk}/")
+    """Projects with a private repository need a sign in; public ones lead to their address."""
+    pk = world["project"].pk
+    assert client.get(f"/s/{pk}/").request["PATH_INFO"] == "/s/o~r/"
+    world["repository"].is_private = True
+    world["repository"].save()
+    response = client.get(f"/s/{pk}/")
     assert response.status_code == 302 and response["Location"].startswith("/accounts/login/")
     assert client.get("/badge/s/1.svg").status_code == 404, "projects have secret badges"
 

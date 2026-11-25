@@ -10,9 +10,11 @@ from .. import pipeline, stats
 from ..badge_spec import BadgeSpec
 from ..models import Item, Project, TokenGrant
 from ..reply_badges import COLORS, NO_FEEDBACK
-from ..stats.suggestion_summary import GREY, SuggestionSummary
+from ..stats.pull_suggestions import PULL_STATES, SHOWN_STATES
+from ..stats.suggestion_summary import GREY, SuggestionSummary, pull_label
 from ..sync.suggestions import STATUSES
 from ..tokens.use import Use
+from .badge_share import badge_share, with_query
 from .replies import BADGE_KEPT, public_badge_scope
 from .scope import PROJECTS, Scope, public_repositories, scope_of, scope_view, stats_page
 
@@ -35,6 +37,22 @@ def statuses_of(request) -> list[str]:
     return [status for status in STATUSES if status in checked]
 
 
+def states_of(request) -> list[str]:
+    """The states of the pull requests the filter shows: open by default; those checked after.
+
+    Args:
+        request: The request: ``state`` for each state checked, ``filtered`` when the form
+            was sent.
+
+    Returns:
+        The states, in the order of ``PULL_STATES``.
+    """
+    if not request.GET.get("filtered"):
+        return list(SHOWN_STATES)
+    checked = request.GET.getlist("state")
+    return [state for state in PULL_STATES if state in checked]
+
+
 def repository_of(text: str) -> str:
     """The full name of a repository of an address: ``owner~name`` is ``owner/name``.
 
@@ -51,7 +69,9 @@ def repository_of(text: str) -> str:
     return text.replace("~", "/")
 
 
-def suggestions_page(request, scope: Scope, template: str, context: dict, **filters):
+def suggestions_page(
+    request, scope: Scope, template: str, context: dict, by_state: bool = True, **filters
+):
     """A page of suggestions grouped by pull request, filtered by status, in pages.
 
     Args:
@@ -59,14 +79,17 @@ def suggestions_page(request, scope: Scope, template: str, context: dict, **filt
         scope: The scope.
         template: The template.
         context: What else the template needs.
+        by_state: Whether the states of the pull requests can be chosen; False shows all,
+            for the page of one pull request.
         **filters: ``author`` or ``pull`` for ``stats.pull_suggestions``.
 
     Returns:
         The page.
     """
     statuses = statuses_of(request)
+    states = states_of(request) if by_state else list(PULL_STATES)
     groups = stats.pull_suggestions(
-        scope.repositories, scope.since, scope.until, statuses=statuses, **filters
+        scope.repositories, scope.since, scope.until, statuses=statuses, states=states, **filters
     )
     page = Paginator(groups, PULLS_PER_PAGE).get_page(request.GET.get("page"))
     summary = stats.summarize_suggestions(
@@ -83,6 +106,8 @@ def suggestions_page(request, scope: Scope, template: str, context: dict, **filt
             "summary": summary,
             "statuses": statuses,
             "all_statuses": STATUSES,
+            "states": states,
+            "all_states": PULL_STATES if by_state else (),
             "reads_threads": True,
         },
     )
@@ -136,7 +161,7 @@ def pull_suggestions(request, scope, repository, number):
         number: The number of the pull request.
 
     Returns:
-        The page.
+        The page; ``number=1`` shows the badge that starts with ``PR #12``.
 
     Raises:
         Http404: If the scope has no such pull request.
@@ -151,15 +176,29 @@ def pull_suggestions(request, scope, repository, number):
     ).first()
     if item is None:
         raise Http404("No such pull request")
+    with_number = bool(request.GET.get("number"))
+    badge = badge_share(
+        request,
+        lambda ext: with_query(
+            suggestion_badge_path(scope, pull=(repository, number), extension=ext),
+            number="1" if with_number else None,
+        ),
+        request.build_absolute_uri(
+            scope.shared(reverse("pull_suggestions", args=[scope.text, repository, number]))
+        ),
+        pull_label(number, with_number),
+    )
     return suggestions_page(
         request,
         scope,
         "community/pull_suggestions.html",
         {
             "item": item,
-            "badge": suggestion_badge_path(scope, pull=(repository, number)),
+            "with_number": with_number,
+            "badge": badge,
             "pull_summary": stats.summarize_suggestions(scope.repositories, pull=(name, number)),
         },
+        by_state=False,
         pull=(name, number),
     )
 
@@ -194,7 +233,14 @@ def suggestion_badge_path(
 
 
 def suggestion_badge_of(
-    repositories, user, label: str, summary_of, reason_url: str, use=None, extension="svg"
+    repositories,
+    user,
+    label: str,
+    summary_of,
+    reason_url: str,
+    use=None,
+    extension="svg",
+    short: bool = False,
 ) -> HttpResponse:
     """A badge of suggestions, after fetching what changed.
 
@@ -206,6 +252,7 @@ def suggestion_badge_of(
         reason_url: The address of the badge, for the page Downloads.
         use: The public use of the badge (``tokens.Use``) for the grants of tokens.
         extension: ``svg``, ``png`` or ``json``.
+        short: Whether the right side is only ``3/5``, as for a pull request.
 
     Returns:
         The badge.
@@ -232,7 +279,8 @@ def suggestion_badge_of(
         "total": summary.total,
         "status": None if summary.status == GREY else summary.status,
     }
-    return BadgeSpec(label, summary.message, color, data).response(extension, BADGE_KEPT)
+    message = summary.fraction if short else summary.message
+    return BadgeSpec(label, message, color, data).response(extension, BADGE_KEPT)
 
 
 def public_suggestion_badge(request, scope, login, extension="svg"):
@@ -292,7 +340,7 @@ def public_pull_suggestion_badge(request, scope, repository, number, extension="
     """The badge of suggestions of a pull request of a public repository.
 
     Args:
-        request: The request.
+        request: The request: ``number=1`` starts the badge with ``PR #12``.
         scope: The text of a public scope.
         repository: The repository as ``owner~name``.
         number: The number of the pull request.
@@ -311,11 +359,12 @@ def public_pull_suggestion_badge(request, scope, repository, number, extension="
     return suggestion_badge_of(
         repositories,
         None,
-        f"PR #{number}",
+        pull_label(number, bool(request.GET.get("number"))),
         lambda: stats.summarize_suggestions(repositories, pull=(name, number)),
         request.path,
         use=Use(TokenGrant.BADGES, scope, ""),
         extension=extension,
+        short=True,
     )
 
 
@@ -323,7 +372,7 @@ def pull_suggestion_badge(request, token, repository, number, extension="svg"):
     """The badge of suggestions of a pull request of a project: the token is the access.
 
     Args:
-        request: The request.
+        request: The request: ``number=1`` starts the badge with ``PR #12``.
         token: The secret badge token of the project.
         repository: The repository as ``owner~name``.
         number: The number of the pull request.
@@ -338,8 +387,9 @@ def pull_suggestion_badge(request, token, repository, number, extension="svg"):
     return suggestion_badge_of(
         repositories,
         project.user,
-        f"PR #{number}",
+        pull_label(number, bool(request.GET.get("number"))),
         lambda: stats.summarize_suggestions(repositories, pull=(name, number)),
         request.path,
         extension=extension,
+        short=True,
     )

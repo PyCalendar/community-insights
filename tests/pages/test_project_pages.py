@@ -52,11 +52,12 @@ def test_the_pages_of_a_project_are_one_list():
 def test_the_navigation_and_the_dashboard_offer_the_same_pages(synced, signed_in):
     """The drop-down of a statistics page and the menu of the card of the dashboard."""
     pk = Project.objects.get().pk
-    wanted = {address for _, _, address in project_pages(str(pk), several=False)}
+    scope = Project.objects.get().address  # o~r: the public address of the project
+    wanted = {address for _, _, address in project_pages(scope, several=False)}
     overview = signed_in.get(f"/s/{pk}/").content.decode()
     assert wanted <= addresses(overview)
     assert wanted <= addresses(signed_in.get("/dashboard/").content.decode())
-    assert f'aria-current="page" href="/s/{pk}/">Overview</a>' in overview
+    assert 'aria-current="page" href="/s/o~r/">Overview</a>' in overview
 
 
 def test_explore_offers_the_pages_of_a_public_repository(synced, client):
@@ -68,8 +69,8 @@ def test_explore_offers_the_pages_of_a_public_repository(synced, client):
 @pytest.mark.parametrize("name", ["overview", "response_times", "trends", "badges"])
 def test_each_page_shows_itself_as_chosen(synced, signed_in, name):
     """The button of the drop-down names the page shown."""
-    pk = Project.objects.get().pk
-    title, address = next((str(t), a) for n, t, a in project_pages(str(pk)) if n == name)
+    scope = Project.objects.get().address
+    title, address = next((str(t), a) for n, t, a in project_pages(scope) if n == name)
     page = signed_in.get(address).content.decode()
     assert f'aria-current="page" href="{address}">{title}</a>' in page
 
@@ -79,15 +80,15 @@ def test_the_overview_shows_the_contributors(synced, signed_in):
     pk = Project.objects.get().pk
     page = signed_in.get(f"/s/{pk}/").content.decode()
     assert "people who contributed" in page and "Most active" in page
-    assert f'href="/s/{pk}/people/bob/">bob</a>' in page
+    assert 'href="/s/o~r/people/bob/">bob</a>' in page
     assert "chart/responses-pr" not in page, "the response times have their own page"
     assert 'data-badge="label"' not in page, "the badges have their own page"
 
 
 def test_the_pages_of_a_person_are_offered_on_each_of_them(synced, signed_in):
     """Contributions, replies, pull requests and issues, and badges of bob."""
-    pk = Project.objects.get().pk
-    wanted = {address for _, _, address in person_pages(str(pk), "bob")}
+    scope = Project.objects.get().address
+    wanted = {address for _, _, address in person_pages(scope, "bob")}
     for address in wanted:
         response = signed_in.get(address)
         assert response.status_code == 200, address

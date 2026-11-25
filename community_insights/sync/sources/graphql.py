@@ -1,15 +1,21 @@
 from ...models import Repository
 from ..queries import (
+    APPLY_COMMITS,
     FIELDS,
     INNER,
     MORE,
     PAGE,
+    commit_authors_query,
     commits_query,
     details_query,
     list_query,
+    more_pull_commits_query,
     more_query,
+    more_thread_comments_query,
+    more_threads_query,
     threads_query,
 )
+from ..suggestions import applying_commits
 
 
 async def nothing() -> None:
@@ -148,16 +154,81 @@ class GraphQLSource:
         return answer["nodes"]
 
     async def threads(self, ids: list[str]) -> list[dict | None]:
-        """The review threads and the last commits of pull requests, for their suggestions.
+        """All review threads, their comments and the commits of pull requests.
+
+        What does not fit into the first request is read in further pages: every thread,
+        every comment of a thread and every commit. The authors are added to the commits that
+        applied suggestions.
 
         Args:
             ids: The node ids of the pull requests, at most ``queries.THREADS``.
 
         Returns:
-            The pull requests as GitHub answers them; None for one it no longer has.
+            The pull requests as GitHub answers them, with all pages; None for one it no
+            longer has.
         """
         answer = await self.query(threads_query(), ids=ids)
-        return answer["nodes"]
+        pulls = answer["nodes"]
+        for pull in pulls:
+            if pull:
+                await self.rest_of_threads(pull)
+        await self.commit_authors(applying_commits(pulls))
+        return pulls
+
+    async def rest_of(self, found: dict | None, query: str, node_id: str, field: str) -> dict:
+        """A connection with all its pages: the nodes of the first and the following ones.
+
+        Args:
+            found: The connection as GitHub answered it first, with ``pageInfo``.
+            query: The query of the next page, with ``id`` and ``after``.
+            node_id: The id of the node the connection belongs to.
+            field: The name of the connection, such as ``reviewThreads``.
+
+        Returns:
+            The connection with all nodes and no next page.
+        """
+        found = found or {}
+        nodes = list(found.get("nodes") or [])
+        info = found.get("pageInfo") or {}
+        while info.get("hasNextPage"):
+            answer = await self.query(query, id=node_id, after=info["endCursor"])
+            page = (answer.get("node") or {}).get(field) or {}
+            nodes += page.get("nodes") or []
+            info = page.get("pageInfo") or {}
+        return {"nodes": nodes, "pageInfo": {"hasNextPage": False, "endCursor": None}}
+
+    async def rest_of_threads(self, pull: dict) -> None:
+        """Read the further threads, comments of threads and commits of a pull request.
+
+        Args:
+            pull: The pull request as GitHub answered it first; it gets all pages.
+        """
+        pull["reviewThreads"] = await self.rest_of(
+            pull.get("reviewThreads"), more_threads_query(), pull["id"], "reviewThreads"
+        )
+        for thread in pull["reviewThreads"]["nodes"]:
+            if thread and thread.get("id"):
+                thread["comments"] = await self.rest_of(
+                    thread.get("comments"), more_thread_comments_query(), thread["id"], "comments"
+                )
+        pull["commits"] = await self.rest_of(
+            pull.get("commits"), more_pull_commits_query(), pull["id"], "commits"
+        )
+
+    async def commit_authors(self, commits: list[dict]) -> None:
+        """Add the authors and co-authors to commits, in requests of ``APPLY_COMMITS``.
+
+        Args:
+            commits: The commits as GitHub answered them, with ``id``; each gets ``authors``.
+        """
+        for start in range(0, len(commits), APPLY_COMMITS):
+            part = commits[start : start + APPLY_COMMITS]
+            answer = await self.query(commit_authors_query(), ids=[c["id"] for c in part])
+            authors = {n["id"]: n.get("authors") for n in answer.get("nodes") or [] if n}
+            for commit in part:
+                commit["authors"] = (
+                    authors.get(commit["id"]) or commit.get("authors") or {"nodes": []}
+                )
 
     async def people(self, logins: list[str]) -> dict:
         """Name, location and avatar of a batch of people.

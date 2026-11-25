@@ -181,7 +181,18 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] Every link to GitHub has the mark of GitHub in front of it (CSS, Octicons mark-github, MIT)
 - [x] Release 0.5.0 with the suggestions
 - [x] The browser tests failed again while signing up on the CI: the sign-up waits for the answer of the server to the form, sends it again after a server error (SQLite busy), and names the status if it fails
-- [ ] The estimate of a fetch does not count the requests of the review threads yet
+- [x] Can "resolved by the author" count as applied? (asked) No: resolving is a click that ends the conversation; GitHub links no commit to it. Answered; it stays unknown (docs explanation/suggestions.rst)
+- [x] All review threads, all comments of each thread and all commits of a pull request are read, in further pages (asked: the deployed site has tokens); the authors only of the commits named "Apply suggestion..." (sync/sources/graphql.py threads, rest_of; queries more_threads_query, more_thread_comments_query, more_pull_commits_query, commit_authors_query)
+- [x] The badge of a pull request is "suggestions | 3/5"; ?number=1 makes it "PR #12 suggestions | 3/5", default off, a checkbox on the page of the pull request (asked); the mini badges of the tables the same
+- [x] The pages of suggestions filter by the state of the pull request: open, closed, merged; only open by default (asked); the page of one pull request shows it in any state
+- [x] Suggestions sorted by the latest first (asked): the pull request with the newest suggestion first, and newest first within one
+- [x] One pager for every list of the site (asked): previous, "page [drop-down] of N" to jump to a page, next (templates/community/_pager.html; the tables of django-tables2 through community/table.html, Explore, Suggestions)
+- [x] A page of a project (/s/1/suggestions/) needs a sign in although its repositories are public (asked): when an equivalent public page exists it is preferred: /s/<number>/... leads to /s/<owner~name>/... with the same parameters, for visitors too (views/scope.py public_address, public_scope.py); the dashboard links the public address (Project.address); numbers stay only for projects with a private repository (asked: do not expose primary keys when a useful id exists)
+- [ ] Decision of the person: an address for projects with a private repository instead of their number (such as the login of the owner and the target); the number stays until then
+- [x] https://insight.pycal.org/s/1/suggestions/collective~icalendar/755/ showed "resolved by somebody else" for a thread niccokunzmann resolved (asked): a column "Resolved by" with the handle; the status without the reason when resolved; "Last in the thread" only the handle, without author:/suggester: (test in tests/feedback/test_maintainer_feedback.py)
+- [x] Every badge uses the one card of badges (asked, remembered): templates/community/_badge_share.html with views/badge_share.py, SVG/PNG, JSON and the code for Markdown, reStructuredText, HTML and the address; the badges of replies, of suggestions of a person and of a pull request
+- [ ] Decision of the person: should the suggested code be looked up in the files of the pull request to tell applied from turned down? (Proposed; costs a request per file with suggestions)
+- [x] The estimate of a fetch counts the requests of the review threads: 5 points per 10 pull requests (pipeline/estimate.py threads_points)
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges

@@ -32,6 +32,8 @@ DEFAULT_URL = "https://insight.pycal.org"
 # the pages for everybody that the walk follows; the statistics are opened for one scope only
 PUBLIC = re.compile(r"^/(|explore/|about/|health/|robots\.txt|favicon\.ico|accounts/login/)$")
 SIGN_IN = "/accounts/login/"
+# a page of a public scope: where a project of public repositories leads
+PUBLIC_SCOPE = re.compile(r"^(https?://[^/]+)?/s/(?!\d+(-\d+)*/|all/)[^/?]+/")
 START = ["/", "/explore/", "/about/", "/health/", "/robots.txt", "/favicon.ico", SIGN_IN]
 # the pages of a public scope, after /s/<scope>/
 SCOPE_PAGES = [
@@ -257,13 +259,15 @@ class LiveCheck:
         note = "" if kept else "expected Disallow: /s/"
         self.report(kept, response.status_code, "/robots.txt (rules)", note)
 
-    def expect(self, path: str, status: int) -> None:
+    def expect(self, path: str, status: int, public: bool = False) -> None:
         """Check the answer of a page that is not public or does not exist.
 
         Args:
             path: The page.
             status: The status that is right: 302 must ask to sign in, 404 must be the
                 page of the site, not of nginx.
+            public: Whether a 302 may also lead to the same page of a public scope: a
+                project whose repositories are all public.
         """
         response = self.get(path)
         ok = response.status_code == status
@@ -272,7 +276,8 @@ class LiveCheck:
             # the admin sends to its own sign in first, which asks to sign in on the site
             location = response.headers.get("location", "")
             ok = SIGN_IN in location or location.startswith("/admin/login/")
-            note = "expected to ask to sign in"
+            ok = ok or bool(public and PUBLIC_SCOPE.match(location))
+            note = "expected to ask to sign in" + (" or the public page" if public else "")
         elif ok and status == 404:
             ok = SITE_PAGE in response.text
             note = "expected the error page of the site"
@@ -284,8 +289,9 @@ class LiveCheck:
         self.expect(f"/no-page-{unknown}/x/y/", 404)
         self.expect(f"/s/nobody-{unknown}~nothing/", 404)
         self.expect("/about/licenses/no-such-license/", 404)
-        for path in ("/dashboard/", "/dashboard/github/", "/s/1/", "/messages/", "/admin/"):
+        for path in ("/dashboard/", "/dashboard/github/", "/messages/", "/admin/"):
             self.expect(path, 302)
+        self.expect("/s/1/", 302, public=True)  # or the public page of its repositories
 
     def run(self) -> int:
         """Check the site.

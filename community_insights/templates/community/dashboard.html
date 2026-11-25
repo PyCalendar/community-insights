@@ -16,19 +16,19 @@
 <div class="tab-content">
   <div class="tab-pane fade show active" id="pane-projects" role="tabpanel" aria-labelledby="tab-projects" tabindex="0">
     <div class="row g-3">
-      {% for card in cards %}{% with project=card.project %}
+      {% for card in cards %}{% with project=card.project scope_address=card.project.address %}
       <div class="col-12 col-md-6 col-xl-4"><div class="card h-100 project-card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div class="text-truncate">
-              <a class="fw-semibold stretched-link-none" href="{% url 'overview' project.pk %}">{{ project.label }}</a>
+              <a class="fw-semibold stretched-link-none" href="{% url 'overview' scope_address %}">{{ project.label }}</a>
               <div class="small text-muted">{% if project.name %}{{ project.target }}, {% endif %}{% if project.is_owner %}{% translate "organisation" %}, {% endif %}{% blocktranslate count count=card.repositories %}{{ count }} repository{% plural %}{{ count }} repositories{% endblocktranslate %}</div>
             </div>
-            <div class="d-flex gap-1 align-items-start">{% url 'dashboard' as back_url %}{% include "community/_read_button.html" with target=project.pk back=back_url %}
+            <div class="d-flex gap-1 align-items-start">{% url 'dashboard' as back_url %}{% include "community/_read_button.html" with target=scope_address back=back_url %}
             <div class="dropdown">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% blocktranslate with name=project.target %}Menu of {{ name }}{% endblocktranslate %}">&#8942;</button>
               <ul class="dropdown-menu dropdown-menu-end">
-                {% pages_of_project project.pk as pages %}{% for name, title, address in pages %}<li><a class="dropdown-item" href="{{ address }}">{{ title }}</a></li>{% endfor %}
+                {% pages_of_project scope_address as pages %}{% for name, title, address in pages %}<li><a class="dropdown-item" href="{{ address }}">{{ title }}</a></li>{% endfor %}
                 <li><hr class="dropdown-divider"></li>
                 <li><button class="dropdown-item" type="button" data-bs-toggle="collapse" data-bs-target="#rename-{{ project.pk }}" aria-expanded="false" aria-controls="rename-{{ project.pk }}">{% translate "Rename" %}</button></li>
                 <li><hr class="dropdown-divider"></li>

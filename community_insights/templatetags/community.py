@@ -177,20 +177,23 @@ def tilde(full_name: str) -> str:
 
 
 @register.filter
-def pr_label(number) -> str:
-    """The left side of the badge of a pull request.
+def pr_label(number, with_number=False) -> str:
+    """The left side of the badge of a pull request (``stats.suggestion_summary.pull_label``).
 
     Args:
         number: The number of the pull request.
+        with_number: Whether it starts with ``PR #12``.
 
     Returns:
-        Such as ``PR #12``.
+        ``suggestions``, or such as ``PR #12 suggestions``.
 
     Examples:
-        >>> pr_label(12)
-        'PR #12'
+        >>> pr_label(12), pr_label(12, True)
+        ('suggestions', 'PR #12 suggestions')
     """
-    return f"PR #{number}"
+    from ..stats.suggestion_summary import pull_label
+
+    return pull_label(number, bool(with_number))
 
 
 @register.simple_tag
@@ -207,6 +210,23 @@ def parameters_without(request, *names) -> list[tuple[str, str]]:
     return [
         (name, value) for name, value in request.GET.lists() for value in value if name not in names
     ]
+
+
+@register.simple_tag
+def page_address(request, field: str, number) -> str:
+    """The address of another page of a list: the parameters of this one with its number.
+
+    Args:
+        request: The request.
+        field: The parameter of the page, such as ``page``.
+        number: The number of the page.
+
+    Returns:
+        The query, starting with ``?``.
+    """
+    query = request.GET.copy()
+    query[field] = str(number)
+    return "?" + query.urlencode()
 
 
 @register.simple_tag

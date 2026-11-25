@@ -35,7 +35,7 @@ def test_an_ods_is_made_in_the_background_and_told_by_a_message(world, signed_in
         "download": f"/documents/{document.pk}/download/",
     }
     message = Message.objects.get(user=world["user"])
-    assert message.unread and message.title == f"responses-{pk}.ods is ready to download"
+    assert message.unread and message.title == "responses-o~r.ods is ready to download"
     assert message.link == f"/documents/{document.pk}/"
 
 

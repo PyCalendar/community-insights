@@ -255,7 +255,8 @@ def test_update_keeps_the_filters_of_the_table(user, signed_in, monkeypatch):
     project = ProjectFactory(user=user, target=ICALENDAR, repositories=[repository])
     AccessTokenFactory(user=user)
     monkeypatch.setattr("community_insights.github.Client", lambda *a, **k: FakeClient())
-    address = f"/s/{project.pk}/items/?kind=pr&state=closed&state=merged&responded=false"
+    assert project.address == "collective~icalendar", "the public address of the project"
+    address = "/s/collective~icalendar/items/?kind=pr&state=closed&state=merged&responded=false"
     page = signed_in.get(address).content.decode()
     assert f'name="next" value="{address.replace("&", "&amp;")}"' in page
     response = signed_in.post(f"/s/{project.pk}/fetch/", {"action": "now", "next": address})
@@ -290,3 +291,43 @@ def test_2058_every_page_sees_the_same_response():
     assert by_month == {(2026, 11): [seconds]}, "the page of the person"
     pull = stats.pull_replies(repositories, visitor)[0]
     assert pull.first_feedback is None, "a merge needs no reply"
+
+
+def test_755_a_thread_resolved_by_the_author_names_who_resolved_it(user, client):
+    """Reported on https://insight.pycal.org/s/1/suggestions/collective~icalendar/755/: the
+    suggestion https://github.com/PyCalendar/icalendar/pull/755#discussion_r1894703419 of
+    stevepiercy showed "resolved by somebody else", and the last in the thread as
+    "suggester: stevepiercy".
+
+    GitHub shows "niccokunzmann marked this conversation as resolved". The rule: the status is
+    *unknown*, and a column *Resolved by* names niccokunzmann; *Last in the thread* is only the
+    handle, without a role.
+    """
+    from community_insights.models import Suggestion
+
+    url = "https://github.com/PyCalendar/icalendar/pull/755#discussion_r1894703419"
+    item = pull_request(755, "niccokunzmann", "2024-12-21 20:00:00", [])
+    Suggestion.objects.create(
+        item=item,
+        comment_id=1894703419,
+        url=url,
+        author="stevepiercy",
+        created_at=at("2024-12-21 23:39:01"),
+        path="docs/security.rst",
+        status="unknown",
+        reason="resolved-by-other",
+        resolved=True,
+        resolved_by="niccokunzmann",
+        last_by="stevepiercy",
+        last_role="suggester",
+        last_at=at("2024-12-21 23:39:01"),
+        last_url=url,
+    )
+    page = client.get("/s/collective~icalendar/suggestions/collective~icalendar/755/")
+    text = page.content.decode()
+    row = text[text.index('<tr data-status="unknown">') :]
+    row = row[: row.index("</tr>")]
+    assert "Resolved by" in text
+    assert f'<td data-resolved-by><a href="{url}">niccokunzmann</a></td>' in row
+    assert f'<td data-last><a href="{url}">stevepiercy</a></td>' in row
+    assert "resolved by somebody else" not in row and "suggester:" not in row

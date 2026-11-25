@@ -79,6 +79,31 @@ def login_of(node: dict | None) -> str:
     return ((node or {}).get("author") or {}).get("login") or ""
 
 
+def applying_commits(pulls: list[dict | None]) -> list[dict]:
+    """The commits named "Apply suggestion..." of pull requests: they need their authors.
+
+    Args:
+        pulls: The pull requests as GitHub answered the query of threads; None for missing.
+
+    Returns:
+        The commits, with ``id``, as they are in the pull requests.
+
+    Examples:
+        >>> commit = {"id": "c1", "messageHeadline": "Apply suggestions from code review"}
+        >>> other = {"id": "c2", "messageHeadline": "Fix"}
+        >>> pull = {"commits": {"nodes": [{"commit": commit}, {"commit": other}]}}
+        >>> [c["id"] for c in applying_commits([pull, None])]
+        ['c1']
+    """
+    found = []
+    for pull in pulls:
+        for node in ((pull or {}).get("commits") or {}).get("nodes") or []:
+            commit = (node or {}).get("commit") or {}
+            if commit.get("id") and APPLY.search(commit.get("messageHeadline") or ""):
+                found.append(commit)
+    return found
+
+
 def apply_commits(data: dict) -> list[tuple[datetime | None, set[str]]]:
     """The commits that applied suggestions: when, and the logins of their authors.
 

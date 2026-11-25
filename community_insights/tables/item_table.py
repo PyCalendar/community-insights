@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ..models import Item
 from ..stats import format_duration
+from ..stats.suggestion_summary import pull_label
 
 STATE_NAMES = {"open": _("open"), "closed": _("closed"), "merged": _("merged")}
 
@@ -56,7 +57,8 @@ class ItemTable(tables.Table):
         if record.kind != Item.PR or summary is None or not summary.total:
             return "-"
         badge = render_to_string(
-            "community/_mini_badge.html", {"summary": summary, "label": f"PR #{record.number}"}
+            "community/_mini_badge.html",
+            {"summary": summary, "label": pull_label(record.number), "short": True},
         )
         if self.scope is None:
             return badge

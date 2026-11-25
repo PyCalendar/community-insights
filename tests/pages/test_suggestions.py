@@ -14,13 +14,15 @@ from ..statistics.test_suggestions import comment, thread
 pytestmark = pytest.mark.django_db
 
 
-def reviewed(number, author, *threads):
+def reviewed(number, author, *threads, state="OPEN", merged=False):
     """A pull request with a review of bob and review threads.
 
     Args:
         number: Its number.
         author: Its author.
         *threads: Its review threads.
+        state: ``OPEN`` or ``CLOSED``.
+        merged: Whether it was merged.
 
     Returns:
         The pull request as GitHub answers it.
@@ -30,6 +32,8 @@ def reviewed(number, author, *threads):
         author,
         "2026-01-05T09:00:00Z",
         reviews=[node("bob", "2026-01-05T10:00:00Z", "MEMBER", key="submittedAt")],
+        state=state,
+        merged=merged,
     )
     data["reviewThreads"] = {"nodes": list(threads)}
     data["commits"] = {"nodes": []}
@@ -38,7 +42,8 @@ def reviewed(number, author, *threads):
 
 def suggestion_client() -> FakeClient:
     """A fake GitHub: #1 of ann applied and open, #2 of ann unknown, #3 of cid applied,
-    #4 of dot without a review, so its threads are not read.
+    #4 of dot without a review, so its threads are not read; #5 of eve merged and #6 of eve
+    closed, with an open suggestion each.
 
     Returns:
         The fake.
@@ -58,6 +63,8 @@ def suggestion_client() -> FakeClient:
             reviewed(2, "ann", thread(comment("bob", 5, number=21), resolved_by="ann")),
             reviewed(3, "cid", thread(comment("bob", 6, number=31), resolved_by="bob")),
             unreviewed,
+            reviewed(5, "eve", thread(comment("bob", 7, number=51)), state="CLOSED", merged=True),
+            reviewed(6, "eve", thread(comment("bob", 8, number=61)), state="CLOSED"),
         ]
     )
 
@@ -94,16 +101,23 @@ def text(client, path: str) -> str:
 def test_the_fetch_reads_the_suggestions(suggested):
     """Of the pull requests with a review; #4 has none, so its threads are not read."""
     found = dict(Suggestion.objects.values_list("comment_id", "status"))
-    assert found == {11: "applied", 13: "open", 21: "unknown", 31: "applied"}
+    assert found == {
+        11: "applied",
+        13: "open",
+        21: "unknown",
+        31: "applied",
+        51: "open",
+        61: "open",
+    }
     assert Item.objects.get(number=4).threads_updated_at is None
 
 
 def test_the_suggestions_of_the_project_grouped_by_pull_request(suggested, client):
-    """Unknown first, then open, then applied; each pull request with its badge."""
+    """The newest suggestion first, of open pull requests; each pull request with its badge."""
     page = text(client, "/s/o~r/suggestions/")
-    assert re.findall(r'data-pr="o/r#(\d+)"', page) == ["2", "1", "3"]
+    assert re.findall(r'data-pr="o/r#(\d+)"', page) == ["3", "2", "1"]
     first = re.search(r'<details[^>]*data-pr="o/r#1".*?</details>', page, re.S).group(0)
-    assert "1/2 suggestions applied" in first and "mini-badge-red" in first
+    assert ">suggestions</span>" in first and ">1/2</span>" in first and "mini-badge-red" in first
     assert re.findall(r'<tr data-status="(\w+)"', first) == ["open", "applied"]
     assert 'href="/s/o~r/suggestions/o~r/1/"' in first, "the badge leads to the pull request"
     assert 'href="/s/o~r/people/ann/suggestions/"' in first
@@ -116,15 +130,20 @@ def test_the_columns_of_a_suggestion(suggested, client):
     row = re.search(r'<tr data-status="applied">.*?</tr>', page, re.S).group(0)
     assert row.count('href="https://github.com/o/r/pull/1#discussion_r11"') == 3
     assert "ago" in row and "2026-01-05" in row
-    assert 'href="https://github.com/o/r/pull/1#discussion_r12">author: ann</a>' in row
+    assert 'href="https://github.com/o/r/pull/1#discussion_r12">ann</a>' in row, "the handle only"
+    assert "author:" not in row and "suggester:" not in row
 
 
 def test_the_filter_switches_statuses_on_and_off(suggested, client):
     """Only open ones; none at all; the summaries still count all."""
     page = text(client, "/s/o~r/suggestions/?filtered=1&status=open")
+    assert re.findall(r'data-pr="o/r#(\d+)"', page) == []
+    assert 'name="state" value="open" checked' not in page, "the form was sent without a state"
+    page = text(client, "/s/o~r/suggestions/?filtered=1&status=open&state=open")
     assert re.findall(r'data-pr="o/r#(\d+)"', page) == ["1"]
-    assert 'value="open" checked' in page and 'value="applied" checked' not in page
-    assert "1/2 suggestions applied" in page, "the badge counts all suggestions"
+    assert 'name="status" value="open" checked' in page
+    assert 'name="status" value="applied" checked' not in page
+    assert ">1/2</span>" in page, "the badge counts all suggestions"
     assert "No suggestions to show in this time." in text(client, "/s/o~r/suggestions/?filtered=1")
 
 
@@ -132,6 +151,7 @@ def test_the_suggestions_to_a_person(suggested, client):
     """Only the pull requests of ann, with her badge."""
     page = text(client, "/s/o~r/people/ann/suggestions/")
     assert re.findall(r'data-pr="o/r#(\d+)"', page) == ["2", "1"]
+    assert "Pull requests:" in page, "the states can be chosen"
     assert '<img src="/badge/s/o~r/suggestions/ann.svg"' in page
 
 
@@ -147,11 +167,11 @@ def test_the_badges_of_suggestions(suggested, client):
     cid = client.get("/badge/s/o~r/suggestions/cid.json").json()
     assert cid["status"] == "green"
     pr = client.get("/badge/s/o~r/pull/o~r/2/suggestions.json").json()
-    assert (pr["label"], pr["message"], pr["status"]) == (
-        "PR #2",
-        "0/1 suggestions applied",
-        "yellow",
-    )
+    assert (pr["label"], pr["message"], pr["status"]) == ("suggestions", "0/1", "yellow")
+    numbered = client.get("/badge/s/o~r/pull/o~r/2/suggestions.json?number=1").json()
+    assert (numbered["label"], numbered["message"]) == ("PR #2 suggestions", "0/1")
+    numbered = client.get(f"/badge/{suggested.badge_token}/pull/o~r/2/suggestions.json?number=1")
+    assert numbered.json()["label"] == "PR #2 suggestions"
     nobody = client.get("/badge/s/o~r/suggestions/nobody.json").json()
     assert (nobody["message"], nobody["status"]) == ("no suggestions", None)
     svg = client.get("/badge/s/o~r/suggestions/ann.svg")
@@ -167,8 +187,8 @@ def test_the_table_of_pull_requests_has_their_badges(suggested, signed_in):
     """The column Suggestions addressed: the badge of each pull request with suggestions."""
     page = text(signed_in, f"/s/{suggested.pk}/items/")
     assert "Suggestions addressed" in page
-    assert f'href="/s/{suggested.pk}/suggestions/o~r/2/"' in page
-    assert "0/1 suggestions applied" in page
+    assert 'href="/s/o~r/suggestions/o~r/2/"' in page
+    assert ">suggestions</span>" in page and ">0/1</span>" in page
 
 
 def test_the_badges_page_has_both_badges(suggested, client):
@@ -200,10 +220,10 @@ def test_the_pages_are_split(suggested, client, monkeypatch):
 
     monkeypatch.setattr(suggestions, "PULLS_PER_PAGE", 2)
     first = text(client, "/s/o~r/suggestions/")
-    assert re.findall(r'data-pr="o/r#(\d+)"', first) == ["2", "1"]
-    assert "page 1 of 2" in first and "page=2" in first
+    assert re.findall(r'data-pr="o/r#(\d+)"', first) == ["3", "2"]
+    assert "data-pager" in first and 'href="?page=2"' in first
     second = text(client, "/s/o~r/suggestions/?page=2")
-    assert re.findall(r'data-pr="o/r#(\d+)"', second) == ["3"]
+    assert re.findall(r'data-pr="o/r#(\d+)"', second) == ["1"]
 
 
 def test_links_to_github_have_its_mark(suggested, client):
@@ -236,3 +256,50 @@ def test_an_unchanged_pull_request_is_not_read_again(suggested):
     client = suggestion_client()
     message = async_to_sync(Syncer(client).sync_threads)(suggested.repositories.get())
     assert message == "suggestions of 0 pull requests read: 0" and client.requests == 0
+
+
+def test_the_states_of_the_pull_requests(suggested, client):
+    """Open ones at first; merged and closed ones when chosen, the newest first."""
+    page = text(client, "/s/o~r/suggestions/")
+    assert 'name="state" value="open" checked' in page
+    assert 'name="state" value="merged" checked' not in page
+    assert "o/r#5" not in page and "o/r#6" not in page
+    every = "?filtered=1&status=open&status=applied&status=unknown"
+    merged = text(client, f"/s/o~r/suggestions/{every}&state=merged")
+    assert re.findall(r'data-pr="o/r#(\d+)"', merged) == ["5"]
+    closed = text(client, f"/s/o~r/suggestions/{every}&state=closed")
+    assert re.findall(r'data-pr="o/r#(\d+)"', closed) == ["6"]
+    both = text(client, f"/s/o~r/suggestions/{every}&state=closed&state=merged&state=open")
+    assert re.findall(r'data-pr="o/r#(\d+)"', both) == ["6", "5", "3", "2", "1"]
+
+
+def test_the_page_of_a_pull_request_shows_it_in_any_state(suggested, client):
+    """A merged pull request has its suggestions on its page; no choice of states there."""
+    page = text(client, "/s/o~r/suggestions/o~r/5/")
+    assert re.findall(r'data-pr="o/r#(\d+)"', page) == ["5"]
+    assert "data-state-filter" not in page
+
+
+def test_the_badge_of_a_pull_request_can_start_with_its_number(suggested, client):
+    """The checkbox number=1 changes the badge and its code."""
+    page = text(client, "/s/o~r/suggestions/o~r/2/")
+    assert '<img src="/badge/s/o~r/pull/o~r/2/suggestions.svg"' in page
+    assert 'id="number-toggle" name="number" value="1" data-submit-on-change' in page
+    assert 'data-share-image="http://testserver/badge/s/o~r/pull/o~r/2/suggestions.svg"' in page
+    assert 'data-share-alt="suggestions"' in page and 'data-share="markdown"' in page
+    assert 'href="http://testserver/badge/s/o~r/pull/o~r/2/suggestions.json"' in page
+    numbered = text(client, "/s/o~r/suggestions/o~r/2/?number=1")
+    assert '<img src="/badge/s/o~r/pull/o~r/2/suggestions.svg?number=1"' in numbered
+    assert 'value="1" checked' in numbered and 'data-share-alt="PR #2 suggestions"' in numbered
+    png = text(client, "/s/o~r/suggestions/o~r/2/?number=1&format=png")
+    assert (
+        'data-share-image="http://testserver/badge/s/o~r/pull/o~r/2/suggestions.png?number=1"'
+        in png
+    )
+    assert 'href="?number=1&amp;format=svg"' in png, "the format keeps the number"
+
+
+def test_the_newest_suggestion_of_a_pull_request_comes_first(suggested, client):
+    """Within a pull request: newest first, whatever the status."""
+    page = text(client, "/s/o~r/suggestions/o~r/1/")
+    assert re.findall(r'discussion_r(\d+)">#1', page) == ["13", "11"]

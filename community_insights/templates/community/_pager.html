@@ -1,0 +1,17 @@
+{% load i18n community %}{# The pages of a list, the same everywhere: previous, a drop-down to jump to a page "of N", next. "page" is a Django Page; "field" the parameter of its number ("page" if not given). The other parameters of the address stay. #}
+{% if page.paginator.num_pages > 1 %}{% firstof field "page" as name %}
+<nav aria-label="{% translate "Pages" %}" class="my-2" data-pager>
+  <form method="get" class="d-flex flex-wrap align-items-center justify-content-center gap-2 small">
+    {% parameters_without request name as others %}{% for key, value in others %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="{% page_address request name page.previous_page_number %}" rel="prev" data-pager-previous>&laquo; {% translate "previous" %}</a>{% endif %}
+    <label class="d-flex align-items-center gap-1">{% translate "page" %}
+      <select class="form-select form-select-sm w-auto" name="{{ name }}" data-submit-on-change data-pager-select>{% for number in page.paginator.page_range %}
+        <option value="{{ number }}"{% if number == page.number %} selected{% endif %}>{{ number }}</option>{% endfor %}
+      </select>
+      {% blocktranslate with count=page.paginator.num_pages %}of {{ count }}{% endblocktranslate %}
+    </label>
+    <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="{% page_address request name page.next_page_number %}" rel="next" data-pager-next>{% translate "next" %} &raquo;</a>{% endif %}
+  </form>
+</nav>
+{% endif %}

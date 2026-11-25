@@ -12,6 +12,18 @@ pytestmark = pytest.mark.django_db
 SIGN_IN_PAGE = "/accounts/login/"
 
 
+@pytest.fixture
+def client():
+    """Django's client: the check sees the redirects as the live site answers them.
+
+    Returns:
+        The client.
+    """
+    from django.test import Client
+
+    return Client()
+
+
 def django_transport(client, answers=None):
     """Answer the requests of the check with the Django test client.
 

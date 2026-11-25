@@ -69,15 +69,15 @@ def test_the_pages_draw_their_charts_with_chart_js(world, signed_in):
     """The charts link to their data; the pages load Chart.js; the data is JSON."""
     pk = world["project"].pk
     page = signed_in.get(f"/s/{pk}/people/bob/").content.decode()
-    assert f'data-chart-json="/s/{pk}/chart/heatmap.json?login=bob' in page
+    assert 'data-chart-json="/s/o~r/chart/heatmap.json?login=bob' in page
     assert "vendor/chartjs/chart.umd.js" in page and "js/charts.js" in page
     overview = signed_in.get(f"/s/{pk}/response-times/").content.decode()
-    assert f'data-chart-json="/s/{pk}/chart/responses-pr.json' in overview
-    assert f'data-chart-json="/s/{pk}/chart/survival-pr.json' not in overview
+    assert 'data-chart-json="/s/o~r/chart/responses-pr.json' in overview
+    assert 'data-chart-json="/s/o~r/chart/survival-pr.json' not in overview
     answer = signed_in.get(f"/s/{pk}/chart/hours.json?login=bob&theme=dark")
     assert answer.status_code == 200 and answer.json()["ink"] == charts.INK["dark"]
-    assert signed_in.get(f"/s/{pk}/chart/survival-pr.json").status_code == 404
-    assert signed_in.get(f"/s/{pk}/chart/query.json?where=prs_total+>+0").json()["type"] == "bar"
+    assert signed_in.get("/s/o~r/chart/survival-pr.json").status_code == 404
+    assert signed_in.get("/s/o~r/chart/query.json?where=prs_total+>+0").json()["type"] == "bar"
 
 
 def test_a_heat_map_without_activity_is_empty():

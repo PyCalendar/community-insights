@@ -111,7 +111,7 @@ def test_every_page_and_link_works_signed_in(world, signed_in, monkeypatch):  # 
     monkeypatch.setattr("community_insights.github.Client", lambda token: FakeClient())
     seen = crawl(signed_in, ["/", "/dashboard/"])
     pages = {urlparse(u).path for u in seen}
-    project = world["project"].pk
+    project = world["project"].address  # the public address the dashboard links
     for expected in [
         "/dashboard/",
         "/about/",
@@ -138,4 +138,5 @@ def test_every_public_page_works(client, world, monkeypatch):  # noqa: F811
     pages = {urlparse(u).path for u in seen}
     for expected in ["/explore/", "/s/o~r/", "/s/o~r/contributors/", "/s/o~r/items/"]:
         assert expected in pages, expected
-    assert client.get(f"/s/{world['project'].pk}/").status_code == 302  # sign in first
+    pk = world["project"].pk
+    assert client.get(f"/s/{pk}/").request["PATH_INFO"] == "/s/o~r/", "the public address"

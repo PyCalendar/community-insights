@@ -78,13 +78,13 @@ def test_the_chart_data(pk, signed_in):
 def test_the_page_is_in_the_menu(pk, signed_in):
     """Reviews follows Replies in the menu of the pages."""
     page = signed_in.get(f"/s/{pk}/reviews/").content.decode()
-    assert page.index(f'href="/s/{pk}/replies/') < page.index(f'href="/s/{pk}/reviews/')
+    assert page.index('href="/s/o~r/replies/') < page.index('href="/s/o~r/reviews/')
 
 
 def test_visitors_see_public_repositories(pk, client):
     """A public repository has the page for everybody."""
     assert client.get("/s/o~r/reviews/").status_code == 200
-    assert client.get(f"/s/{pk}/reviews/").status_code == 302
+    assert client.get(f"/s/{pk}/reviews/").request["PATH_INFO"] == "/s/o~r/reviews/"
 
 
 def test_the_page_in_german(pk, signed_in):

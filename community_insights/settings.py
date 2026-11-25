@@ -238,7 +238,7 @@ NOMINATIM_PER_FETCH = env.int("NOMINATIM_PER_FETCH", default=100)
 CACHE_KEEP_DAYS = env.int("CACHE_KEEP_DAYS", default=90)  # unused data is deleted after
 DATABASE_MAX_MB = env.float("DATABASE_MAX_MB", default=1024)  # 1 GB; 0: no limit
 DATABASE_MIN_AGE_HOURS = env.float("DATABASE_MIN_AGE_HOURS", default=24)  # never deleted for space
-DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
+DJANGO_TABLES2_TEMPLATE = "community/table.html"  # Bootstrap 5 with the pager of the site
 TZ_DETECT_COUNTRIES = ()  # the time zone of the browser is enough
 
 LANGUAGE_CODE = "en"

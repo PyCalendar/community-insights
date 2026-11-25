@@ -15,15 +15,15 @@ pytestmark = pytest.mark.django_db
 def test_a_chart_of_a_project_with_its_page(synced, signed_in):
     """A chart of a project with its page."""
     pk = Project.objects.get().pk
-    page = signed_in.get(f"/s/{pk}/share/responses-pr/?from=/s/{pk}/").content.decode()
+    page = signed_in.get(f"/s/{pk}/share/responses-pr/?from=/s/o~r/").content.decode()
     assert 'data-share-image="http://testserver/s/o~r/chart/responses-pr.svg"' in page
     assert 'data-share-link="http://testserver/s/o~r/"' in page
-    assert f'href="/s/{pk}/">Back to the page' in page, "back to the own page"
+    assert 'href="/s/o~r/">Back to the page' in page, "back to the own page"
     assert "o/r: first response times of pull requests" in page
     for name in ("markdown", "rst", "html", "link"):
         assert f'data-share="{name}"' in page
         assert f'data-copy="#chart-{name}"' in page
-    assert "public repositories of your projects" in page and "o~r" in page
+    assert "public repositories of your projects" not in page, "the page is public already"
     assert "only you can see it" not in page
 
 
@@ -31,7 +31,7 @@ def test_the_parameters_of_the_chart_stay_but_not_the_theme(synced, signed_in):
     """The parameters of the chart stay but not the theme."""
     pk = Project.objects.get().pk
     page = signed_in.get(
-        f"/s/{pk}/share/months/?login=bob&theme=dark&from=/s/{pk}/people/bob/"
+        f"/s/{pk}/share/months/?login=bob&theme=dark&from=/s/o~r/people/bob/"
     ).content.decode()
     assert 'data-share-image="http://testserver/s/o~r/chart/months.svg?login=bob"' in page
     assert 'data-share-link="http://testserver/s/o~r/people/bob/"' in page
@@ -60,8 +60,10 @@ def test_a_public_chart_for_everybody(synced, client):
 def test_unknown_charts_and_projects_of_others(synced, signed_in, client):
     """Unknown charts and projects of others."""
     pk = Project.objects.get().pk
-    assert signed_in.get(f"/s/{pk}/share/nothing/").status_code == 404
+    assert signed_in.get("/s/o~r/share/nothing/").status_code == 404
     signed_in.logout()
+    assert client.get(f"/s/{pk}/share/hours/").request["PATH_INFO"] == "/s/o~r/share/hours/"
+    Project.objects.update(is_private=True)
     assert client.get(f"/s/{pk}/share/hours/").status_code == 302, "to the sign in"
 
 
@@ -71,7 +73,7 @@ def test_the_charts_link_to_their_share_page(synced, signed_in):
     page = signed_in.get(f"/s/{pk}/response-times/?since=2026-01-01").content.decode()
     assert "Share this chart" in page
     assert (
-        f"/s/{pk}/share/responses-pr/?since=2026-01-01&amp;from=%2Fs%2F{pk}%2Fresponse-times%2F%3Fsince%3D2026-01-01"
+        "/s/o~r/share/responses-pr/?since=2026-01-01&amp;from=%2Fs%2Fo~r%2Fresponse-times%2F%3Fsince%3D2026-01-01"
         in page
     )
 
@@ -112,7 +114,7 @@ def test_the_shared_chart_keeps_the_time_range_and_the_classes(synced, signed_in
     add_handle(bot_class(user), "maint")  # the classes differ from the default ones
     pk = Project.objects.get().pk
     page = signed_in.get(
-        f"/s/{pk}/share/hours/", {"last": "30", "from": f"/s/{pk}/?last=30"}
+        f"/s/{pk}/share/hours/", {"last": "30", "from": "/s/o~r/?last=30"}
     ).content.decode()
     image, link = shared(page, "data-share-image"), shared(page, "data-share-link")
     for address in (image, link):

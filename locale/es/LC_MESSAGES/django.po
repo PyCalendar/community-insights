@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 18:36+0000\n"
+"POT-Creation-Date: 2026-11-25 23:26+0000\n"
 "PO-Revision-Date: 2026-11-03 12:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: Spanish\n"
@@ -851,6 +851,22 @@ msgstr "Cancelar"
 msgid "%(applied)s applied, %(open)s open, %(unknown)s unknown"
 msgstr "%(applied)s aplicadas, %(open)s abiertas, %(unknown)s desconocidas"
 
+msgid "Pages"
+msgstr "Páginas"
+
+msgid "previous"
+msgstr "anterior"
+
+msgid "page"
+msgstr "página"
+
+#, python-format
+msgid "of %(count)s"
+msgstr "de %(count)s"
+
+msgid "next"
+msgstr "siguiente"
+
 #, python-format
 msgid "Pages of %(login)s"
 msgstr "Páginas de %(login)s"
@@ -1024,6 +1040,12 @@ msgstr "Filtra, o escribe propietario/nombre o propietario"
 msgid "Add"
 msgstr "Añadir"
 
+msgid "Suggestions:"
+msgstr "Sugerencias:"
+
+msgid "Pull requests:"
+msgstr "Pull requests:"
+
 msgid "by"
 msgstr "de"
 
@@ -1042,27 +1064,11 @@ msgstr "Sugerida por"
 msgid "Status"
 msgstr "Estado"
 
+msgid "Resolved by"
+msgstr "Resuelta por"
+
 msgid "Last in the thread"
 msgstr "Último en el hilo"
-
-msgid "author"
-msgstr "autor"
-
-msgid "suggester"
-msgstr "quien sugiere"
-
-msgid "Pages of pull requests"
-msgstr "Páginas de pull requests"
-
-msgid "previous"
-msgstr "anterior"
-
-#, python-format
-msgid "page %(number)s of %(count)s"
-msgstr "página %(number)s de %(count)s"
-
-msgid "next"
-msgstr "siguiente"
 
 msgid "No suggestions to show in this time."
 msgstr "No hay sugerencias que mostrar en este periodo."
@@ -2045,19 +2051,6 @@ msgstr "Nada coincide."
 msgid "No repository yet: add the first one."
 msgstr "Aún no hay repositorios: añade el primero."
 
-msgid "Pages"
-msgstr "Páginas"
-
-msgid "Previous"
-msgstr "Anterior"
-
-#, python-format
-msgid "%(number)s of %(pages)s"
-msgstr "%(number)s de %(pages)s"
-
-msgid "Next"
-msgstr "Siguiente"
-
 #, python-format
 msgid "Read %(title)s from GitHub"
 msgstr "Leer %(title)s de GitHub"
@@ -2677,8 +2670,19 @@ msgstr "Sugerencias del PR #%(number)s"
 msgid "All suggestions"
 msgstr "Todas las sugerencias"
 
-msgid "The badge of this pull request, for Markdown:"
-msgstr "La insignia de este pull request, para Markdown:"
+msgid "The badge of this pull request"
+msgstr "La insignia de este pull request"
+
+#, python-format
+msgid "Start the badge with \"PR #%(number)s\""
+msgstr "Empezar la insignia con «PR #%(number)s»"
+
+msgid ""
+"Projects together have no badge of a pull request: open one project or its "
+"public repositories."
+msgstr ""
+"Varios proyectos juntos no tienen insignia de un pull request: abre un "
+"proyecto o sus repositorios públicos."
 
 #, python-format
 msgid "Replies of contributors to %(title)s"
@@ -3629,6 +3633,29 @@ msgid ""
 msgstr ""
 "Los visitantes pueden hacer esto %(times)s veces por hora. Regístrate para "
 "usar tus propios tokens, o espera a la próxima hora."
+
+#~ msgid "author"
+#~ msgstr "autor"
+
+#~ msgid "suggester"
+#~ msgstr "quien sugiere"
+
+#~ msgid "Pages of pull requests"
+#~ msgstr "Páginas de pull requests"
+
+#, python-format
+#~ msgid "page %(number)s of %(count)s"
+#~ msgstr "página %(number)s de %(count)s"
+
+#~ msgid "Previous"
+#~ msgstr "Anterior"
+
+#, python-format
+#~ msgid "%(number)s of %(pages)s"
+#~ msgstr "%(number)s de %(pages)s"
+
+#~ msgid "Next"
+#~ msgstr "Siguiente"
 
 #~ msgid "Place on the map"
 #~ msgstr "Lugar en el mapa"

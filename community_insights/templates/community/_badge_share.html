@@ -1,0 +1,6 @@
+{% load i18n %}{# The card of a badge, the same for every badge: SVG or PNG, the JSON, the image, and its code for Markdown, reStructuredText, HTML and the address (static/js/share.js). "badge" comes from views.badge_share.badge_share; "prefix" keeps the ids apart; "data" names an attribute of the card, such as data-suggestion-badge. #}
+<div class="card"{% if data %} {{ data }}{% endif %}><div class="card-body" data-share-image="{{ badge.image }}" data-share-link="{{ badge.page }}" data-share-alt="{{ badge.alt }}">
+  {% include "community/_badge_formats.html" with svg_url=badge.svg_url png_url=badge.png_url json_url=badge.json_url image_format=badge.image_format %}
+  <img src="{{ badge.preview }}" alt="{{ badge.alt }}" data-badge-preview>
+  {% include "community/_share_code.html" with prefix=prefix %}
+</div></div>

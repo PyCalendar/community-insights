@@ -74,12 +74,12 @@ def test_the_overview_shows_the_trend_and_the_curves(world, signed_in):
     page = signed_in.get(f"/s/{pk}/response-times/").content.decode()
     assert 'data-trend="pr"' in page and 'data-trend="issue"' in page
     assert "too few responses to tell" in page
-    assert f"/s/{pk}/chart/survival-pr.svg" in page
+    assert "/s/o~r/chart/survival-pr.svg" in page
     assert "response-times.html#kaplan-meier-curve" in page
     assert "response-times.html#trend" in page
     chart = signed_in.get(f"/s/{pk}/chart/survival-pr.svg")
     assert chart.status_code == 200 and chart["Content-Type"] == "image/svg+xml"
-    assert signed_in.get(f"/s/{pk}/share/survival-issue/").status_code == 200
+    assert signed_in.get("/s/o~r/share/survival-issue/").status_code == 200
 
 
 def test_exactly_the_least_number_of_responses_gives_a_trend():

@@ -110,7 +110,7 @@ def test_the_button_has_a_menu(replied, signed_in):
     """Update reads at once all the pages need; its menu leads to the page Fetch."""
     pk = replied["project"].pk
     page = signed_in.get(f"/s/{pk}/replies/").content.decode()
-    assert f'action="/s/{pk}/fetch/"' in page and 'name="action" value="now"' in page
+    assert 'action="/s/o~r/fetch/"' in page and 'name="action" value="now"' in page
     assert "Choose what and how much to read" in page
     assert 'name="read" value="details"' not in page, "a fetch reads the details anyway"
 

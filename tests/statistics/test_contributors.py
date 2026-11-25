@@ -231,7 +231,7 @@ def test_the_query_runs_without_loading_the_page(world, signed_in):  # noqa: F81
     """htmx sends the query and puts only the result and the messages into the page."""
     pk = world["project"].pk
     page = signed_in.get(f"/s/{pk}/contributors/").content.decode()
-    assert f'hx-get="/s/{pk}/contributors/"' in page
+    assert 'hx-get="/s/o~r/contributors/"' in page
     assert 'hx-trigger="submit, change from:#group, change from:#chart"' in page
     assert 'hx-select="#query-result"' in page and 'hx-push-url="true"' in page
     assert 'hx-select-oob="#messages"' in page and '<div id="messages">' in page
@@ -246,7 +246,7 @@ def test_the_result_has_the_downloads_of_its_query(world, signed_in):  # noqa: F
         f"/s/{pk}/contributors/?where=prs_opened+>+0", HTTP_HX_REQUEST="true"
     ).content.decode()
     result = page[page.index('<div id="query-result"') :]
-    assert f"/s/{pk}/contributors.csv?where=prs_opened" in result
+    assert "/s/o~r/contributors.csv?where=prs_opened" in result
 
 
 def test_an_invalid_query_shows_its_error_in_the_messages(world, signed_in):  # noqa: F811

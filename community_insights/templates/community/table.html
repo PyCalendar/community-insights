@@ -1,0 +1,3 @@
+{% extends "django_tables2/bootstrap5-responsive.html" %}
+{# The tables of the site: as Bootstrap 5, with the pager of the whole site (_pager.html). #}
+{% block pagination %}{% if table.page %}{% include "community/_pager.html" with page=table.page field=table.prefixed_page_field %}{% endif %}{% endblock pagination %}

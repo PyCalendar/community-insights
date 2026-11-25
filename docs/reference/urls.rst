@@ -18,9 +18,9 @@ URLs
    * - ``/s/<scope>/reviews/``
      - the reviews of pull requests by collaborators and by others, their kinds, a statistical trend, and the reviews until merged; ``?by=`` chooses the bars, see :doc:`../explanation/reviews`
    * - ``/s/<scope>/suggestions/``
-     - the code suggestions of the pull requests, grouped by pull request; ``status`` and ``filtered=1`` choose the statuses, ``page`` the page, see :doc:`../explanation/suggestions`
+     - the code suggestions of the pull requests, grouped by pull request; ``status`` (``unknown``, ``open``, ``applied``), ``state`` (``open``, ``closed``, ``merged``) and ``filtered=1`` choose what is shown, ``page`` the page, see :doc:`../explanation/suggestions`
    * - ``/s/<scope>/suggestions/<owner>~<name>/<number>/``
-     - the suggestions of one pull request, with its badge
+     - the suggestions of one pull request, with its badge; ``number=1`` shows the badge that starts with ``PR #12``
    * - ``/s/<scope>/people/<login>/suggestions/``
      - the suggestions on the pull requests of a person
    * - ``/s/<scope>/badges/<login>/``
@@ -78,7 +78,7 @@ URLs
    * - ``/robots.txt``
      - the rules for crawlers, see :ref:`crawlers`
 
-The ``<scope>`` is a project number, several joined by ``-`` (``1-3``) or ``all``: these need a sign in. Or public repositories for everybody: ``owner~name``, several joined by ``+``, or ``owner`` for all known public repositories of an owner. ``/explore/`` lists the public repositories; ``/badge/s/<scope>.svg`` is the badge of a public scope. Times are shown in the time zone of the browser, which sends it in the cookie ``tz``. Every statistics page takes the time range ``since``, ``until`` or ``last``, and ``classes``: the ids of the classes of people to use, see :ref:`shared-statistics`.
+The ``<scope>`` is a project number, several joined by ``-`` (``1-3``) or ``all``: these need a sign in. Or public repositories for everybody: ``owner~name``, several joined by ``+``, or ``owner`` for all known public repositories of an owner. The public address is preferred: when all repositories of the projects are public, a page read at ``/s/1/...`` leads to the same page at ``/s/owner~name/...``, with the same parameters, for everybody, and the links of the dashboard use it. Only projects with a private repository keep their number in the address. Forms sent to a project are answered where they were sent. ``/explore/`` lists the public repositories; ``/badge/s/<scope>.svg`` is the badge of a public scope. Times are shown in the time zone of the browser, which sends it in the cookie ``tz``. Every statistics page takes the time range ``since``, ``until`` or ``last``, and ``classes``: the ids of the classes of people to use, see :ref:`shared-statistics`.
 
 .. _crawlers:
 

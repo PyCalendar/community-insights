@@ -14,6 +14,9 @@ from ..sync import PAGE, PEOPLE_BATCH
 
 ASK_ABOVE = 5000  # points: one hour of one token
 SECONDS_PER_POINT = 2.0  # until measured
+# A request of the review threads of sync.queries.THREADS pull requests: GitHub counts a point
+# per 100 connections asked, 10 of threads, 10 × 50 of their comments and 10 of commits.
+THREAD_POINTS = 5
 
 
 @dataclass
@@ -63,11 +66,31 @@ def anonymous_points(repository: Repository, prs: int, issues: int) -> int:
     return 3 + math.ceil(items / 100) + math.ceil(items * 2 / 100)
 
 
+def threads_points(repository: Repository, prs: int) -> int:
+    """API points to read the review threads of pull requests, for their suggestions.
+
+    The pull requests read before whose threads are still to read, and ``prs`` more.
+
+    Args:
+        repository: The repository.
+        prs: The pull requests that will be read new or changed.
+
+    Returns:
+        The points: ``THREAD_POINTS`` per request of ``sync.queries.THREADS`` pull requests.
+    """
+    from ..sync.queries import THREADS
+    from ..sync.store import without_threads
+
+    pending = len(without_threads(repository)) if repository.pk else 0
+    return math.ceil((pending + prs) / THREADS) * THREAD_POINTS
+
+
 def points_for(repository: Repository, prs: int, issues: int, cached: int) -> int:
     """API points to read a repository.
 
     API points to read a repository: a page per 50 items, some more for items with many
-    comments, and the people in batches. Read before: the changes.
+    comments, the people in batches, and the review threads of the pull requests. Read
+    before: the changes.
 
     Args:
         repository: The repository.
@@ -83,9 +106,9 @@ def points_for(repository: Repository, prs: int, issues: int, cached: int) -> in
         pages = math.ceil(prs / PAGE) + math.ceil(issues / PAGE) or 2
         follow = math.ceil((prs + issues) / 20)  # items with more than a page of comments
         people = math.ceil(min(prs + issues, 3000) * 0.4 / PEOPLE_BATCH)
-        return pages + follow + people + commits
+        return pages + follow + people + commits + threads_points(repository, prs)
     missing = max(0, prs + issues - cached)
-    return 2 + math.ceil(missing / PAGE) + 1
+    return 2 + math.ceil(missing / PAGE) + 1 + threads_points(repository, min(missing, prs))
 
 
 def cached_counts(repositories) -> dict[int, dict[str, int]]:

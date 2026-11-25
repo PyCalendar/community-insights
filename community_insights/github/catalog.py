@@ -36,6 +36,10 @@ def examples() -> dict[str, str]:
         "commits": sync_queries.commits_query(),
         "commits and closers": sync_queries.details_query(),
         "review threads and suggestions": sync_queries.threads_query(),
+        "more review threads": sync_queries.more_threads_query(),
+        "more comments of a review thread": sync_queries.more_thread_comments_query(),
+        "more commits of a pull request": sync_queries.more_pull_commits_query(),
+        "authors of commits": sync_queries.commit_authors_query(),
         "more comments": sync_queries.more_query("comments"),
         "more reviews": sync_queries.more_query("reviews"),
     }

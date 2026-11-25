@@ -103,7 +103,7 @@ def test_the_new_contributors_link_to_their_pages(pk, signed_in):
     page = signed_in.get(f"/s/{pk}/trends/?{WEEK}").content.decode()
     pulls = side(page, "pr")
     for login in ("bob", "carol", "maint"):
-        assert f'href="/s/{pk}/people/{login}/?{WEEK.replace("&", "&amp;")}">{login}</a>' in pulls
+        assert f'href="/s/o~r/people/{login}/?{WEEK.replace("&", "&amp;")}">{login}</a>' in pulls
     assert "ci[bot]" not in pulls, "bots are no new contributors"
 
 
@@ -125,7 +125,7 @@ def test_a_time_without_new_contributors(pk, signed_in):
 def test_the_charts(pk, signed_in, name):
     """Each chart as SVG and for Chart.js, linked from the page, with the time range."""
     page = signed_in.get(f"/s/{pk}/trends/?{WEEK}").content.decode()
-    assert f'data-chart-src="/s/{pk}/chart/{name}.svg?{WEEK.replace("&", "&amp;")}"' in page
+    assert f'data-chart-src="/s/o~r/chart/{name}.svg?{WEEK.replace("&", "&amp;")}"' in page
     svg = signed_in.get(f"/s/{pk}/chart/{name}.svg?{WEEK}")
     assert svg.status_code == 200 and svg["Content-Type"] == "image/svg+xml"
     data = json.loads(signed_in.get(f"/s/{pk}/chart/{name}.json?{WEEK}").content)
@@ -163,11 +163,11 @@ def test_the_charts_can_be_shared(pk, signed_in):
 
 
 def test_visitors_see_the_trends_of_public_repositories(synced, client):
-    """A public repository has trends for everybody; projects need a sign in."""
+    """A public repository has trends for everybody; its project leads there."""
     assert client.get("/s/o~r/trends/?last=30").status_code == 200
     assert client.get("/s/o~r/chart/trend-pr.svg?last=30").status_code == 200
     pk = Project.objects.get().pk
-    assert client.get(f"/s/{pk}/trends/").status_code == 302
+    assert client.get(f"/s/{pk}/trends/").request["PATH_INFO"] == "/s/o~r/trends/"
 
 
 def test_a_wrong_time_range_is_shown_and_left_out(pk, signed_in):
@@ -181,7 +181,7 @@ def test_a_wrong_time_range_is_shown_and_left_out(pk, signed_in):
 def test_the_last_days_are_quick_choices(pk, signed_in, days):
     """Each page offers the last 7, 30 and 90 days; the one shown is marked."""
     page = signed_in.get(f"/s/{pk}/trends/?last={days}").content.decode()
-    assert f'aria-current="true" href="/s/{pk}/trends/?last={days}" data-last-days="{days}"' in page
+    assert f'aria-current="true" href="/s/o~r/trends/?last={days}" data-last-days="{days}"' in page
     assert page.count('aria-current="true"') == 1
     assert "the same length just before" in page
 
@@ -191,7 +191,7 @@ def test_the_quick_choices_keep_the_parameters_of_the_page(pk, signed_in):
     page = signed_in.get(
         f"/s/{pk}/contributors/?where=prs_total>0&since=2026-01-01"
     ).content.decode()
-    assert f'href="/s/{pk}/contributors/?last=7&amp;where=prs_total%3E0" data-last-days="7"' in page
+    assert 'href="/s/o~r/contributors/?last=7&amp;where=prs_total%3E0" data-last-days="7"' in page
     assert 'aria-current="true"' not in page, "a date is no quick choice"
 
 

@@ -136,7 +136,7 @@ def test_the_data_links_offer_parquet(world, signed_in):  # noqa: F811
     """The section Data and sources links the Parquet files."""
     pk = world["project"].pk
     page = signed_in.get(f"/s/{pk}/").content.decode()
-    assert f"/s/{pk}/data/responses.parquet" in page
+    assert "/s/o~r/data/responses.parquet" in page
 
 
 def test_csv_quotes_commas_quotes_and_line_breaks():

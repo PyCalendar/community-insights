@@ -35,6 +35,16 @@ class Project(models.Model):
         return self.name or self.target
 
     @property
+    def address(self) -> str:
+        """The scope of its pages in addresses: the public one if all is public, else its number.
+
+        See ``public_scope.address_of``; one query per project.
+        """
+        from ..public_scope import address_of
+
+        return address_of(self)
+
+    @property
     def is_owner(self):
         """Whether it is a whole organisation or user, not one repository."""
         return "/" not in self.target

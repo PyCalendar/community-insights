@@ -78,7 +78,7 @@ def test_who_did_not_answer_has_the_details(replied, signed_in):
     cells = re.findall(r"<td>(.*?)</td>", cid, re.S)
     assert "#4" in cells[1] and cells[2].strip() == "-", "#4 is open: not in the closed column"
     assert 'href="https://github.com/cid"' not in cid, "no link to the profile"
-    assert f"/s/{replied['project'].pk}/people/cid/items/?kind=pr" in cid
+    assert "/s/o~r/people/cid/items/?kind=pr" in cid
     ben = re.sub(r"<[^>]+>", " ", row(page, "ben"))
     assert re.search(r"0/1\s+0/1\s+-\s+o/r\s+#3\s+1", ben), "#3 closed without reply, by maint"
 
@@ -95,7 +95,7 @@ def test_who_answered_has_no_details(replied, signed_in):
 def test_the_page_is_in_the_navigation(replied, signed_in):
     """The other pages link to the page of replies, with the time range."""
     page = page_of(signed_in.get(f"/s/{replied['project'].pk}/?last=30"))
-    assert f'href="/s/{replied["project"].pk}/replies/?last=30"' in page
+    assert 'href="/s/o~r/replies/?last=30"' in page
 
 
 def test_visitors_see_public_repositories(replied, client):
@@ -105,8 +105,13 @@ def test_visitors_see_public_repositories(replied, client):
 
 
 def test_projects_need_a_sign_in(replied, client):
-    """A project is shown to its owner only."""
-    response = client.get(f"/s/{replied['project'].pk}/replies/")
+    """A project with a private repository is shown to its owner only; a public one leads to
+    its public address."""
+    pk = replied["project"].pk
+    assert client.get(f"/s/{pk}/replies/").request["PATH_INFO"] == "/s/o~r/replies/"
+    replied["repository"].is_private = True
+    replied["repository"].save()
+    response = client.get(f"/s/{pk}/replies/")
     assert response.status_code == 302 and "/accounts/login/" in response["Location"]
 
 
@@ -138,12 +143,15 @@ def test_the_items_of_one_person(replied, signed_in):
 
 
 def test_the_badge_page_has_the_code_to_copy(replied, signed_in):
-    """The badge of a project has its secret token and links the page of replies."""
+    """The badge of a private project has its secret token and links the page of replies."""
     project = replied["project"]
+    replied["repository"].is_private = True
+    replied["repository"].save()
     page = page_of(signed_in.get(f"/s/{project.pk}/badges/cid/"))
     image = f"http://testserver/badge/{project.badge_token}/replies/cid.svg"
     assert f'data-share-image="{image}"' in page
-    assert 'data-share-link="http://testserver/s/o~r/replies/cid/' in page, "to the replies of cid"
+    link = f"http://testserver/s/{project.pk}/replies/cid/"
+    assert f'data-share-link="{link}' in page, "to the replies of cid, after a sign in"
     assert f'href="/s/{project.pk}/replies/cid/">Replies</a>' in page, "the views of the person"
     assert "js/share.js" in page
 
@@ -188,7 +196,7 @@ def test_several_projects_share_their_public_repositories(replied, signed_in):
     other = ProjectFactory(user=replied["user"], target="o", repositories=[replied["repository"]])
     scope = f"{replied['project'].pk}-{other.pk}"
     page = page_of(signed_in.get(f"/s/{scope}/badges/cid/"))
-    assert 'data-share-image="http://testserver/badge/s/o~r/replies/cid.svg"' in page
+    assert 'data-share-image="http://testserver/badge/s/o/replies/cid.svg"' in page, "of o"
     replied["repository"].is_private = True
     replied["repository"].save()
     page = page_of(signed_in.get(f"/s/{scope}/badges/cid/"))
@@ -261,7 +269,7 @@ def test_a_person_without_pull_requests(replied, client):
 def test_the_list_leads_to_the_replies_of_each_person(replied, signed_in):
     """The label of a row opens the replies of the person."""
     page = page_of(signed_in.get(f"/s/{replied['project'].pk}/replies/"))
-    assert f'href="/s/{replied["project"].pk}/replies/cid/"' in row(page, "cid")
+    assert 'href="/s/o~r/replies/cid/"' in row(page, "cid")
 
 
 def test_a_pull_request_the_author_closed_is_named_on_the_page_of_the_person(replied, client):

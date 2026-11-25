@@ -95,3 +95,16 @@ def test_seconds_left(user):  # noqa: F811
         not_before=timezone.now() + timedelta(seconds=60),
     )
     assert pipeline.seconds_left([waiting]) == pytest.approx(60, abs=2)
+
+
+def test_the_estimate_counts_the_review_threads(user):  # noqa: F811
+    """The threads of 120 pull requests: 12 requests of 10, 5 points each; later the changes."""
+    from community_insights.pipeline.estimate import THREAD_POINTS, threads_points
+
+    repository = store_repository(repo("o/r"))
+    assert threads_points(repository, 120) == 12 * THREAD_POINTS
+    assert threads_points(repository, 0) == 0
+    with_threads = pipeline.points_for(repository, 120, 0, 0)
+    assert with_threads >= 12 * THREAD_POINTS + 3
+    repository.prs_synced_until = timezone.now()
+    assert pipeline.points_for(repository, 125, 0, 120) == 4 + 1 * THREAD_POINTS, "5 changed"

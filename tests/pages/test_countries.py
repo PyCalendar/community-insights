@@ -135,10 +135,10 @@ def test_the_page_in_german(pk, signed_in):
 
 
 def test_visitors_see_public_repositories(pk, client):
-    """A public repository has the pages for everybody; projects need a sign in."""
+    """A public repository has the pages for everybody; its project leads there."""
     assert client.get("/s/o~r/countries/").status_code == 200
     assert client.get("/s/o~r/languages/").status_code == 200
-    assert client.get(f"/s/{pk}/countries/").status_code == 302
+    assert client.get(f"/s/{pk}/countries/").request["PATH_INFO"] == "/s/o~r/countries/"
 
 
 def test_the_languages_ranked_by_contributors(pk, signed_in):
@@ -162,7 +162,7 @@ def test_languages_without_anybody(signed_in, pk):
 def test_the_pages_are_in_the_menu(pk, signed_in):
     """Countries and Languages follow Contributors in the menu of the pages."""
     text = page(signed_in, pk)
-    assert f'href="/s/{pk}/countries/"' in text and f'href="/s/{pk}/languages/"' in text
+    assert 'href="/s/o~r/countries/"' in text and 'href="/s/o~r/languages/"' in text
 
 
 @pytest.mark.parametrize(

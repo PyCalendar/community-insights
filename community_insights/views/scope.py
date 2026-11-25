@@ -7,7 +7,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import Resolver404, resolve, reverse
 from django.utils import timezone
 from django.utils.translation import gettext
@@ -25,8 +25,10 @@ from ..errors import (
 from ..feedback import show_error
 from ..models import (
     Person,
+    Project,
     Repository,
 )
+from ..public_scope import public_scope
 from .dashboard import source_choices
 
 
@@ -523,8 +525,46 @@ def scope_toggles(request, scope: Scope) -> list[tuple]:
     return result
 
 
+def public_address(request, text: str) -> str | None:
+    """The address of the same page for everybody, if projects have one.
+
+    Projects whose repositories are all public have the same pages at their public scope
+    (``public_scope.public_scope``); a page of them is read there, without the numbers of the
+    projects. Only pages that are read (GET, HEAD), not forms that are sent.
+
+    Args:
+        request: The request.
+        text: The scope of the address, such as ``1`` or ``1-2``.
+
+    Returns:
+        The address with the public scope and the same parameters; None if there is none.
+    """
+    if request.method not in ("GET", "HEAD") or not PROJECTS.match(text):
+        return None
+    match = request.resolver_match
+    if match is None or match.kwargs.get("scope") != text:
+        return None
+    if text == "all":
+        if not request.user.is_authenticated:
+            return None
+        projects = list(request.user.projects.all())
+    else:
+        ids = {int(part) for part in text.split("-")}
+        projects = list(Project.objects.filter(pk__in=ids))
+        if len(projects) != len(ids):
+            return None
+    public = public_scope(projects)
+    if not public:
+        return None
+    path = reverse(match.view_name, kwargs={**match.kwargs, "scope": public})
+    query = request.META.get("QUERY_STRING", "")
+    return f"{path}?{query}" if query else path
+
+
 def scope_view(view):
     """A view of a scope: public scopes for everybody, projects after a sign in.
+
+    A page of projects that are all public leads to the same page of their public scope.
 
     Args:
         view: The view; its second argument is the text of the scope.
@@ -535,6 +575,10 @@ def scope_view(view):
 
     @functools.wraps(view)
     def checked(request, *args, **kwargs):
+        text = kwargs.get("scope", args[0] if args else "")
+        public = public_address(request, str(text))
+        if public:
+            return redirect(public)
         try:
             return view(request, *args, **kwargs)
         except PermissionDenied:
