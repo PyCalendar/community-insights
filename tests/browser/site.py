@@ -142,18 +142,42 @@ class Site:
     def sign_up(self, email: str) -> None:
         """Sign up with the email address and a password.
 
+        The answer of the server to the form decides: a redirect to the dashboard is done. On
+        a slow runner, the database of the tests (SQLite) can be busy with another request of
+        the page, such as its time zone: then the form is sent again, and a failure names the
+        status and the start of the answer.
+
         Args:
             email: The address.
+
+        Raises:
+            AssertionError: If signing up does not work three times.
         """
-        self.open("/accounts/signup/")
-        self.page.fill("[name=email]", email)
-        self.page.fill("[name=password1]", PASSWORD)
-        self.page.fill("[name=password2]", PASSWORD)
-        # the button of the form, not Enter, which a page still loading can miss; then only
-        # the address: the dashboard may load its images for a while on a slow runner
-        self.page.locator("form:has([name=password2]) [type=submit]").click()
-        self.page.wait_for_url(re.compile("/dashboard/"), wait_until="commit")
-        expect(self.page.locator("body")).to_be_visible()
+        found = []
+        for _ in range(3):
+            self.open("/accounts/signup/")
+            self.page.fill("[name=email]", email)
+            self.page.fill("[name=password1]", PASSWORD)
+            self.page.fill("[name=password2]", PASSWORD)
+            with self.page.expect_response(
+                lambda r: r.request.method == "POST" and "/accounts/signup/" in r.url
+            ) as answer:
+                self.page.locator("form:has([name=password2]) [type=submit]").click()
+            status = answer.value.status
+            if status in (301, 302, 303):
+                self.page.wait_for_url(re.compile("/dashboard/"), wait_until="commit")
+                expect(self.page.locator("body")).to_be_visible()
+                return
+            text = answer.value.text()[:300]
+            found.append(f"{status}: {text}")
+            if status == 200 and "already" in text:  # signed up before the error
+                self.page.goto(self.url + "/accounts/login/")
+                self.page.fill("[name=login]", email)
+                self.page.fill("[name=password]", PASSWORD)
+                self.page.locator("form:has([name=password]) [type=submit]").click()
+                self.page.wait_for_url(re.compile("/dashboard/"), wait_until="commit")
+                return
+        raise AssertionError(f"signing up failed: {found}")
 
     def add_token(self) -> None:
         """Add a GitHub token on the page GitHub access."""

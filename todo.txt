@@ -180,6 +180,7 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The drop-downs of the project and of a person have Suggestions
 - [x] Every link to GitHub has the mark of GitHub in front of it (CSS, Octicons mark-github, MIT)
 - [x] Release 0.5.0 with the suggestions
+- [x] The browser tests failed again while signing up on the CI: the sign-up waits for the answer of the server to the form, sends it again after a server error (SQLite busy), and names the status if it fails
 - [ ] The estimate of a fetch does not count the requests of the review threads yet
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
