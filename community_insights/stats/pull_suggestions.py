@@ -91,7 +91,11 @@ def pull_suggestions(
 
 
 def summarize_suggestions(
-    repositories, author: str | None = None, pull: tuple[str, int] | None = None
+    repositories,
+    author: str | None = None,
+    pull: tuple[str, int] | None = None,
+    since: datetime | None = None,
+    until: datetime | None = None,
 ) -> SuggestionSummary:
     """The summary of the suggestions on the pull requests of an author, or of one.
 
@@ -99,11 +103,17 @@ def summarize_suggestions(
         repositories: The repositories.
         author: The author of the pull requests, in any case; None for everybody.
         pull: One pull request: the full name of the repository and the number.
+        since: The start of the time range of the suggestions, None for the beginning.
+        until: Its end, excluded; None for now.
 
     Returns:
         How many are applied, open and unknown.
     """
     found = Suggestion.objects.filter(item__repository__in=repositories)
+    if since:
+        found = found.filter(created_at__gte=since)
+    if until:
+        found = found.filter(created_at__lt=until)
     if author:
         found = found.filter(item__author__iexact=author)
     if pull:

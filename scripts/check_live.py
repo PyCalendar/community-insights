@@ -51,10 +51,12 @@ SCOPE_PAGES = [
 SCOPE = re.compile(r'href="/s/([^"/?]+)/"')
 # what the pages of the site have, and the error pages of nginx do not
 SITE_PAGE = "data-theme-choice"
-TRIES = 3  # tries of a request that gets no answer, such as a timeout, or that of a busy site
+TRIES = 4  # tries of a request that gets no answer, such as a timeout, or that of a busy site
 # what nginx answers while gunicorn is busy, such as with the first statistics after a deploy
 BUSY = (502, 503, 504)
-RETRY_PAUSE = 10
+# seconds between tries: after a release, two deploys follow each other and the first pages
+# load the libraries of the statistics while the fetch worker reads what is new
+RETRY_PAUSE = 30
 
 
 class LiveCheck:

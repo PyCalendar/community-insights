@@ -69,10 +69,8 @@ def suggestions_page(request, scope: Scope, template: str, context: dict, **filt
         scope.repositories, scope.since, scope.until, statuses=statuses, **filters
     )
     page = Paginator(groups, PULLS_PER_PAGE).get_page(request.GET.get("page"))
-    summary = SuggestionSummary.of(
-        s.status
-        for group in stats.pull_suggestions(scope.repositories, scope.since, scope.until, **filters)
-        for s in group.suggestions
+    summary = stats.summarize_suggestions(
+        scope.repositories, since=scope.since, until=scope.until, **filters
     )
     return stats_page(
         request,
