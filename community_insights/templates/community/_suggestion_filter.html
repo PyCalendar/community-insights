@@ -1,0 +1,11 @@
+{% load i18n community %}{# Switch the statuses of the suggestions on and off: status=... for each one shown, filtered=1 when the form was sent. #}
+<form method="get" class="small mb-2 d-flex flex-wrap align-items-center gap-2" data-suggestion-filter>
+  {% parameters_without request "status" "filtered" "page" as others %}{% for name, value in others %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  <input type="hidden" name="filtered" value="1">
+  <span>{% translate "Show" %}</span>
+  {% for status in all_statuses %}<div class="form-check form-check-inline me-1">
+    <input class="form-check-input" type="checkbox" id="status-{{ status }}" name="status" value="{{ status }}"{% if status in statuses %} checked{% endif %} data-submit-on-change>
+    <label class="form-check-label" for="status-{{ status }}">{% include "community/_suggestion_status.html" %}</label>
+  </div>{% endfor %}
+  <noscript><button class="btn btn-sm btn-outline-secondary">{% translate "Show" %}</button></noscript>
+</form>

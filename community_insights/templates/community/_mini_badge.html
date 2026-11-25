@@ -1,0 +1,2 @@
+{% load i18n %}{# A badge of suggestions drawn in HTML, as the SVG badge looks: "label" left, the summary ("summary", stats.SuggestionSummary) right in its colour. #}
+<span class="mini-badge" data-suggestion-status="{{ summary.status }}" title="{% blocktranslate with applied=summary.applied open=summary.open unknown=summary.unknown %}{{ applied }} applied, {{ open }} open, {{ unknown }} unknown{% endblocktranslate %}"><span class="mini-badge-label">{{ label }}</span><span class="mini-badge-message mini-badge-{{ summary.status }}">{{ summary.message }}</span></span>

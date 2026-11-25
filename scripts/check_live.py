@@ -44,6 +44,7 @@ SCOPE_PAGES = [
     "items/",
     "replies/",
     "reviews/",
+    "suggestions/",
     "badges/",
     "chart/trend-pr.svg?last=30",
 ]

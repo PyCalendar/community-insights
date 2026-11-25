@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
     from .event import Event
     from .item_commit import ItemCommit
+    from .suggestion import Suggestion
 
 
 class Item(models.Model):
@@ -39,10 +40,14 @@ class Item(models.Model):
     # what of the details was read: 0 nothing, 1 the last commits, the closer and the
     # approvals, 2 also whether it is a draft and the kind of each review (DETAILS)
     details = models.PositiveSmallIntegerField(default=0)
+    # the time of the last change of the pull request when its review threads were read;
+    # they are read again when it changed since (not by the clock of this site)
+    threads_updated_at = models.DateTimeField(null=True, blank=True)
 
     if TYPE_CHECKING:  # the reverse relation, for the type checker
         events: RelatedManager[Event]
         commits: RelatedManager[ItemCommit]
+        suggestions: RelatedManager[Suggestion]
 
     class Meta:
         unique_together = [("repository", "kind", "number")]

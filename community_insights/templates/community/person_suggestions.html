@@ -1,0 +1,13 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate %}Suggestions to {{ login }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_person_path.html" with active="person_suggestions" %}
+<div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+  <h1 class="h3 mb-0">{% blocktranslate %}Suggestions to {{ login }}{% endblocktranslate %}</h1>
+  {% if badge %}<a href="{% url 'reply_badge_share' scope.text login %}{{ scope.query }}" title="{% translate "The badge to copy" %}" data-person-badge><img src="{{ badge }}" alt="{% blocktranslate %}Suggestions to {{ login }}{% endblocktranslate %}"></a>{% else %}{% include "community/_mini_badge.html" with label=login %}{% endif %}
+</div>
+{% include "community/_suggestion_intro.html" %}
+{% include "community/_suggestion_filter.html" %}
+{% include "community/_suggestion_groups.html" %}
+{% endblock %}

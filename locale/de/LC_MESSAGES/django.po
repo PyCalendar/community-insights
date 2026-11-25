@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: community-insights\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 17:50+0000\n"
+"POT-Creation-Date: 2026-11-25 18:36+0000\n"
 "PO-Revision-Date: 2026-10-27 10:00+0000\n"
 "Last-Translator: Claude Opus 5.5 <noreply@anthropic.com>\n"
 "Language-Team: German\n"
@@ -644,6 +644,9 @@ msgstr "Autor"
 msgid "Responded"
 msgstr "Beantwortet"
 
+msgid "Suggestions addressed"
+msgstr "Vorschläge umgesetzt"
+
 msgid "no response"
 msgstr "keine Antwort"
 
@@ -850,6 +853,10 @@ msgid "Cancel"
 msgstr "Abbrechen"
 
 #, python-format
+msgid "%(applied)s applied, %(open)s open, %(unknown)s unknown"
+msgstr "%(applied)s umgesetzt, %(open)s offen, %(unknown)s unklar"
+
+#, python-format
 msgid "Pages of %(login)s"
 msgstr "Seiten von %(login)s"
 
@@ -1023,6 +1030,95 @@ msgstr "Filtern, oder owner/name oder owner eingeben"
 
 msgid "Add"
 msgstr "Hinzufügen"
+
+msgid "by"
+msgstr "von"
+
+msgid "Pull request"
+msgstr "Pull Request"
+
+msgid "When"
+msgstr "Wann"
+
+msgid "Author of the pull request"
+msgstr "Autor*in des Pull Requests"
+
+msgid "Suggested by"
+msgstr "Vorgeschlagen von"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Last in the thread"
+msgstr "Zuletzt im Thread"
+
+msgid "author"
+msgstr "Autor*in"
+
+msgid "suggester"
+msgstr "Vorschlagende*r"
+
+msgid "Pages of pull requests"
+msgstr "Seiten der Pull Requests"
+
+msgid "previous"
+msgstr "zurück"
+
+#, python-format
+msgid "page %(number)s of %(count)s"
+msgstr "Seite %(number)s von %(count)s"
+
+msgid "next"
+msgstr "weiter"
+
+msgid "No suggestions to show in this time."
+msgstr "In dieser Zeit gibt es keine Vorschläge zu zeigen."
+
+msgid ""
+"A <strong>suggestion</strong> is a review comment with suggested code. It is"
+" <strong>applied</strong> when it was committed from GitHub, when a reply "
+"names a commit, or when the suggester resolved it; <strong>unknown</strong> "
+"when somebody else resolved it or it was answered with another suggestion; "
+"<strong>open</strong> otherwise."
+msgstr ""
+"Ein <strong>Vorschlag</strong> ist ein Review-Kommentar mit vorgeschlagenem "
+"Code. Er ist <strong>umgesetzt</strong>, wenn er von GitHub aus committet "
+"wurde, wenn eine Antwort einen Commit nennt oder wenn die vorschlagende "
+"Person ihn aufgelöst hat; <strong>unklar</strong>, wenn jemand anderes ihn "
+"aufgelöst hat oder er mit einem anderen Vorschlag beantwortet wurde; sonst "
+"<strong>offen</strong>."
+
+msgid "How the suggestions are found"
+msgstr "Wie die Vorschläge gefunden werden"
+
+#, python-format
+msgid ""
+"In this time: %(applied)s/%(total)s applied, %(open)s open, %(unknown)s "
+"unknown."
+msgstr ""
+"In dieser Zeit: %(applied)s/%(total)s umgesetzt, %(open)s offen, %(unknown)s"
+" unklar."
+
+msgid "committed from GitHub"
+msgstr "von GitHub aus committet"
+
+msgid "a reply names a commit"
+msgstr "eine Antwort nennt einen Commit"
+
+msgid "resolved by the suggester"
+msgstr "von der vorschlagenden Person aufgelöst"
+
+msgid "resolved by somebody else"
+msgstr "von jemand anderem aufgelöst"
+
+msgid "answered with another suggestion"
+msgstr "mit einem anderen Vorschlag beantwortet"
+
+msgid "applied"
+msgstr "umgesetzt"
+
+msgid "unknown"
+msgstr "unklar"
 
 #, python-format
 msgid "Public uses: %(count)s"
@@ -1913,9 +2009,6 @@ msgstr "Nichts wartet."
 msgid "Finished"
 msgstr "Beendet"
 
-msgid "Status"
-msgstr "Status"
-
 msgid "Started for"
 msgstr "Gestartet für"
 
@@ -2486,9 +2579,6 @@ msgstr ""
 "%(answered)s von %(total)s Pull Requests mit Rückmeldung wurden beantwortet;"
 " %(merged)s gemergt."
 
-msgid "Pull request"
-msgstr "Pull Request"
-
 msgid "Title"
 msgstr "Titel"
 
@@ -2522,6 +2612,10 @@ msgstr "nicht beantwortet"
 
 msgid "No pull requests in this time."
 msgstr "Keine Pull Requests in dieser Zeit."
+
+#, python-format
+msgid "Suggestions to %(login)s"
+msgstr "Vorschläge an %(login)s"
 
 #, python-format
 msgid "Signed in as <strong>%(name)s</strong>."
@@ -2587,6 +2681,20 @@ msgstr "Noch kein Token."
 
 msgid "Add, order, test and share tokens"
 msgstr "Tokens hinzufügen, ordnen, testen und teilen"
+
+#, python-format
+msgid "Suggestions of %(name)s#%(number)s"
+msgstr "Vorschläge von %(name)s#%(number)s"
+
+#, python-format
+msgid "Suggestions of PR #%(number)s"
+msgstr "Vorschläge von PR #%(number)s"
+
+msgid "All suggestions"
+msgstr "Alle Vorschläge"
+
+msgid "The badge of this pull request, for Markdown:"
+msgstr "Das Badge dieses Pull Requests, für Markdown:"
 
 #, python-format
 msgid "Replies of contributors to %(title)s"
@@ -2689,6 +2797,10 @@ msgid "Badge of %(login)s"
 msgstr "Badge von %(login)s"
 
 #, python-format
+msgid "Badges of %(login)s"
+msgstr "Badges von %(login)s"
+
+#, python-format
 msgid ""
 "Green: every comment and review on the pull requests of %(login)s was "
 "answered. Yellow: the only pull request was not answered. Red: some were not"
@@ -2780,6 +2892,24 @@ msgid ""
 msgstr ""
 "<a href=\"%(login_url)s?next=%(next)s\">Melde Dich an</a>, damit auch Deine "
 "eigenen Tokens es aktualisieren."
+
+msgid "Badge of suggestions"
+msgstr "Badge der Vorschläge"
+
+#, python-format
+msgid ""
+"How many code suggestions on the pull requests of %(login)s were applied. "
+"Green: all of them. Red: at least one is open. Yellow: the others are "
+"applied or unknown. The badge links to <a href=\"%(page)s\">the suggestions "
+"to %(login)s</a>."
+msgstr ""
+"Wie viele Code-Vorschläge zu den Pull Requests von %(login)s umgesetzt "
+"wurden. Grün: alle. Rot: mindestens einer ist offen. Gelb: die anderen sind "
+"umgesetzt oder unklar. Das Badge verlinkt <a href=\"%(page)s\">die "
+"Vorschläge an %(login)s</a>."
+
+msgid "What the colours mean"
+msgstr "Was die Farben bedeuten"
 
 msgid ""
 "These projects together have no public repository and no badge: open one "
@@ -3026,6 +3156,10 @@ msgstr ""
 
 msgid "Back to the page of the chart"
 msgstr "Zurück zur Seite des Diagramms"
+
+#, python-format
+msgid "Suggestions of %(title)s"
+msgstr "Vorschläge von %(title)s"
 
 #, python-format
 msgid "Trends of %(title)s"
@@ -3426,6 +3560,9 @@ msgstr "Sprachen"
 
 msgid "Pull requests and issues"
 msgstr "Pull-Requests und Issues"
+
+msgid "Suggestions"
+msgstr "Vorschläge"
 
 msgid "Badges"
 msgstr "Badges"

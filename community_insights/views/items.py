@@ -21,7 +21,7 @@ def items(request, scope):
     """
     scope = scope_of(request, scope)
     found = ItemFilter(request.GET, queryset=items_in(scope.repositories, scope.since, scope.until))
-    table = ItemTable(found.keep(items_with_responses(found.qs, scope.classifier())))
+    table = ItemTable(found.keep(items_with_responses(found.qs, scope.classifier())), scope=scope)
     # django-tables2 takes the options of the paginator; its type hints say only bool
     RequestConfig(request, paginate={"per_page": 50}).configure(table)  # pyright: ignore[reportArgumentType]
     return stats_page(

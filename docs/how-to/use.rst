@@ -31,6 +31,7 @@ The drop-down at the top of every page of a project, and the menu of its card on
 - **Response times**: how long pull requests and issues waited for their first response.
 - **Trends**: whether more or fewer issues and pull requests are opened and closed, with the contributions and the new contributors, next to the time before, and whether the contributions really grow.
 - **Reviews**: how many reviews the pull requests got, by collaborators and by others, of which kind, whether that changes, and how many reviews came before a merge.
+- **Suggestions**: which code suggestions of reviews were applied to the pull requests, which are open and which are unknown, with a badge for each pull request and each person.
 - **Countries**: a map of the world with the countries of the contributors.
 - **Languages**: which languages the contributors likely speak, from their countries.
 - **Contributors**: everybody who contributed, chosen and sorted with a query.

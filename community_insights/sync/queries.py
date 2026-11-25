@@ -7,6 +7,10 @@ INNER = 50  # comments and reviews of an item in the same request
 MORE = 100  # comments or reviews in a request for the rest
 COMMITS = 10  # the last commits of a pull request: whether its author changed it after feedback
 DETAILS = 50  # pull requests in one request for their commits and closers
+THREADS = 10  # pull requests in one request for their review threads and suggestions
+THREADS_EACH = 50  # review threads of a pull request read
+THREAD_COMMENTS = 20  # comments of a review thread read
+APPLY_COMMITS = 100  # the last commits of a pull request: which applied suggestions
 FIELDS = {Item.PR: "pullRequests", Item.ISSUE: "issues"}
 
 
@@ -119,4 +123,28 @@ def details_query() -> str:
     return (
         "query($ids: [ID!]!) { nodes(ids: $ids) { ... on PullRequest { id isDraft "
         f"{PR_MORE} {approvals} }} }} }}"
+    )
+
+
+def threads_query() -> str:
+    """The review threads of pull requests with their comments, and the last commits.
+
+    The comments with a code suggestion and whether the thread was resolved, and the commits
+    that applied suggestions (``sync.suggestions``).
+
+    Returns:
+        The query, with the variable ``ids``: the node ids of the pull requests.
+    """
+    comments = (
+        f"comments(first: {THREAD_COMMENTS}) {{ nodes {{ databaseId body url createdAt "
+        "outdated path author { login } } }"
+    )
+    commits = (
+        f"commits(last: {APPLY_COMMITS}) {{ nodes {{ commit {{ committedDate messageHeadline "
+        "authors(first: 5) { nodes { user { login } } } } } }"
+    )
+    return (
+        "query($ids: [ID!]!) { nodes(ids: $ids) { ... on PullRequest { id "
+        f"reviewThreads(first: {THREADS_EACH}) {{ nodes {{ isResolved resolvedBy {{ login }} "
+        f"{comments} }} }} {commits} }} }} }}"
     )

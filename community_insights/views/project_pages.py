@@ -14,6 +14,7 @@ PROJECT_PAGES = [
     ("items", _("Pull requests and issues")),
     ("replies", _("Replies")),
     ("reviews", _("Reviews")),
+    ("suggestions", _("Suggestions")),
     ("badges", _("Badges")),
     ("compare", _("Compare repositories")),
 ]
@@ -23,6 +24,7 @@ PERSON_PAGES = [
     ("person", _("Contributions")),
     ("person_replies", _("Replies")),
     ("person_items", _("Pull requests and issues")),
+    ("person_suggestions", _("Suggestions")),
     ("reply_badge_share", _("Badges")),
 ]
 

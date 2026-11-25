@@ -1,0 +1,1 @@
+{% load i18n %}{# The name of a status of a suggestion ("status"), as a coloured label. #}<span class="badge suggestion-{{ status }}">{% if status == "applied" %}{% translate "applied" %}{% elif status == "open" %}{% translate "open" %}{% else %}{% translate "unknown" %}{% endif %}</span>

@@ -3,7 +3,7 @@
 {% block title %}{% blocktranslate %}Badge of {{ login }}{% endblocktranslate %}{% endblock %}
 {% block content %}
 {% include "community/_person_path.html" with active="reply_badge_share" %}
-<h1 class="h3">{% blocktranslate %}Badge of {{ login }}{% endblocktranslate %}{% if name %} <small class="text-muted">{{ name }}</small>{% endif %}</h1>
+<h1 class="h3">{% blocktranslate %}Badges of {{ login }}{% endblocktranslate %}{% if name %} <small class="text-muted">{{ name }}</small>{% endif %}</h1>
 <p class="small text-muted">{% blocktranslate %}Green: every comment and review on the pull requests of {{ login }} was answered. Yellow: the only pull request was not answered. Red: some were not answered. The badge links to <a href="{{ page }}">the replies of {{ login }}</a>. When it is opened, it reads what changed on GitHub first, a few seconds at most.{% endblocktranslate %} <a href="{{ links.documentation }}reference/badges.html#reply-badge-{{ status }}">{% translate "What the colour of this badge means" %}</a> · <a href="{{ links.documentation }}reference/badges.html#reply-badges">{% translate "All badges of replies" %}</a> {% translate "Browsers and the image proxy of GitHub keep each badge for one hour: a README shows a change at most an hour later." %}</p>
 {% include "community/_reply_options.html" %}
 {% if image %}
@@ -33,6 +33,13 @@
   <img src="{{ preview }}" alt="{{ alt }}">
   {% include "community/_share_code.html" with prefix="reply" %}
 </div></div>
+{% with b=suggestions %}{% if b.image %}<h2 class="h5 mt-4" id="suggestion-badge">{% translate "Badge of suggestions" %}</h2>
+<p class="small text-muted">{% blocktranslate %}How many code suggestions on the pull requests of {{ login }} were applied. Green: all of them. Red: at least one is open. Yellow: the others are applied or unknown. The badge links to <a href="{{ page }}">the suggestions to {{ login }}</a>.{% endblocktranslate %} <a href="{{ links.documentation }}explanation/suggestions.html#badges">{% translate "What the colours mean" %}</a></p>
+<div class="card" data-suggestion-badge><div class="card-body" data-share-image="{{ b.image }}" data-share-link="{{ b.page }}" data-share-alt="{{ b.alt }}">
+  <img src="{{ b.preview }}" alt="{{ b.alt }}">
+  {% include "community/_share_code.html" with prefix="suggestion" %}
+  <p class="small mt-2 mb-0">JSON: <code>{{ b.json_url }}</code></p>
+</div></div>{% endif %}{% endwith %}
 <script src="{% static 'js/share.js' %}" defer></script>
 {% else %}
 <div class="alert alert-warning" role="alert">{% translate "These projects together have no public repository and no badge: open one project to get its badge." %}</div>

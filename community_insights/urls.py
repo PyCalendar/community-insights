@@ -28,6 +28,7 @@ from .views import (
     replies,
     reviews,
     statistics,
+    suggestions,
     users,
 )
 
@@ -90,12 +91,25 @@ urlpatterns = [
     path("s/<str:scope>/compare/", compare.compare, name="compare"),
     path("s/<str:scope>/people/<str:login>/", statistics.person, name="person"),
     path("s/<str:scope>/people/<str:login>/items/", replies.person_items, name="person_items"),
+    path(
+        "s/<str:scope>/people/<str:login>/suggestions/",
+        suggestions.person_suggestions,
+        name="person_suggestions",
+    ),
+    path("s/<str:scope>/suggestions/", suggestions.suggestions, name="suggestions"),
+    path(
+        "s/<str:scope>/suggestions/<str:repository>/<int:number>/",
+        suggestions.pull_suggestions,
+        name="pull_suggestions",
+    ),
     path("s/<str:scope>/replies/", replies.replies, name="replies"),
     path("s/<str:scope>/replies/<str:login>/", replies.person_replies, name="person_replies"),
+    # the badges of a person: replies and suggestions; before, only the badge of replies
+    path("s/<str:scope>/badges/<str:login>/", replies.reply_badge_share, name="reply_badge_share"),
     path(
         "s/<str:scope>/replies/<str:login>/badge/",
-        replies.reply_badge_share,
-        name="reply_badge_share",
+        RedirectView.as_view(pattern_name="reply_badge_share", query_string=True, permanent=True),
+        name="reply_badge_share_before",
     ),
     path("s/<str:scope>/chart/<str:name>.svg", charts.chart, name="chart"),
     path("s/<str:scope>/chart/<str:name>.json", charts.chart_json, name="chart_json"),
@@ -122,6 +136,26 @@ urlpatterns = [
         name="public_reply_badge_as",
     ),
     path("badge/<str:token>/replies/<str:login>.svg", replies.reply_badge, name="reply_badge"),
+    path(
+        "badge/s/<str:scope>/suggestions/<str:login>.<str:extension>",
+        suggestions.public_suggestion_badge,
+        name="public_suggestion_badge",
+    ),
+    path(
+        "badge/<str:token>/suggestions/<str:login>.<str:extension>",
+        suggestions.suggestion_badge,
+        name="suggestion_badge",
+    ),
+    path(
+        "badge/s/<str:scope>/pull/<str:repository>/<int:number>/suggestions.<str:extension>",
+        suggestions.public_pull_suggestion_badge,
+        name="public_pull_suggestion_badge",
+    ),
+    path(
+        "badge/<str:token>/pull/<str:repository>/<int:number>/suggestions.<str:extension>",
+        suggestions.pull_suggestion_badge,
+        name="pull_suggestion_badge",
+    ),
     path(
         "badge/<str:token>/replies/<str:login>.<str:extension>",
         replies.reply_badge,

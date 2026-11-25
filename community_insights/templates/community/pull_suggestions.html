@@ -1,0 +1,15 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with name=item.repository.full_name number=item.number %}Suggestions of {{ name }}#{{ number }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="suggestions" %}
+<div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+  <h1 class="h4 mb-0"><a href="https://github.com/{{ item.repository.full_name }}/pull/{{ item.number }}">{{ item.repository.full_name }}#{{ item.number }}</a> {{ item.title }}</h1>
+  {% if badge %}<img src="{{ badge }}" alt="{% blocktranslate with number=item.number %}Suggestions of PR #{{ number }}{% endblocktranslate %}" data-pull-badge>{% else %}{% include "community/_mini_badge.html" with summary=pull_summary label=item.number|pr_label %}{% endif %}
+</div>
+<p class="small">{% translate "Author" %}: <a href="{% url 'person_suggestions' scope.text item.author %}{{ scope.query }}">{{ item.author }}</a> · <a href="{% url 'suggestions' scope.text %}{{ scope.query }}">{% translate "All suggestions" %}</a></p>
+{% if badge %}<p class="small text-muted" data-badge-code>{% translate "The badge of this pull request, for Markdown:" %} <code>[![{{ item.number|pr_label }}]({{ request.scheme }}://{{ request.get_host }}{{ badge }})]({{ request.scheme }}://{{ request.get_host }}{{ request.get_full_path }})</code></p>{% endif %}
+{% include "community/_suggestion_intro.html" %}
+{% include "community/_suggestion_filter.html" %}
+{% include "community/_suggestion_groups.html" with open_all=True %}
+{% endblock %}

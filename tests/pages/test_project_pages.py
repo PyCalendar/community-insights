@@ -29,9 +29,9 @@ def addresses(page: str) -> set[str]:
 
 def test_the_pages_of_a_project_are_one_list():
     """Overview, response times, trends, contributors, countries, languages, pull requests and
-    issues, replies, reviews, badges."""
+    issues, replies, reviews, suggestions, badges."""
     names = [name for name, _ in PROJECT_PAGES]
-    assert names[:10] == [
+    assert names[:11] == [
         "overview",
         "response_times",
         "trends",
@@ -41,9 +41,10 @@ def test_the_pages_of_a_project_are_one_list():
         "items",
         "replies",
         "reviews",
+        "suggestions",
         "badges",
     ]
-    assert [n for n, _, _ in project_pages("o~r", "?last=30", several=False)] == names[:10]
+    assert [n for n, _, _ in project_pages("o~r", "?last=30", several=False)] == names[:11]
     assert project_pages("o~r", "?last=30")[1][2] == "/s/o~r/response-times/?last=30"
     assert [n for n, _, _ in person_pages("o~r", "bob")] == [n for n, _ in PERSON_PAGES]
 

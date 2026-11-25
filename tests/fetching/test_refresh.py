@@ -147,7 +147,7 @@ def test_badges_wait_shorter_and_are_kept_an_hour(replied, client, monkeypatch, 
     response = client.get("/badge/s/o~r/replies/cid.svg")
     assert waited == [4]
     assert response["Cache-Control"] == "public, max-age=3600"
-    page = client.get("/s/o~r/replies/cid/badge/").content.decode()
+    page = client.get("/s/o~r/badges/cid/").content.decode()
     assert "keep each badge for one hour" in page
 
 

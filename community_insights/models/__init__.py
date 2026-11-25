@@ -22,6 +22,7 @@ from .profile import Profile
 from .project import Project
 from .repository import Repository
 from .saved_query import SavedQuery
+from .suggestion import Suggestion
 from .token_grant import TokenGrant
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "Project",
     "Repository",
     "SavedQuery",
+    "Suggestion",
     "TokenGrant",
 ]

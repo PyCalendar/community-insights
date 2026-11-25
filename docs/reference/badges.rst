@@ -96,6 +96,29 @@ The JSON of the badge has the row of the table of replies: ``pull_requests``, ``
 
 Before it answers, a badge of replies reads what changed on GitHub if the repositories were read longer ago than ``AUTO_FETCH_AFTER_MINUTES``, waiting at most ``AUTO_FETCH_BADGE_TIMEOUT`` seconds, 4 by default (see :doc:`configuration`): GitHub shows the images of a README through its image proxy, which waits only a few seconds. A badge of a project reads with the tokens of its owner; a badge of public repositories with the tokens allowed for its badges and the points shared for everybody (see :ref:`public-uses`). Browsers and the image proxy keep each badge for an hour, so a README shows a new colour at most an hour later.
 
+.. _suggestion-badge-addresses:
+
+Badges of suggestions
+=====================
+
+Each person and each pull request has a badge of the code suggestions on it: see :ref:`suggestion-badges` for its colours.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Badge
+     - Address
+   * - suggestions to a person, public repositories
+     - ``/badge/s/<scope>/suggestions/<login>.svg``
+   * - suggestions to a person, a project
+     - ``/badge/<token>/suggestions/<login>.svg``
+   * - suggestions of a pull request, public repositories
+     - ``/badge/s/<scope>/pull/<owner>~<name>/<number>/suggestions.svg``
+   * - suggestions of a pull request, a project
+     - ``/badge/<token>/pull/<owner>~<name>/<number>/suggestions.svg``
+
+Each is also ``.png`` and ``.json``; the JSON has ``applied``, ``open``, ``unknown``, ``total`` and ``status``. The page of the badges of a person (``/s/<scope>/badges/<login>/``) shows the badge of replies and the badge of suggestions with their code; its old address ``/s/<scope>/replies/<login>/badge/`` leads there.
+
 The examples above are made by the site itself: ``uv run python manage.py reply_badge_examples`` writes them again after a change of the badges; a test checks that they are up to date.
 
 Share a chart

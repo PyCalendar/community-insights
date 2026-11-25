@@ -75,3 +75,10 @@ path = ["static/maps/world.svg", "static/maps/NATURAL-EARTH.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "Natural Earth (Tom Patterson, Nathaniel Vaughn Kelso and contributors)"
 SPDX-License-Identifier = "LicenseRef-NaturalEarth"
+
+# The mark of GitHub in front of links to GitHub: "mark-github" of Octicons (https://github.com/primer/octicons)
+[[annotations]]
+path = "static/img/github-mark.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "GitHub Inc."
+SPDX-License-Identifier = "MIT"

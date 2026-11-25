@@ -60,6 +60,7 @@ class AnonymousSource:
 
     replaces_events = False
     reads_details = False  # the commits and closers of pull requests need a token
+    reads_threads = False  # the review threads and their suggestions need a token
 
     def __init__(self, client):
         """Read repositories without a token, with the REST API of GitHub.

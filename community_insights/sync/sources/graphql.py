@@ -8,6 +8,7 @@ from ..queries import (
     details_query,
     list_query,
     more_query,
+    threads_query,
 )
 
 
@@ -30,6 +31,7 @@ class GraphQLSource:
 
     replaces_events = True  # an item comes with all its comments and reviews
     reads_details = True  # the commits and closers of pull requests read before
+    reads_threads = True  # the review threads with the suggestions
 
     def __init__(self, client):
         """Read repositories with GraphQL and tokens.
@@ -143,6 +145,18 @@ class GraphQLSource:
             The pull requests as GitHub answers them; None for one it no longer has.
         """
         answer = await self.query(details_query(), ids=ids)
+        return answer["nodes"]
+
+    async def threads(self, ids: list[str]) -> list[dict | None]:
+        """The review threads and the last commits of pull requests, for their suggestions.
+
+        Args:
+            ids: The node ids of the pull requests, at most ``queries.THREADS``.
+
+        Returns:
+            The pull requests as GitHub answers them; None for one it no longer has.
+        """
+        answer = await self.query(threads_query(), ids=ids)
         return answer["nodes"]
 
     async def people(self, logins: list[str]) -> dict:

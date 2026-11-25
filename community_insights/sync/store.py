@@ -10,10 +10,11 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from ..models import Commit, Event, Item, ItemCommit, Person, Repository
+from ..models import Commit, Event, Item, ItemCommit, Person, Repository, Suggestion
 from .events import closer, commits, is_bot
 
 logger = logging.getLogger(__name__)
@@ -129,6 +130,56 @@ def without_details(repository: Repository) -> list[str]:
         .order_by("-created_at")
         .values_list("node_id", flat=True)
     )
+
+
+def without_threads(repository: Repository) -> list[str]:
+    """The pull requests whose review threads were not read since they changed, by node ids.
+
+    Only those with a review by somebody: a suggestion is a review comment.
+
+    Args:
+        repository: The repository.
+
+    Returns:
+        The node ids, newest change first.
+    """
+    reviewed = Event.objects.filter(item__repository=repository, kind=Event.REVIEW).values("item")
+    return list(
+        Item.objects.filter(repository=repository, kind=Item.PR, pk__in=reviewed)
+        .filter(Q(threads_updated_at__isnull=True) | ~Q(threads_updated_at=F("updated_at")))
+        .exclude(node_id="")
+        .order_by("-updated_at")
+        .values_list("node_id", flat=True)
+    )
+
+
+@transaction.atomic
+def save_threads(repository: Repository, nodes: list[dict | None]) -> int:
+    """Store the suggestions of pull requests whose review threads were read.
+
+    Args:
+        repository: The repository.
+        nodes: The pull requests as GitHub answered them; None for one it no longer has.
+
+    Returns:
+        How many suggestions were stored.
+    """
+    from .suggestions import suggestions_of
+
+    stored = 0
+    for data in nodes:
+        if not data:
+            continue
+        item = Item.objects.filter(repository=repository, node_id=data["id"]).first()
+        if item is None:
+            continue
+        item.suggestions.all().delete()
+        found = suggestions_of(data, item.author)
+        Suggestion.objects.bulk_create([Suggestion(item=item, **row) for row in found])
+        stored += len(found)
+        item.threads_updated_at = item.updated_at
+        item.save(update_fields=["threads_updated_at"])
+    return stored
 
 
 @transaction.atomic

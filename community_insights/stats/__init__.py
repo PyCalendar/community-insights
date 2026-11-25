@@ -17,6 +17,7 @@ from .kind_trend import KindTrend, kind_trend
 from .language_share import LanguageShare, language_shares
 from .models import MODELS, model_percentile, times_of
 from .pull_reply import PullReply
+from .pull_suggestions import PullSuggestions, pull_suggestions, summarize_suggestions
 from .replies import (
     SORT_KEYS,
     commits_unread,
@@ -48,6 +49,7 @@ from .responses import (
 from .review_numbers import ReviewNumbers, review_numbers
 from .review_series import review_series
 from .selection import events_in, items_in
+from .suggestion_summary import SuggestionSummary
 from .survival import quantile, survival
 from .trend import Trend, trend
 
@@ -87,6 +89,10 @@ __all__ = [
     "ContributorReplies",
     "commits_unread",
     "PullReply",
+    "PullSuggestions",
+    "pull_suggestions",
+    "summarize_suggestions",
+    "SuggestionSummary",
     "pull_order",
     "pull_replies",
     "replies_of",

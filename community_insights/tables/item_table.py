@@ -1,6 +1,9 @@
 import django_tables2 as tables
+from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Item
@@ -19,12 +22,49 @@ class ItemTable(tables.Table):
     response = tables.Column(
         verbose_name="First response", empty_values=(), attrs={"td": {"class": "text-end"}}
     )
+    suggestions = tables.Column(
+        verbose_name=_("Suggestions addressed"), empty_values=(), orderable=False
+    )
 
     class Meta:
         model = Item
-        fields = ["number", "state", "author", "created_at", "response"]
+        fields = ["number", "state", "author", "created_at", "response", "suggestions"]
         order_by = "-created_at"
         attrs = {"class": "table table-sm table-hover align-middle"}
+
+    def __init__(self, *args, scope=None, **kwargs):
+        """The table of a scope, whose pages of suggestions the badges link.
+
+        Args:
+            *args: The arguments of django-tables2: the rows.
+            scope: The scope of the page (``views.scope.Scope``), None without links.
+            **kwargs: The other arguments of django-tables2.
+        """
+        super().__init__(*args, **kwargs)
+        self.scope = scope
+
+    def render_suggestions(self, record):
+        """The badge of the suggestions of a pull request, linked to them; "-" for none.
+
+        Args:
+            record: The item, with ``suggestion_summary``.
+
+        Returns:
+            The badge.
+        """
+        summary = getattr(record, "suggestion_summary", None)
+        if record.kind != Item.PR or summary is None or not summary.total:
+            return "-"
+        badge = render_to_string(
+            "community/_mini_badge.html", {"summary": summary, "label": f"PR #{record.number}"}
+        )
+        if self.scope is None:
+            return badge
+        address = reverse(
+            "pull_suggestions",
+            args=[self.scope.text, record.repository.full_name.replace("/", "~"), record.number],
+        )
+        return format_html('<a href="{}{}">{}</a>', address, self.scope.query, mark_safe(badge))  # noqa: S308 - our template
 
     def render_number(self, record):
         """owner/name#number, linked to GitHub, with its kind.

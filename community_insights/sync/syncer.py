@@ -6,7 +6,7 @@ from asgiref.sync import sync_to_async
 from ..errors import AllTokensUsedUp, FetchLimitReached
 from ..models import Item, Repository
 from . import events, store
-from .queries import DETAILS
+from .queries import DETAILS, THREADS
 from .sources import GraphQLSource
 
 PEOPLE_BATCH = 30
@@ -215,4 +215,22 @@ class Syncer:
         missing = reads_details and await sync_to_async(store.without_details)(repository)
         if missing:  # read before their commits and closers were read: all a page needs
             found += "; " + await self.sync_details(repository, count=False)
+        if getattr(self.source, "reads_threads", False):
+            found += "; " + await self.sync_threads(repository)
         return found
+
+    async def sync_threads(self, repository: Repository) -> str:
+        """Read the review threads of the pull requests that changed: their suggestions.
+
+        Args:
+            repository: The repository.
+
+        Returns:
+            How many pull requests were read and how many suggestions they have.
+        """
+        ids = await sync_to_async(store.without_threads)(repository)
+        suggestions = 0
+        for start in range(0, len(ids), THREADS):
+            nodes = await self.source.threads(ids[start : start + THREADS])
+            suggestions += await sync_to_async(store.save_threads)(repository, nodes)
+        return f"suggestions of {len(ids)} pull requests read: {suggestions}"

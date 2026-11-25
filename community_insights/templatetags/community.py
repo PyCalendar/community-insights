@@ -159,6 +159,40 @@ def share_formats() -> list[tuple[str, str]]:
     ]
 
 
+@register.filter
+def tilde(full_name: str) -> str:
+    """A repository as a part of an address of this site: ``owner~name``.
+
+    Args:
+        full_name: ``owner/name``.
+
+    Returns:
+        ``owner~name``.
+
+    Examples:
+        >>> tilde("collective/icalendar")
+        'collective~icalendar'
+    """
+    return str(full_name).replace("/", "~")
+
+
+@register.filter
+def pr_label(number) -> str:
+    """The left side of the badge of a pull request.
+
+    Args:
+        number: The number of the pull request.
+
+    Returns:
+        Such as ``PR #12``.
+
+    Examples:
+        >>> pr_label(12)
+        'PR #12'
+    """
+    return f"PR #{number}"
+
+
 @register.simple_tag
 def parameters_without(request, *names) -> list[tuple[str, str]]:
     """The parameters of the address of a page but some, for the hidden fields of a form.

@@ -1,0 +1,9 @@
+{% extends "community/base.html" %}
+{% load community i18n %}
+{% block title %}{% blocktranslate with title=scope.title %}Suggestions of {{ title }}{% endblocktranslate %}{% endblock %}
+{% block content %}
+{% include "community/_scope_nav.html" with active="suggestions" %}
+{% include "community/_suggestion_intro.html" %}
+{% include "community/_suggestion_filter.html" %}
+{% include "community/_suggestion_groups.html" %}
+{% endblock %}

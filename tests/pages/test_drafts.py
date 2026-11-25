@@ -77,7 +77,7 @@ def test_the_person_page_counts_open_drafts_apart(draft, client):
 def test_the_badge_follows_the_choice(draft, client):
     """The badge page links the badge with drafts=1; the badge counts them then."""
     login = draft.author
-    page = text(client, f"/s/o~r/replies/{login}/badge/?drafts=1")
+    page = text(client, f"/s/o~r/badges/{login}/?drafts=1")
     assert f"/badge/s/o~r/replies/{login}.svg?drafts=1" in page
     without = json.loads(client.get(f"/badge/s/o~r/replies/{login}.json").content)
     including = json.loads(client.get(f"/badge/s/o~r/replies/{login}.json?drafts=1").content)

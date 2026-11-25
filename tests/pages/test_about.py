@@ -94,6 +94,7 @@ def test_reused_code_is_read_from_reuse_toml():
         "static/vendor/htmx",
         "static/img/favicon.png",
         "static/maps/world.svg",
+        "static/img/github-mark.svg",
     }
     root = Path(licenses.__file__).parent.parent
     for entry in found:

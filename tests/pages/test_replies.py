@@ -140,7 +140,7 @@ def test_the_items_of_one_person(replied, signed_in):
 def test_the_badge_page_has_the_code_to_copy(replied, signed_in):
     """The badge of a project has its secret token and links the page of replies."""
     project = replied["project"]
-    page = page_of(signed_in.get(f"/s/{project.pk}/replies/cid/badge/"))
+    page = page_of(signed_in.get(f"/s/{project.pk}/badges/cid/"))
     image = f"http://testserver/badge/{project.badge_token}/replies/cid.svg"
     assert f'data-share-image="{image}"' in page
     assert 'data-share-link="http://testserver/s/o~r/replies/cid/' in page, "to the replies of cid"
@@ -150,7 +150,7 @@ def test_the_badge_page_has_the_code_to_copy(replied, signed_in):
 
 def test_the_badge_page_of_public_repositories(replied, client):
     """Visitors get the public address of the badge."""
-    page = page_of(client.get("/s/o~r/replies/ben/badge/"))
+    page = page_of(client.get("/s/o~r/badges/ben/"))
     assert 'data-share-image="http://testserver/badge/s/o~r/replies/ben.svg"' in page
 
 
@@ -187,11 +187,11 @@ def test_several_projects_share_their_public_repositories(replied, signed_in):
 
     other = ProjectFactory(user=replied["user"], target="o", repositories=[replied["repository"]])
     scope = f"{replied['project'].pk}-{other.pk}"
-    page = page_of(signed_in.get(f"/s/{scope}/replies/cid/badge/"))
+    page = page_of(signed_in.get(f"/s/{scope}/badges/cid/"))
     assert 'data-share-image="http://testserver/badge/s/o~r/replies/cid.svg"' in page
     replied["repository"].is_private = True
     replied["repository"].save()
-    page = page_of(signed_in.get(f"/s/{scope}/replies/cid/badge/"))
+    page = page_of(signed_in.get(f"/s/{scope}/badges/cid/"))
     assert "These projects together have no public repository and no badge" in page
     assert "data-share-image" not in page
 
@@ -210,7 +210,7 @@ def test_the_badge_page_names_the_person(replied, client):
     from community_insights.models import Person
 
     Person.objects.update_or_create(login="ben", defaults={"name": "Ben Example"})
-    page = page_of(client.get("/s/o~r/replies/ben/badge/"))
+    page = page_of(client.get("/s/o~r/badges/ben/"))
     assert "Badge of ben" in page and "Ben Example" in page
 
 
@@ -222,7 +222,7 @@ def test_the_replies_of_one_person(replied, client):
     assert table.index("o/r#4") < table.index("o/r#6") < table.index("o/r#5")
     assert "Item 4" in table, "the title"
     assert "1 of 2 pull requests with feedback were replied to; 0 merged." in page
-    assert 'href="/s/o~r/replies/cid/badge/?commits=1"' in page, "the badge leads to its code"
+    assert 'href="/s/o~r/badges/cid/?commits=1"' in page, "the badge leads to its code"
     assert '<img src="/badge/s/o~r/replies/cid.svg?commits=1"' in page
     assert ">Update</button>" in page
 
@@ -240,7 +240,13 @@ def test_the_path_of_the_replies_of_a_person(replied, client):
     page = page_of(client.get("/s/o~r/replies/ben/"))
     path = page[page.index('class="breadcrumb') : page.index("</ol>")]
     assert 'href="/s/o~r/"' in path
-    for view in ("people/ben/", "replies/ben/", "people/ben/items/", "replies/ben/badge/"):
+    for view in (
+        "people/ben/",
+        "replies/ben/",
+        "people/ben/items/",
+        "people/ben/suggestions/",
+        "badges/ben/",
+    ):
         assert f'href="/s/o~r/{view}"' in path
     assert 'aria-current="page" href="/s/o~r/replies/ben/">Replies</a>' in path
     assert 'aria-current="page">ben</li>' in path
@@ -310,9 +316,9 @@ def test_the_order_field_moves_keys_with_arrows(replied, client):
 
 def test_visitors_learn_which_tokens_update_a_public_badge(replied, client):
     """Not signed in: the shared tokens, and a sign in to add one's own."""
-    page = page_of(client.get("/s/o~r/replies/cid/badge/"))
+    page = page_of(client.get("/s/o~r/badges/cid/"))
     assert "The tokens shared on this site for everybody update the badge" in page
-    assert 'href="/accounts/login/?next=/s/o~r/replies/cid/badge/">Sign in</a>' in page
+    assert 'href="/accounts/login/?next=/s/o~r/badges/cid/">Sign in</a>' in page
     assert 'name="which"' not in page
 
 
@@ -323,7 +329,7 @@ def test_allow_a_token_for_a_badge_on_its_page(replied, signed_in):
     from ..factories import AccessTokenFactory
 
     token = AccessTokenFactory(user=replied["user"], label="mine", shared_percent=0)
-    url = "/s/o~r/replies/cid/badge/"
+    url = "/s/o~r/badges/cid/"
     signed_in.post(url, {"id": token.pk, "which": "badge", "percent": "20"})
     signed_in.post(url, {"id": token.pk, "which": "all", "percent": "5"})
     grants = TokenGrant.objects.filter(token=token).order_by("login")
@@ -334,7 +340,7 @@ def test_allow_a_token_for_a_badge_on_its_page(replied, signed_in):
     page = page_of(signed_in.get(url))
     assert "Your tokens update it, too:" in page
     assert "mine: all badges of o/r" in page and "mine: the badge of cid" in page
-    other = page_of(signed_in.get("/s/o~r/replies/ben/badge/"))
+    other = page_of(signed_in.get("/s/o~r/badges/ben/"))
     assert "mine: all badges of o/r" in other and "the badge of cid" not in other
 
 
@@ -343,7 +349,7 @@ def test_only_own_tokens_can_be_allowed(replied, signed_in):
     from ..factories import AccessTokenFactory
 
     theirs = AccessTokenFactory(shared_percent=0)
-    response = signed_in.post("/s/o~r/replies/cid/badge/", {"id": theirs.pk, "which": "all"})
+    response = signed_in.post("/s/o~r/badges/cid/", {"id": theirs.pk, "which": "all"})
     assert response.status_code == 404
     assert not theirs.grants.exists()
 
@@ -404,11 +410,11 @@ def test_unknown_formats_of_badges(replied, client):
 
 def test_the_badge_page_switches_formats_and_links_the_json(replied, client):
     """SVG by default; PNG on choice; the JSON is linked."""
-    page = page_of(client.get("/s/o~r/replies/cid/badge/"))
+    page = page_of(client.get("/s/o~r/badges/cid/"))
     assert '<img src="/badge/s/o~r/replies/cid.svg"' in page
     assert 'href="http://testserver/badge/s/o~r/replies/cid.json"' in page
     assert 'href="?format=png"' in page
-    png = page_of(client.get("/s/o~r/replies/cid/badge/?format=png"))
+    png = page_of(client.get("/s/o~r/badges/cid/?format=png"))
     assert '<img src="/badge/s/o~r/replies/cid.png"' in png
     assert 'data-share-image="http://testserver/badge/s/o~r/replies/cid.png"' in png
 
@@ -418,7 +424,7 @@ def test_the_badge_page_switches_formats_and_links_the_json(replied, client):
 )
 def test_the_badge_page_links_the_description_of_its_colour(replied, client, login, status):
     """The documentation explains each colour, also grey for somebody not on the page."""
-    page = page_of(client.get(f"/s/o~r/replies/{login}/badge/?commits=1"))
+    page = page_of(client.get(f"/s/o~r/badges/{login}/?commits=1"))
     assert f"reference/badges.html#reply-badge-{status}" in page
     assert "reference/badges.html#reply-badges" in page
 

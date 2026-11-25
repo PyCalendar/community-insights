@@ -1,0 +1,4 @@
+{% load i18n %}{# What a suggestion is and what its statuses mean. #}
+<p class="small text-muted" data-suggestion-intro>{% blocktranslate %}A <strong>suggestion</strong> is a review comment with suggested code. It is <strong>applied</strong> when it was committed from GitHub, when a reply names a commit, or when the suggester resolved it; <strong>unknown</strong> when somebody else resolved it or it was answered with another suggestion; <strong>open</strong> otherwise.{% endblocktranslate %}
+<a href="{{ links.documentation }}explanation/suggestions.html" target="_blank" rel="noopener">{% translate "How the suggestions are found" %}</a>
+{% if summary.total %}{% blocktranslate with applied=summary.applied open=summary.open unknown=summary.unknown total=summary.total %}In this time: {{ applied }}/{{ total }} applied, {{ open }} open, {{ unknown }} unknown.{% endblocktranslate %}{% endif %}</p>

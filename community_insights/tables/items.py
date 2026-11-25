@@ -1,7 +1,8 @@
 from datetime import timedelta
 
-from ..models import Item
+from ..models import Item, Suggestion
 from ..stats.responses import bot_test, first_response, responses_to, waits
+from ..stats.suggestion_summary import SuggestionSummary
 
 
 def items_with_responses(items, classifier=None) -> list[Item]:
@@ -18,12 +19,18 @@ def items_with_responses(items, classifier=None) -> list[Item]:
 
     Returns:
         The items, each with ``first_response_at``, ``response`` (the time until then, None
-        without one) and ``waiting``.
+        without one), ``waiting`` and ``suggestion_summary`` (``stats.SuggestionSummary``).
     """
     is_bot = bot_test(classifier)
     found = responses_to(items)
     rows = list(items.select_related("repository"))
+    statuses: dict[int, list[str]] = {}
+    for pk, status in Suggestion.objects.filter(item__in=[r.pk for r in rows]).values_list(
+        "item", "status"
+    ):
+        statuses.setdefault(pk, []).append(status)
     for item in rows:
+        item.suggestion_summary = SuggestionSummary.of(statuses.get(item.pk, []))  # pyright: ignore[reportAttributeAccessIssue]
         first = first_response(found[item.pk], is_bot)
         item.first_response_at = first.at if first else None  # pyright: ignore[reportAttributeAccessIssue]
         item.response = timedelta(seconds=first.seconds) if first else None  # pyright: ignore[reportAttributeAccessIssue]

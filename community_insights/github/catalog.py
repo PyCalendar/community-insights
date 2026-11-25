@@ -35,6 +35,7 @@ def examples() -> dict[str, str]:
         "issues": sync_queries.list_query(Item.ISSUE),
         "commits": sync_queries.commits_query(),
         "commits and closers": sync_queries.details_query(),
+        "review threads and suggestions": sync_queries.threads_query(),
         "more comments": sync_queries.more_query("comments"),
         "more reviews": sync_queries.more_query("reviews"),
     }

@@ -44,9 +44,9 @@ def test_links_and_badges_carry_the_option(replied, client):
     """The links of the page keep commits=1; the badge of a person counts the same."""
     page = text(client, "/s/o~r/replies/?commits=1")
     assert re.search(r'href="/s/o~r/people/ann/\?commits=1"', page)
-    badge = text(client, "/s/o~r/replies/ann/badge/?commits=1")
+    badge = text(client, "/s/o~r/badges/ann/?commits=1")
     assert "/badge/s/o~r/replies/ann.svg?commits=1" in badge
-    both = text(client, "/s/o~r/replies/ann/badge/?drafts=1&commits=1")
+    both = text(client, "/s/o~r/badges/ann/?drafts=1&commits=1")
     assert "/badge/s/o~r/replies/ann.svg?drafts=1&amp;commits=1" in both
 
 

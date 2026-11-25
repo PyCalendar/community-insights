@@ -174,7 +174,12 @@ response times, who contributes how and when, verifiable numbers and badges.
 - [x] The browser tests timed out twice on the CI while signing up (waiting for the dashboard to load): the sign-up presses the button of the form and waits for the address only
 - [x] A commit is no reply, only a text comment (comment or review comment) is; the option "Commits count as a reply" (commits=1) on the page Replies, the pages of a person and the badges counts commits again (asked)
 - [x] Whenever a feature is finished, create a release (asked, remembered): release 0.4.0 with Trends, Countries, Languages, Reviews, drafts and commits options
-- [ ] Suggestions (asked): see the section below
+- [x] Suggestions (asked): a suggestion is a review comment with suggested code; applied (committed from GitHub: a later "Apply suggestion..." commit with the suggester and the lines outdated; or a reply names a commit; or resolved by the suggester, a decision of Claude), unknown (resolved by somebody else, or answered with another suggestion), open otherwise (sync/suggestions.py, model Suggestion, read with the review threads of reviewed pull requests that changed)
+- [x] Pages: /s/<scope>/suggestions/ (paged), /s/<scope>/people/<login>/suggestions/, /s/<scope>/suggestions/<owner~name>/<number>/; grouped by pull request (expandable), unknown, open, applied, then by number; filters for the statuses; the columns: pull request, when (how long ago), author of the pull request, suggester, status, last of author and suggester in the thread
+- [x] Badges of suggestions for each person and each pull request: "PR #12 | 3/5 suggestions applied"; green all applied, red one open, yellow otherwise; on /s/<scope>/badges/<login>/ next to the badge of replies (the old address redirects); the column "Suggestions addressed" of Pull requests and issues
+- [x] The drop-downs of the project and of a person have Suggestions
+- [x] Every link to GitHub has the mark of GitHub in front of it (CSS, Octicons mark-github, MIT)
+- [ ] The estimate of a fetch does not count the requests of the review threads yet
 - [x] Tell the person only when everything is finished, after the deploy, or when their input is needed (for this project, remembered); the sound is the Stop hook of ~/.claude/settings.json, so waiting happens inside one turn
 
 ## Badges

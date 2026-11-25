@@ -343,8 +343,39 @@ def reply_badge_share(request, scope, login):
             "image": request.build_absolute_uri(path) if path else None,
             "page": page,
             "alt": _("Replies of %(login)s") % {"login": login},
+            # the second badge of the page: the suggestions on the pull requests of the person
+            "suggestions": suggestion_badge_context(request, scope, login, image_format),
         },
     )
+
+
+def suggestion_badge_context(request, scope: Scope, login: str, image_format: str) -> dict:
+    """The badge of suggestions of a person for the page of the badges: its addresses.
+
+    Args:
+        request: The request.
+        scope: The scope of the page.
+        login: The author of the pull requests.
+        image_format: ``svg`` or ``png``.
+
+    Returns:
+        ``preview`` (its path), ``image``, ``json_url``, ``page`` (the suggestions of the
+        person), ``alt`` and ``summary``; without a badge address only the summary.
+    """
+    from .suggestions import suggestion_badge_path
+
+    path = suggestion_badge_path(scope, login=login, extension=image_format)
+    json_path = suggestion_badge_path(scope, login=login, extension="json")
+    return {
+        "preview": path,
+        "image": request.build_absolute_uri(path) if path else None,
+        "json_url": request.build_absolute_uri(json_path) if json_path else None,
+        "page": request.build_absolute_uri(
+            scope.shared(reverse("person_suggestions", args=[scope.text, login]))
+        ),
+        "alt": _("Suggestions to %(login)s") % {"login": login},
+        "summary": stats.summarize_suggestions(scope.repositories, author=login),
+    }
 
 
 @scope_view
@@ -366,7 +397,7 @@ def person_items(request, scope, login):
             author__iexact=login
         ),
     )
-    table = ItemTable(found.keep(items_with_responses(found.qs, scope.classifier())))
+    table = ItemTable(found.keep(items_with_responses(found.qs, scope.classifier())), scope=scope)
     # django-tables2 takes the options of the paginator; its type hints say only bool
     RequestConfig(request, paginate={"per_page": 50}).configure(table)  # pyright: ignore[reportArgumentType]
     return stats_page(

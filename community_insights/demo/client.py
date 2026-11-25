@@ -168,6 +168,61 @@ class DemoClient:
             found.append(item)
         return found
 
+    @staticmethod
+    def with_threads(item: dict | None) -> dict | None:
+        """A pull request with review threads: a suggestion of its reviewer, by its number.
+
+        The same number gives the same threads, without the random numbers of the other data:
+        every fourth one is applied (a reply names a commit), open, resolved by the author,
+        or has no suggestion.
+
+        Args:
+            item: The pull request as the demo made it; None for none.
+
+        Returns:
+            The pull request with ``reviewThreads``.
+        """
+        if item is None:
+            return None
+        reviews = (item.get("reviews") or {}).get("nodes") or []
+        author = (item.get("author") or {}).get("login", "")
+        if not reviews or item["number"] % 4 == 3:
+            return {**item, "reviewThreads": {"nodes": []}}
+        reviewer = reviews[0]["author"]["login"]
+        at = datetime.fromisoformat(reviews[0]["submittedAt"])
+        url = f"https://github.com/demo/community/pull/{item['number']}#discussion_r"
+        comments = [
+            {
+                "databaseId": item["number"] * 10,
+                "body": "Maybe like this?\n```suggestion\nreturn value\n```",
+                "url": f"{url}{item['number'] * 10}",
+                "createdAt": at.isoformat(),
+                "outdated": False,
+                "path": "src/demo.py",
+                "author": {"login": reviewer},
+            }
+        ]
+        kind = item["number"] % 4
+        if kind == 0:
+            comments.append(
+                {
+                    "databaseId": item["number"] * 10 + 1,
+                    "body": f"Done in {item['number']:04d}abc.",
+                    "url": f"{url}{item['number'] * 10 + 1}",
+                    "createdAt": (at + timedelta(hours=3)).isoformat(),
+                    "outdated": False,
+                    "path": "src/demo.py",
+                    "author": {"login": author},
+                }
+            )
+        resolved = kind == 2
+        thread = {
+            "isResolved": resolved,
+            "resolvedBy": {"login": author} if resolved else None,
+            "comments": {"nodes": comments},
+        }
+        return {**item, "reviewThreads": {"nodes": [thread]}}
+
     def make_commits(self, count: int) -> list[dict]:
         """Made up commits of the first people, newest first.
 
@@ -201,6 +256,9 @@ class DemoClient:
             The data, as GitHub answers it.
         """
         self.requests += 1
+        if "nodes(ids: $ids)" in query:  # the details and the review threads
+            known = {i["id"]: i for i in self.items["pullRequests"]}
+            return {"nodes": [self.with_threads(known.get(i)) for i in variables["ids"]]}
         if "history(first: 100" in query:
             history = {
                 "totalCount": len(self.commits),

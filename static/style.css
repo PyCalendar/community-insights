@@ -202,3 +202,25 @@ code.snippet { word-break: break-all; }
 .heat-legend .place-swatch { background: var(--map-city); border: 1px solid #fff; outline: 1px solid var(--border); border-radius: 50%; }
 .chosen-city th, .chosen-city td { background: var(--surface-tint) !important; }
 .chosen-city th { border-left: .25rem solid var(--accent); }
+
+/* every link to GitHub has the mark of GitHub in front of it (Octicons, MIT) */
+a[href^="https://github.com"]::before {
+  content: ""; display: inline-block; width: 1em; height: 1em; margin-right: .25em;
+  vertical-align: -.125em; background-color: currentColor;
+  -webkit-mask: url("img/github-mark.svg") no-repeat center / contain;
+  mask: url("img/github-mark.svg") no-repeat center / contain;
+}
+a[href^="https://github.com"].no-github-mark::before { content: none; }
+
+/* a badge of suggestions in HTML, as the SVG badges look (views/suggestions.py) */
+.mini-badge { display: inline-flex; font-size: .75rem; line-height: 1.5; border-radius: .2rem; overflow: hidden; white-space: nowrap; vertical-align: middle; }
+.mini-badge-label { background: #555; color: #fff; padding: 0 .4rem; }
+.mini-badge-message { color: #fff; padding: 0 .4rem; }
+.mini-badge-green { background: #2da44e; }
+.mini-badge-yellow { background: #bf8700; }
+.mini-badge-red { background: #cf222e; }
+.mini-badge-grey { background: #9f9f9f; }
+.badge.suggestion-applied { background-color: #2da44e; color: #fff; }
+.badge.suggestion-open { background-color: #cf222e; color: #fff; }
+.badge.suggestion-unknown { background-color: #bf8700; color: #fff; }
+.suggestion-group > summary { cursor: pointer; padding: .25rem 0; }
