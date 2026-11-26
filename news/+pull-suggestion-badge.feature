@@ -1,1 +1,0 @@
-The badge of the suggestions of a pull request reads *suggestions | 3/5*. With ``?number=1`` it starts with the number of the pull request, *PR #12 suggestions | 3/5*, chosen with a checkbox on the page of the pull request.

@@ -8,6 +8,21 @@ Changes are collected as small files in `news/ <https://github.com/PyCalendar/co
 
 .. towncrier release notes start
 
+0.6.0 (2026-11-26)
+------------------
+
+New features
+~~~~~~~~~~~~
+
+- A page of a project whose repositories are all public, such as ``/s/1/suggestions/``, leads to the same page at its public address, such as ``/s/collective~icalendar/suggestions/``, also for visitors who are not signed in; the dashboard links the public addresses.
+- All review threads, comments and commits of a pull request are read for its suggestions, no longer only the first ones; those read before are read again once with the next fetch. The estimate of a fetch counts these requests.
+- Every list of the site has the same pager: previous, a drop-down to jump to a page, and next.
+- The badge of a pull request has the same card as the other badges: SVG or PNG, the JSON, and the code for Markdown, reStructuredText, HTML and the address.
+- The badge of the suggestions of a pull request reads *suggestions | 3/5*. With ``?number=1`` it starts with the number of the pull request, *PR #12 suggestions | 3/5*, chosen with a checkbox on the page of the pull request.
+- The pages of suggestions show the newest suggestion first and filter by the state of the pull request: open, closed or merged, only open ones at first.
+- The tables of suggestions have a column *Resolved by* with the handle of who resolved the thread, and *Last in the thread* shows only the handle.
+
+
 0.5.0 (2026-11-25)
 ------------------
 

@@ -1,1 +1,0 @@
-All review threads, comments and commits of a pull request are read for its suggestions, no longer only the first ones; those read before are read again once with the next fetch. The estimate of a fetch counts these requests.

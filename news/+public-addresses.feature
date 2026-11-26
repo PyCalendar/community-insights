@@ -1,1 +1,0 @@
-A page of a project whose repositories are all public, such as ``/s/1/suggestions/``, leads to the same page at its public address, such as ``/s/collective~icalendar/suggestions/``, also for visitors who are not signed in; the dashboard links the public addresses.
